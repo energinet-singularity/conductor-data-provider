@@ -24,23 +24,7 @@ def test_dd20_cleaner():
                             'RESTRICTIVE_CABLE_LIMIT_40H': [800, 800, None, 900, None, None]}
 
         assert app.my_script.parse_dd20(file=dd20_filepath) == expected_dict
-
-    # CODE:
-    # mount file (later)
-    # init mapping from kv to voltage letter
-    # verify that sheet exists
-    # verift that columns exist
-    # verify that name is string, verify other types also?
-    # get list of all line names and make dict with mapping from DD20 to expected ETS name
-    # - trim inout to avoid spaces
-    # - build in error if not valid kv
-    # - build error if duplicata name
-
-    # for each item in list, get this from pandas:
-    # min of columns for restrictive component (remember parallel cables) - ignore values which are note number
-    # min of columns for dlr cable val (remember parallel cables)
-    # cable type for line (what if)
-    # combine in dataframe
+        
     assert True
 
 
