@@ -31,7 +31,7 @@ def test_dd20_cleaner():
         assert app.my_script.parse_dd20(file=dd20_filepath) == expected_dict
         
     assert True
-
+'''
 def test_mrid_map_dict():
     data = ''
     test_dict = {'d51269gh-25e0-4a11-b32e-bd0fba7af745': 'EEE-FFF-1',
@@ -50,7 +50,7 @@ def test_moat_ets_dd20_map_dict():
     test_dict2 = {'E_GGG-HHH': 'E_GGGV-HHH'}
 
     assert my_function2(data2) == test_dict2
-
+'''
 """
 def combine_conduct_info_to_pandas():
     # CODE:
