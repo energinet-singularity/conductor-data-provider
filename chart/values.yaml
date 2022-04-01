@@ -5,9 +5,9 @@ replicaCount: 1
 
 #TEMPLATE INFO: Remember to fix the below repo path and remove this comment
 image:
-  repository: ghcr.io/energinet-singularity/<repo-name>/energinet-singularity/<image-name>
+  repository: ghcr.io/energinet-singularity/conduck/energinet-singularity/conduck
   pullPolicy: IfNotPresent
-  tag: "0.0.2"
+  tag: "0.0.3"
 
 #Default settings not used in this setup
 imagePullSecrets: []
