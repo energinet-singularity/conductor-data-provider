@@ -1,19 +1,8 @@
-﻿terminal_name            far_near measurment_id                            segment_id                               dlr_enable
------------------------- -------- ---------------------------------------- ---------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-EEE-FFF-1	             N        66b4596e-asfv-tyuy-5478-bd208f26a445     d51269gh-25e0-4a11-b32e-bd0fba7af745     YES
-EEE-FFF-1                F        66b4596e-asfv-tyuy-5478-bd208f26a446     d51269gh-25e0-4a11-b32e-bd0fba7af745     YES
-EEE-FFF-2                N        66b4596e-asfv-tyuy-5478-bd208f26a447     d51269gh-25e0-4a11-b32e-bd0fba7af747     YES
-EEE-FFF-2	             F        66b4596e-asfv-tyuy-5478-bd208f26a448     d51269gh-25e0-4a11-b32e-bd0fba7af747     YES
-EEE-FFF-2	             N        66b4596e-asfv-tyuy-5478-bd208f26a449     d51269gh-25e0-4a11-b32e-bd0fba7af747     YES
-EEE-FFF-2	             F        66b4596e-asfv-tyuy-5478-bd208f26a450     d51269gh-25e0-4a11-b32e-bd0fba7af747     YES
-GGG-HHH		             N        66b4596e-asfv-tyuy-5478-bd208f26a451     d51269gh-25e0-4a11-b32e-bd0fba7af751     NO
-GGG-HHH		             F        66b4596e-asfv-tyuy-5478-bd208f26a452     d51269gh-25e0-4a11-b32e-bd0fba7af751     NO
-CCC-DDD		             N        66b4596e-asfv-tyuy-5478-bd208f26a455     d51269gh-25e0-4a11-b32e-bd0fba7af757     YES
-CCC-DDD		             F        66b4596e-asfv-tyuy-5478-bd208f26a456     d51269gh-25e0-4a11-b32e-bd0fba7af757     YES
-III-ÆØÅ		             N        66b4596e-asfv-tyuy-5478-bd208f26a457     d51269gh-25e0-4a11-b32e-bd0fba7af759     YES
-III-ÆØÅ	                 F        66b4596e-asfv-tyuy-5478-bd208f26a458     d51269gh-25e0-4a11-b32e-bd0fba7af759     YES
-ASK-ERS	                 N        66b4596e-asfv-tyuy-5478-bd208f26a459     d51269gh-25e0-4a11-b32e-bd0fba7af760     YES
-ASK-ERS	                 F        66b4596e-asfv-tyuy-5478-bd208f26a460     d51269gh-25e0-4a11-b32e-bd0fba7af760     YES
-
-(1093 row(s) affected)
-
+﻿ACLINESEGMENT_MRID,LINE_EMSNAME,DLR_ENABLED
+------------------,------------,-----------
+66b4596e-asfv-tyuy-5478-bd208f26a446,EEE-FFF-1,YES
+66b4596e-asfv-tyuy-5478-bd208f26a447,EEE-FFF-2,YES
+66b4596e-asfv-tyuy-5478-bd208f26a451,GGG-HHH,NO
+66b4596e-asfv-tyuy-5478-bd208f26a455,CCC-DDD,YES
+66b4596e-asfv-tyuy-5478-bd208f26a457,III-ÆØÅ,YES
+66b4596e-asfv-tyuy-5478-bd208f26a459,ASK-ERS,YES
