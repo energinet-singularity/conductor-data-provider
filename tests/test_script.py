@@ -1,12 +1,8 @@
-import pytest
+import pandas as pd
 import app
 import os
 
-# Needs to be checked to ensure test files are imported correct
-@pytest.fixture
-def valid_files():
-    return [os.path.abspath(os.path.join(dirpath, f)) for dirpath, _, filenames in
-            os.walk(f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/") for f in filenames]
+import app.my_script as code
 
 # Dummytest which will always succeed - must be replaced by real tests
 def test_dummy():
@@ -29,28 +25,43 @@ def test_dd20_cleaner():
                             'RESTRICTIVE_CABLE_LIMIT_40H': [800, 800, None, 900, None, None]}
 
         assert app.my_script.parse_dd20(file=dd20_filepath) == expected_dict
-        
+
     assert True
-'''
-def test_mrid_map_dict():
-    data = ''
-    test_dict = {'d51269gh-25e0-4a11-b32e-bd0fba7af745': 'EEE-FFF-1',
-                     'd51269gh-25e0-4a11-b32e-bd0fba7af747': 'EEE-FFF-2',
-                     'd51269gh-25e0-4a11-b32e-bd0fba7af751': 'GGG-HHH',
-                     'd51269gh-25e0-4a11-b32e-bd0fba7af757': 'CCC-DDD',
-                     'd51269gh-25e0-4a11-b32e-bd0fba7af759': 'III-ÆØÅ',
-                     'd51269gh-25e0-4a11-b32e-bd0fba7af760': 'ASK-ERS'
-                    }
-    assert my_function(data) == test_dict
 
 
-def test_moat_ets_dd20_map_dict():
+def test_define_dictonary_from_two_columns_in_a_dataframe():
 
-    data2 = ''
-    test_dict2 = {'E_GGG-HHH': 'E_GGGV-HHH'}
+    DLR_MRID_FILEPATH = f'{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DLR_MRID.csv'
+    MRID_KEY_NAME = 'terminal_name'
+    MRID_VALUE_NAME = 'segment_id'
 
-    assert my_function2(data2) == test_dict2
-'''
+    mrid_dataframe = code.parse_csv_file_to_dataframe(DLR_MRID_FILEPATH)
+    TEST_DICTONARY = {'EEE-FFF-1':    'd51269gh-25e0-4a11-b32e-bd0fba7af745',
+                      'EEE-FFF-2':    'd51269gh-25e0-4a11-b32e-bd0fba7af747',
+                      'GGG-HHH':      'd51269gh-25e0-4a11-b32e-bd0fba7af751',
+                      'CCC-DDD':      'd51269gh-25e0-4a11-b32e-bd0fba7af757',
+                      'III-ÆØÅ':      'd51269gh-25e0-4a11-b32e-bd0fba7af759',
+                      'ASK-ERS':      'd51269gh-25e0-4a11-b32e-bd0fba7af760'}
+
+    mrid_clean_dataframe = code.shaping_mrid_dataframe(mrid_dataframe)
+    assert code.define_dictonary_from_two_columns_in_a_dataframe(mrid_clean_dataframe,
+                                                                 MRID_KEY_NAME, MRID_VALUE_NAME) == TEST_DICTONARY
+
+
+def test_define_dictonary_from_two_columns_in_a_dataframe2():
+
+    LIMITS_NAME_FILEPATH = f'{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/Limits_other.xlsx'
+    DD20_DATASHEET_NAME = 'DD20Mapping'
+    DD20_KEY_NAME = 'DD20 Name'
+    DD20_VALUE_NAME = 'ETS Name'
+
+    dd20_dataframe = pd.read_excel(io=LIMITS_NAME_FILEPATH, sheet_name=DD20_DATASHEET_NAME)
+    TEST_DICTONARY = {'E_GGG-HHH': 'E_GGGV-HHH'}
+
+    assert code.define_dictonary_from_two_columns_in_a_dataframe(dd20_dataframe,
+                                                                 DD20_KEY_NAME, DD20_VALUE_NAME) == TEST_DICTONARY
+
+
 """
 def combine_conduct_info_to_pandas():
     # CODE:
