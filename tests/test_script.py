@@ -32,12 +32,12 @@ def test_define_dictonary_from_two_columns_in_a_dataframe():
     MRID_VALUE_NAME = 'ACLINESEGMENT_MRID'
 
     mrid_dataframe = code.parse_csv_file_to_dataframe(DLR_MRID_FILEPATH)
-    TEST_DICTONARY = {'EEE-FFF-1':    '66b4596e-asfv-tyuy-5478-bd208f26a446',
-                      'EEE-FFF-2':    '66b4596e-asfv-tyuy-5478-bd208f26a447',
-                      'GGG-HHH':      '66b4596e-asfv-tyuy-5478-bd208f26a451',
-                      'CCC-DDD':      '66b4596e-asfv-tyuy-5478-bd208f26a455',
-                      'III-ÆØÅ':      '66b4596e-asfv-tyuy-5478-bd208f26a457',
-                      'ASK-ERS':      '66b4596e-asfv-tyuy-5478-bd208f26a459'}
+    TEST_DICTONARY = {'E_EEE-FFF-1':    '66b4596e-asfv-tyuy-5478-bd208f26a446',
+                      'E_EEE-FFF-2':    '66b4596e-asfv-tyuy-5478-bd208f26a447',
+                      'E_GGG-HHH':      '66b4596e-asfv-tyuy-5478-bd208f26a451',
+                      'D_CCC-DDD':      '66b4596e-asfv-tyuy-5478-bd208f26a455',
+                      'C_III-ÆØÅ':      '66b4596e-asfv-tyuy-5478-bd208f26a457',
+                      'C_ASK-ERS':      '66b4596e-asfv-tyuy-5478-bd208f26a459'}
 
     assert code.define_dictonary_from_two_columns_in_a_dataframe(mrid_dataframe,
                                                                  MRID_KEY_NAME, MRID_VALUE_NAME) == TEST_DICTONARY
