@@ -19,8 +19,8 @@ def test_extract_conducter_data_from_dd20():
     dd20_filepath = f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM"
 
     dd20_dataframe = code.parse_excel_sheet_to_dataframe(file_path=dd20_filepath,
-                                                                  sheet_name='Stationsdata',
-                                                                  header_index=1)
+                                                         sheet_name='Stationsdata',
+                                                         header_index=1)
 
     resulting_dd20_dataframe = code.extract_conducter_data_from_dd20(dataframe=dd20_dataframe)
 
@@ -57,7 +57,6 @@ def test_define_dictonary_from_two_columns_in_a_dataframe2():
 
     assert code.define_dictonary_from_two_columns_in_a_dataframe(dd20_dataframe,
                                                                  DD20_KEY_NAME, DD20_VALUE_NAME) == TEST_DICTONARY
-
 
 
 """

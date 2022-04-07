@@ -44,6 +44,9 @@ def parse_csv_file_to_dataframe(file_path: str, header_index: int = 0) -> pd.Dat
         log.exception(f'Parsing data from: "{file_path}" failed with message: {e}.')
         raise
 
+    return dataframe
+
+
 def convert_voltage_level_to_letter(voltage_level: int) -> str:
     """Converts voltage level to voltage letter representation.
 
@@ -348,7 +351,7 @@ if __name__ == "__main__":
         print(conductor_data)
     except Exception as e:
         log.exception(f"Parsing DD20 failed with the message: '{e}'")
-    
+
     # Parsing data from MRID csv file
     mrid_dataframe = parse_csv_file_to_dataframe(DLR_MRID_FILEPATH)
 
@@ -368,4 +371,3 @@ if __name__ == "__main__":
 
     # Converting DD20 dataframe to a dictonary
     dd20_dictonary = define_dictonary_from_two_columns_in_a_dataframe(dd20_dataframe, DD20_KEY_NAME, DD20_VALUE_NAME)
-
