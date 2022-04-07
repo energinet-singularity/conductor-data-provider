@@ -22,7 +22,7 @@ def test_extract_conducter_data_from_dd20():
                                                                   sheet_name='Stationsdata',
                                                                   header_index=1)
 
-    resulting_dd20_dataframe = app.my_script.extract_conducter_data_from_dd20(dataframe=dd20_dataframe)
+    resulting_dd20_dataframe = code.extract_conducter_data_from_dd20(dataframe=dd20_dataframe)
 
     assert resulting_dd20_dataframe.equals(expected_dd20_dataframe)
 
