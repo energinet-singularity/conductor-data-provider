@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-import app.my_script as code
+import app.dd20_parser as code
 
 
 # TODO: add negative test with invalid data also
