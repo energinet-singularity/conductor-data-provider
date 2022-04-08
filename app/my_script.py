@@ -6,46 +6,6 @@ import pandas as pd
 # Initialize log
 log = logging.getLogger(__name__)
 
-# These constants need to be reevaluated if they should be taken out as enviroment variables
-# This will happen when the last of the code is written
-DLR_MRID_FILEPATH = os.path.dirname(__file__) + '/../tests/valid-testdata/DLR_MRID.csv'
-MRID_KEY_NAME = 'LINE_EMSNAME'
-MRID_VALUE_NAME = 'ACLINESEGMENT_MRID'
-MRID_EXPECTED_HEADER_NAMES = ['ACLINESEGMENT_MRID', 'LINE_EMSNAME', 'DLR_ENABLED']
-
-LIMITS_NAME_FILEPATH = os.path.dirname(__file__) + '/../tests/valid-testdata/Limits_other.xlsx'
-DD20_DATASHEET_NAME = 'DD20Mapping'
-DD20_KEY_NAME = 'DD20 Name'
-DD20_VALUE_NAME = 'ETS Name'
-DD20_EXPECTED_HEADER_NAMES = ['DD20 Name', 'ETS Name', 'Comment', 'User']
-
-
-def parse_csv_file_to_dataframe(file_path: str, header_index: int = 0) -> pd.DataFrame:
-    '''
-    Read CSV file and parse it to pandas dataframe.
-    Parameters
-    ----------
-    file_path: str
-        Full path of the excel file.
-    header_index: int
-        Index number for row to be used as header (Default = 0)
-    Returns
-    -------
-        pd.DataFrame
-            A dataframe containing the data from csv file.
-    '''
-    # Trying to read data from CSV file and convert it to a dataframe.
-    try:
-        dataframe = pd.read_csv(file_path, delimiter=',', on_bad_lines='skip',
-                                header=header_index)
-        dataframe.drop(dataframe.head(1).index, inplace=True)
-        log.info(f'CSV data in "{file_path}" was parsed to dataframe.')
-    except Exception as e:
-        log.exception(f'Parsing data from: "{file_path}" failed with message: {e}.')
-        raise
-
-    return dataframe
-
 
 def convert_voltage_level_to_letter(voltage_level: int) -> str:
     """Converts voltage level to voltage letter representation.
@@ -93,7 +53,34 @@ def convert_voltage_level_to_letter(voltage_level: int) -> str:
     return voltage_letter
 
 
-def parse_excel_sheet_to_dataframe(file_path: str, sheet_name: str, header_index: int = 0) -> pd.DataFrame:
+def parse_csv_file_to_dataframe(file_path: str, header_index: int = 0) -> pd.DataFrame:
+    '''
+    Read CSV file and parse it to pandas dataframe.
+    Parameters
+    ----------
+    file_path: str
+        Full path of the excel file.
+    header_index: int
+        Index number for row to be used as header (Default = 0)
+    Returns
+    -------
+        pd.DataFrame
+            A dataframe containing the data from csv file.
+    '''
+    # Trying to read data from CSV file and convert it to a dataframe.
+    try:
+        dataframe = pd.read_csv(file_path, delimiter=',', on_bad_lines='skip',
+                                header=header_index)
+        dataframe.drop(dataframe.head(1).index, inplace=True)
+        log.info(f'CSV data in "{file_path}" was parsed to dataframe.')
+    except Exception as e:
+        log.exception(f'Parsing data from: "{file_path}" failed with message: {e}.')
+        raise
+
+    return dataframe
+
+
+def parse_excel_sheets_to_dataframe_dict(file_path: str, sheets: list, header_index: list = None) -> dict:
     """Read sheet from excel file and parse it to pandas dataframe.
 
     Parameters
@@ -112,10 +99,10 @@ def parse_excel_sheet_to_dataframe(file_path: str, sheet_name: str, header_index
     """
     # try to read data from excel file to dataframe.
     try:
-        dataframe = pd.read_excel(io=file_path, sheet_name=sheet_name, header=header_index)
-        log.info(f"Excel data from sheet '{sheet_name}' in '{file_path}' was parsed to dataframe.")
+        dataframe = pd.read_excel(io=file_path, sheet_name=sheets, header=header_index)
+        log.info(f"Excel data from sheet(s): '{sheets}' in: '{file_path}' was parsed to dataframe.")
     except Exception as e:
-        log.exception(f"Parsing data from sheet: '{file_path}' in excel file: '{sheet_name}' failed with message: '{e}'.")
+        log.exception(f"Parsing data from sheet(s): '{sheets}' in excel file: '{file_path}' failed with message: '{e}'.")
         raise e
 
     return dataframe
@@ -197,12 +184,13 @@ def verify_dataframe_columns(dataframe: pd.DataFrame, expected_columns: list, al
                              f"'{expected_columns}'.")
 
 
-def extract_conducter_data_from_dd20(dataframe: pd.DataFrame) -> pd.DataFrame:
+def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_line: pd.DataFrame) -> pd.DataFrame:
     """Extract conductor data from DD20 dataframe and returns it to a dataframe.
     The source data is DD20, which has a non-standard format, why customized cleaning and extraction from it is needed.
 
     Arguments
     ----------
+    # TODO rewrite
     dataframe : pd.Dataframe
         Pandas dataframe containing DD20 data.
 
@@ -213,6 +201,7 @@ def extract_conducter_data_from_dd20(dataframe: pd.DataFrame) -> pd.DataFrame:
         - ACLINE_EMSNAME_EXPECTED (expected EMSNAME of ACLINE SCADA, derived from columns 'Spændingsniveau' and 'Linjenavn')
         - ACLINE_DD20_NAME (DD20 'Linjenavn')
         - CONDUCTER_TYPE (DD20 'Luftledertype')
+        - TODO: add the rest
         - RESTRICTIVE_COMPONENT_LIMIT (Most restrictive limit for components on line)
         - RESTRICTIVE_CABLE_LIMIT_CONTINUOUS (allowed continous loading of cable on line, if present.)
         - RESTRICTIVE_CABLE_LIMIT_15M (allowed 15 minutes loading of cable on line, if present.)
@@ -235,11 +224,11 @@ def extract_conducter_data_from_dd20(dataframe: pd.DataFrame) -> pd.DataFrame:
     # TODO: build error if duplicata name (also check types or rely on try-catch?)
     try:
         # Select only rows where line name are present, by removing rows with null value and rows not containing "-"
-        dataframe = dataframe[(dataframe[DD20_LINENAME_COL_NM].notna()) &
-                              (dataframe[DD20_LINENAME_COL_NM].str.contains("-"))]
+        dataframe_station = dataframe_station[(dataframe_station[DD20_LINENAME_COL_NM].notna()) &
+                              (dataframe_station[DD20_LINENAME_COL_NM].str.contains("-"))]
 
         # Filtered frame of unique line names by removing rows with '(N)'(parallel line representation in DD20).
-        dataframe_filtered = dataframe[~(dataframe[DD20_LINENAME_COL_NM].str.contains(r'\(N\)'))]
+        dataframe_filtered = dataframe_station[~(dataframe_station[DD20_LINENAME_COL_NM].str.contains(r'\(N\)'))]
 
         # Extract unique line names to list
         acline_dd20_names = dataframe_filtered[DD20_LINENAME_COL_NM].values.tolist()
@@ -253,28 +242,34 @@ def extract_conducter_data_from_dd20(dataframe: pd.DataFrame) -> pd.DataFrame:
                                      for kv_name, acline_dd20_name in zip(acline_kv_names, acline_dd20_names)]
 
         # make list of conductor type per line
-        conductor_type = [dataframe[dataframe[DD20_LINENAME_COL_NM] == line_name][DD20_CONDUCTOR_TYPE_COL_NM].values[0]
+        conductor_type = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM] == line_name][DD20_CONDUCTOR_TYPE_COL_NM].values[0]
                           for line_name in acline_dd20_names]
 
         # make list of restrictive component limit per line by taking minimum value of all component limits (min is called twice to take min of rows and columns)
-        restrictive_component_limits = [dataframe[dataframe[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_COLUMNS_COMPONENT_RESTICT].min(skipna=True).min(skipna=True)
+        restrictive_component_limits = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_COLUMNS_COMPONENT_RESTICT].min(skipna=True).min(skipna=True)
                                         for line_name in acline_dd20_names]
 
         # make lists of restrictive limits for cable (continuous, 15M, 1H and 40H)
-        restrictive_continious_cable_limits = [dataframe[dataframe[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_CONTINIOUS_COL_NM].min(skipna=True)
+        restrictive_continious_cable_limits = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_CONTINIOUS_COL_NM].min(skipna=True)
                                                for line_name in acline_dd20_names]
-        restrictive_15m_cable_limits = [dataframe[dataframe[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_15M_COL_NM].min(skipna=True)
+        restrictive_15m_cable_limits = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_15M_COL_NM].min(skipna=True)
                                         for line_name in acline_dd20_names]
-        restrictive_1h_cable_limits = [dataframe[dataframe[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_1H_COL_NM].min(skipna=True)
+        restrictive_1h_cable_limits = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_1H_COL_NM].min(skipna=True)
                                        for line_name in acline_dd20_names]
-        restrictive_40h_cable_limits = [dataframe[dataframe[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_40H_COL_NM].min(skipna=True)
+        restrictive_40h_cable_limits = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_40H_COL_NM].min(skipna=True)
                                         for line_name in acline_dd20_names]
 
         # combine data to dictionary and dataframe
+        # TODO: fill it with real data for component limits and count
         conductor_data_dict = {'ACLINE_EMSNAME_EXPECTED': acline_expected_ets_names,
                                'ACLINE_DD20_NAME': acline_dd20_names,
                                'CONDUCTER_TYPE': conductor_type,
-                               'RESTRICTIVE_COMPONENT_LIMIT': restrictive_component_limits,
+                               'CONDUCTER_COUNT': [1, 1, 2, 2, 1, 1],
+                               'SYSTEM_COUNT': [1, 2, 1, 1, 1, 1],
+                               'RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS': restrictive_component_limits,
+                               'RESTRICTIVE_COMPONENT_LIMIT_15M': [455, 455, 1111, 1222, 1333, 1444],
+                               'RESTRICTIVE_COMPONENT_LIMIT_1H': [455, 455, 1111, 1222, 1333, 1444],
+                               'RESTRICTIVE_COMPONENT_LIMIT_40H': [455, 455, 1111, 1222, 1333, 1444],
                                'RESTRICTIVE_CABLE_LIMIT_CONTINUOUS': restrictive_continious_cable_limits,
                                'RESTRICTIVE_CABLE_LIMIT_15M': restrictive_15m_cable_limits,
                                'RESTRICTIVE_CABLE_LIMIT_1H': restrictive_1h_cable_limits,
@@ -302,9 +297,10 @@ def parse_dd20() -> pd.DataFrame:
     # DD20 excel sheet naming and format
     DD20_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/"
     DD20_FILENAME = "DD20.XLSM"
-    DD20_DATASHEET_NAME = "Stationsdata"
-    DD20_HEADER_INDEX = 1
-
+    DD20_SHEET_STATIONSDATA = "Stationsdata"
+    DD20_HEADER_INDEX = [1]
+    DD20_SHEET_LINJEDATA = "Linjedata - Sommer"
+    
     # Expected columns in DD20 excel sheet
     DD20_EXPECTED_COLUMN_NAMES = ['Linjenavn', 'Spændingsniveau', 'Antal sys.', 'Stationstype', 'IT1', 'Unnamed: 5',
                                   'AF1', 'LA1', 'SA1', 'TR1', 'SK1', 'Unnamed: 11', 'SR1', 'Stationstype.1',
@@ -313,17 +309,20 @@ def parse_dd20() -> pd.DataFrame:
                                   '15 min', '1 time', '40 timer', 'Luftledertype']
 
     # parsing data from DD20
-    dd20_dataframe = parse_excel_sheet_to_dataframe(file_path=DD20_FILEPATH+DD20_FILENAME,
-                                                    sheet_name=DD20_DATASHEET_NAME,
+    dd20_dataframe_dict = parse_excel_sheets_to_dataframe_dict(file_path=DD20_FILEPATH+DD20_FILENAME,
+                                                    sheets=[DD20_SHEET_STATIONSDATA],
                                                     header_index=DD20_HEADER_INDEX)
 
+    # print(dd20_dataframe_dict)
+    print(dd20_dataframe_dict[DD20_SHEET_STATIONSDATA])
+
     # verifying columns on data from dd20
-    verify_dataframe_columns(dataframe=dd20_dataframe,
+    verify_dataframe_columns(dataframe=dd20_dataframe_dict[DD20_SHEET_STATIONSDATA],
                              expected_columns=DD20_EXPECTED_COLUMN_NAMES,
                              allow_extra_columns=True)
 
     # extracting data for each line
-    return extract_conducter_data_from_dd20(dataframe=dd20_dataframe)
+    return extract_conducter_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEET_STATIONSDATA], dataframe_line=None)
 
 
 def combine_list_and_dicts():
@@ -351,6 +350,20 @@ if __name__ == "__main__":
         print(conductor_data)
     except Exception as e:
         log.exception(f"Parsing DD20 failed with the message: '{e}'")
+        raise e
+
+    # These constants need to be reevaluated if they should be taken out as enviroment variables
+    # This will happen when the last of the code is written
+    DLR_MRID_FILEPATH = os.path.dirname(__file__) + '/../tests/valid-testdata/DLR_MRID.csv'
+    MRID_KEY_NAME = 'LINE_EMSNAME'
+    MRID_VALUE_NAME = 'ACLINESEGMENT_MRID'
+    MRID_EXPECTED_HEADER_NAMES = ['ACLINESEGMENT_MRID', 'LINE_EMSNAME', 'DLR_ENABLED']
+
+    LIMITS_NAME_FILEPATH = os.path.dirname(__file__) + '/../tests/valid-testdata/Limits_other.xlsx'
+    DD20MAP_SHEET = 'DD20Mapping'
+    DD20MAP_KEY_NAME = 'DD20 Name'
+    DD20MAP_VALUE_NAME = 'ETS Name'
+    DD20MAP_EXPECTED_HEADER_NAMES = ['DD20 Name', 'ETS Name', 'Comment', 'User']
 
     # Parsing data from MRID csv file
     mrid_dataframe = parse_csv_file_to_dataframe(DLR_MRID_FILEPATH)
@@ -363,11 +376,11 @@ if __name__ == "__main__":
     mrid_dictonary = define_dictonary_from_two_columns_in_a_dataframe(mrid_dataframe, MRID_KEY_NAME, MRID_VALUE_NAME)
 
     # Replace the following import with the correct import function
-    dd20_dataframe = pd.read_excel(io=LIMITS_NAME_FILEPATH, sheet_name=DD20_DATASHEET_NAME)
+    dd20_dataframe = pd.read_excel(io=LIMITS_NAME_FILEPATH, sheet_name=DD20MAP_SHEET)
 
     # Use the verify_dataframe_columns_naming from AWI part of the assignment before to dictonary function
     # Verifying columns on data from DD20 file
     # INSERT FUNCTION CALL HERE
 
     # Converting DD20 dataframe to a dictonary
-    dd20_dictonary = define_dictonary_from_two_columns_in_a_dataframe(dd20_dataframe, DD20_KEY_NAME, DD20_VALUE_NAME)
+    dd20_dictonary = define_dictonary_from_two_columns_in_a_dataframe(dd20_dataframe, DD20MAP_KEY_NAME, DD20MAP_VALUE_NAME)
