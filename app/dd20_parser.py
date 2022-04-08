@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 import logging
 import pandas as pd
 
@@ -85,6 +86,7 @@ def parse_excel_sheets_to_dataframe_dict(file_path: str, sheets: list, header_in
 
     Parameters
     ----------
+    TODO rewrite
     file_path : str
         Full path of the excel file.
     sheet_name : str
@@ -208,30 +210,40 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
         - RESTRICTIVE_CABLE_LIMIT_1H (allowed 1 hour loading of cable on line, if present.)
         - RESTRICTIVE_CABLE_LIMIT_40H (allowed 40 hour loading of cable on line, if present.)
     """
-    # Columns in DD20 containing components restriction values
-    DD20_COLUMNS_COMPONENT_RESTICT = ['Unnamed: 5', 'AF1', 'LA1', 'SA1', 'TR1', 'Unnamed: 11',
-                                      'SR1', 'Unnamed: 15', 'AF2', 'LA2', 'SA2', 'TR2', 'Unnamed: 21', 'SR2']
 
-    # Columns in DD20 defined as constants, since data will be extracted from them
-    DD20_LINENAME_COL_NM = 'Linjenavn'
+    # Columns in DD20 (sheet 'Station') defined as constants, since data will be extracted from them
+    DD20_STATION_LINENAME_COL_NM = 'Linjenavn'
+    DD20_LINJEDATA_LINENAME_COL_NM = 'System'
     DD20_KV_COL_NM = 'Spændingsniveau'
-    DD20_CONDUCTOR_TYPE_COL_NM = 'Luftledertype'
-    DD20_CONTINIOUS_COL_NM = 'Kontinuer'
-    DD20_15M_COL_NM = '15 min'
-    DD20_1H_COL_NM = '1 time'
-    DD20_40H_COL_NM = '40 timer'
+    DD20_CONDUCTOR_TYPE_COL_NM = 'Ledning'
+    DD20_CONDUCTOR_COUNT_COL_NM = 'Antal fasetråde'
+    DD20_SYSTEM_COUNT_COL_NM = 'Antal systemer'
+    DD20_CABLE_CONTINIOUS_COL_NM = 'Kontinuer'
+    DD20_CABLE_15M_COL_NM = '15 min'
+    DD20_CABLE_1H_COL_NM = '1 time'
+    DD20_CABLE_40H_COL_NM = '40 timer'
+
+    # Columns in DD20 containing components restriction values (TODO remove)
+    """DD20_COLS_COMPONENT_RESTICT = ['Unnamed: 5', 'AF1', 'LA1', 'SA1', 'TR1', 'Unnamed: 11',
+                                      'SR1', 'Unnamed: 15', 'AF2', 'LA2', 'SA2', 'TR2', 'Unnamed: 21', 'SR2']"""
+    
+    # Columns index hardcoded for reading from DD20 sheet "Linjedata" since no uniquie headers exist
+    DD20_COMPONENT_CONTINIOUS_COL_INDEX = range(41, 55)
+    DD20_COMPONENT_15M_COL_INDEX = range(55, 69)
+    DD20_COMPONENT_1H_COL_INDEX = range(69, 83)
+    DD20_COMPONENT_40H_COL_INDEX = range(83, 97)
 
     # TODO: build error if duplicata name (also check types or rely on try-catch?)
     try:
         # Select only rows where line name are present, by removing rows with null value and rows not containing "-"
-        dataframe_station = dataframe_station[(dataframe_station[DD20_LINENAME_COL_NM].notna()) &
-                              (dataframe_station[DD20_LINENAME_COL_NM].str.contains("-"))]
+        dataframe_station = dataframe_station[(dataframe_station[DD20_STATION_LINENAME_COL_NM].notna()) &
+                              (dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains("-"))]
 
         # Filtered frame of unique line names by removing rows with '(N)'(parallel line representation in DD20).
-        dataframe_filtered = dataframe_station[~(dataframe_station[DD20_LINENAME_COL_NM].str.contains(r'\(N\)'))]
+        dataframe_filtered = dataframe_station[~(dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(r'\(N\)'))]
 
         # Extract unique line names to list
-        acline_dd20_names = dataframe_filtered[DD20_LINENAME_COL_NM].values.tolist()
+        acline_dd20_names = dataframe_filtered[DD20_STATION_LINENAME_COL_NM].values.tolist()
 
         # Extract kv level to letters list
         acline_kv_names = [convert_voltage_level_to_letter(voltage_level=kv)
@@ -242,34 +254,53 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
                                      for kv_name, acline_dd20_name in zip(acline_kv_names, acline_dd20_names)]
 
         # make list of conductor type per line
-        conductor_type = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM] == line_name][DD20_CONDUCTOR_TYPE_COL_NM].values[0]
+        conductor_type = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM] == line_name][DD20_CONDUCTOR_TYPE_COL_NM].values[0]
                           for line_name in acline_dd20_names]
+        
+        # make list of conductor count per line
+        conductor_count = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM] == line_name][DD20_CONDUCTOR_COUNT_COL_NM].values[0]
+                           for line_name in acline_dd20_names]
+
+        # make list of system count per line
+        system_count = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM] == line_name][DD20_SYSTEM_COUNT_COL_NM].values[0]
+                        for line_name in acline_dd20_names]
 
         # make list of restrictive component limit per line by taking minimum value of all component limits (min is called twice to take min of rows and columns)
-        restrictive_component_limits = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_COLUMNS_COMPONENT_RESTICT].min(skipna=True).min(skipna=True)
-                                        for line_name in acline_dd20_names]
+        """restrictive_component_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_COLS_COMPONENT_RESTICT].min(skipna=True).min(skipna=True)
+                                        for line_name in acline_dd20_names]"""
+
+        # restictive component limits for all durations
+        restrictive_continious_comp_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)].iloc[:, DD20_COMPONENT_CONTINIOUS_COL_INDEX].min(skipna=True).min(skipna=True)
+                                              for line_name in acline_dd20_names]
+        restrictive_15m_comp_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)].iloc[:, DD20_COMPONENT_15M_COL_INDEX].min(skipna=True).min(skipna=True)
+                                       for line_name in acline_dd20_names]
+        print(restrictive_15m_comp_limits)
+        restrictive_1h_comp_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)].iloc[:, DD20_COMPONENT_1H_COL_INDEX].min(skipna=True).min(skipna=True)
+                                      for line_name in acline_dd20_names]
+        restrictive_40h_comp_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)].iloc[:, DD20_COMPONENT_40H_COL_INDEX].min(skipna=True).min(skipna=True)
+                                       for line_name in acline_dd20_names]
 
         # make lists of restrictive limits for cable (continuous, 15M, 1H and 40H)
-        restrictive_continious_cable_limits = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_CONTINIOUS_COL_NM].min(skipna=True)
+        restrictive_continious_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_CONTINIOUS_COL_NM].min(skipna=True)
                                                for line_name in acline_dd20_names]
-        restrictive_15m_cable_limits = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_15M_COL_NM].min(skipna=True)
+        restrictive_15m_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_15M_COL_NM].min(skipna=True)
                                         for line_name in acline_dd20_names]
-        restrictive_1h_cable_limits = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_1H_COL_NM].min(skipna=True)
+        print(restrictive_15m_cable_limits)
+        restrictive_1h_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_1H_COL_NM].min(skipna=True)
                                        for line_name in acline_dd20_names]
-        restrictive_40h_cable_limits = [dataframe_station[dataframe_station[DD20_LINENAME_COL_NM].str.contains(line_name)][DD20_40H_COL_NM].min(skipna=True)
+        restrictive_40h_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_40H_COL_NM].min(skipna=True)
                                         for line_name in acline_dd20_names]
 
         # combine data to dictionary and dataframe
-        # TODO: fill it with real data for component limits and count
         conductor_data_dict = {'ACLINE_EMSNAME_EXPECTED': acline_expected_ets_names,
                                'ACLINE_DD20_NAME': acline_dd20_names,
                                'CONDUCTER_TYPE': conductor_type,
-                               'CONDUCTER_COUNT': [1, 1, 2, 2, 1, 1],
-                               'SYSTEM_COUNT': [1, 2, 1, 1, 1, 1],
-                               'RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS': restrictive_component_limits,
-                               'RESTRICTIVE_COMPONENT_LIMIT_15M': [455, 455, 1111, 1222, 1333, 1444],
-                               'RESTRICTIVE_COMPONENT_LIMIT_1H': [455, 455, 1111, 1222, 1333, 1444],
-                               'RESTRICTIVE_COMPONENT_LIMIT_40H': [455, 455, 1111, 1222, 1333, 1444],
+                               'CONDUCTER_COUNT': conductor_count,
+                               'SYSTEM_COUNT': system_count,
+                               'RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS': restrictive_continious_comp_limits,
+                               'RESTRICTIVE_COMPONENT_LIMIT_15M': restrictive_15m_comp_limits,
+                               'RESTRICTIVE_COMPONENT_LIMIT_1H': restrictive_1h_comp_limits,
+                               'RESTRICTIVE_COMPONENT_LIMIT_40H': restrictive_40h_comp_limits,
                                'RESTRICTIVE_CABLE_LIMIT_CONTINUOUS': restrictive_continious_cable_limits,
                                'RESTRICTIVE_CABLE_LIMIT_15M': restrictive_15m_cable_limits,
                                'RESTRICTIVE_CABLE_LIMIT_1H': restrictive_1h_cable_limits,
@@ -297,32 +328,34 @@ def parse_dd20() -> pd.DataFrame:
     # DD20 excel sheet naming and format
     DD20_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/"
     DD20_FILENAME = "DD20.XLSM"
-    DD20_SHEET_STATIONSDATA = "Stationsdata"
-    DD20_HEADER_INDEX = [1]
-    DD20_SHEET_LINJEDATA = "Linjedata - Sommer"
+    DD20_HEADER_INDEX = 1
+
+    # TEMP TEST HACK
+    DD20_FILEPATH = DD20_FILEPATH.replace('/app/','/tests/valid-testdata/')
+
+    DD20_SHEETNAME_STATIONSDATA = "Stationsdata"
+    DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
     
-    # Expected columns in DD20 excel sheet
-    DD20_EXPECTED_COLUMN_NAMES = ['Linjenavn', 'Spændingsniveau', 'Antal sys.', 'Stationstype', 'IT1', 'Unnamed: 5',
-                                  'AF1', 'LA1', 'SA1', 'TR1', 'SK1', 'Unnamed: 11', 'SR1', 'Stationstype.1',
-                                  'IT2', 'Unnamed: 15', 'AF2', 'LA2', 'SA2', 'TR2', 'SK2', 'Unnamed: 21',
-                                  'SR2', 'Dato', 'Kommentar', 'Unnamed: 25', 'Kabeltype', 'Kontinuer',
-                                  '15 min', '1 time', '40 timer', 'Luftledertype']
+    # Expected columns in DD20 excel sheet 'stationsdata'
+    DD20_EXPECTED_COLS_STATIONSDATA = ['Linjenavn', 'Spændingsniveau', 'Antal sys.', 'Stationstype', 'IT1', 'Unnamed: 5',
+                                          'AF1', 'LA1', 'SA1', 'TR1', 'SK1', 'Unnamed: 11', 'SR1', 'Stationstype.1',
+                                          'IT2', 'Unnamed: 15', 'AF2', 'LA2', 'SA2', 'TR2', 'SK2', 'Unnamed: 21',
+                                          'SR2', 'Dato', 'Kommentar', 'Unnamed: 25', 'Kabeltype', 'Kontinuer',
+                                          '15 min', '1 time', '40 timer', 'Ledning']
 
     # parsing data from DD20
     dd20_dataframe_dict = parse_excel_sheets_to_dataframe_dict(file_path=DD20_FILEPATH+DD20_FILENAME,
-                                                    sheets=[DD20_SHEET_STATIONSDATA],
-                                                    header_index=DD20_HEADER_INDEX)
-
-    # print(dd20_dataframe_dict)
-    print(dd20_dataframe_dict[DD20_SHEET_STATIONSDATA])
+                                                    sheets=[DD20_SHEETNAME_STATIONSDATA, DD20_SHEETNAME_LINJEDATA],
+                                                    header_index=[DD20_HEADER_INDEX])
 
     # verifying columns on data from dd20
-    verify_dataframe_columns(dataframe=dd20_dataframe_dict[DD20_SHEET_STATIONSDATA],
-                             expected_columns=DD20_EXPECTED_COLUMN_NAMES,
+    # TODO: also for linjedata and/or hash val of columns instead
+    verify_dataframe_columns(dataframe=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
+                             expected_columns=DD20_EXPECTED_COLS_STATIONSDATA,
                              allow_extra_columns=True)
 
     # extracting data for each line
-    return extract_conducter_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEET_STATIONSDATA], dataframe_line=None)
+    return extract_conducter_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA], dataframe_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
 
 
 def combine_list_and_dicts():

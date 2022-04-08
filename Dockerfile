@@ -18,4 +18,4 @@ USER localuser
 COPY app/* /app/
 
 # Run the application
-CMD ["python3", "-u", "/app/my_script.py"]
+CMD ["python3", "-u", "/app/dd20_parser.py"]
