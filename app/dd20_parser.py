@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-from re import X
 import pandas as pd
 
 # Initialize log
@@ -201,12 +200,12 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
     Returns
     -------
     dataframe : pd.Dataframe
-		Pandas dataframe, which will contain the following columns for each line in DD20:
+        Pandas dataframe, which will contain the following columns for each line in DD20:
         - ACLINE_EMSNAME_EXPECTED (expected EMSNAME of ACLINE SCADA, derived from columns 'Spændingsniveau' and 'Linjenavn')
         - ACLINE_DD20_NAME (DD20 'Linjenavn')
         - CONDUCTER_TYPE (DD20 'Luftledertype')
         - CONDUCTER_COUNT (DD20 'Antal fasetråde')
-		- SYSTEM_COUNT (DD20 'Antal systemer')
+        - SYSTEM_COUNT (DD20 'Antal systemer')
         - RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS (allowed continous loading of components on line.)
         - RESTRICTIVE_COMPONENT_LIMIT_15M (allowed 15 minutes loading of components on line.)
         - RESTRICTIVE_COMPONENT_LIMIT_1H (allowed 1 hour loading of components on line.)
@@ -338,7 +337,6 @@ def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
     DD20_EXPECTED_COLS_STATIONSDATA = ['Linjenavn', 'Spændingsniveau', 'Ledning', 'Antal fasetråde', 'Antal systemer',
                                        'Kontinuer', '15 min', '1 time', '40 timer']
 
-
     # parsing data from DD20
     dd20_dataframe_dict = parse_excel_sheets_to_dataframe_dict(file_path=DD20_FILEPATH+DD20_FILENAME,
                                                                sheets=[DD20_SHEETNAME_STATIONSDATA, DD20_SHEETNAME_LINJEDATA],
@@ -369,17 +367,17 @@ def extract_namemap_excelsheet_to_dict() -> dict:
     ACLINE_NAMEMAP_VALUE_NAME = 'ETS Name'
     ACLINE_NAMEMAP_EXPECTED_COLS = [ACLINE_NAMEMAP_KEY_NAME, ACLINE_NAMEMAP_VALUE_NAME]
 
+    #
+    acline_namemap_dataframe = parse_excel_sheets_to_dataframe_dict(file_path=ACLINE_NAMEMAP_FILEPATH,
+                                                                    sheets=[ACLINE_NAMEMAP_SHEET],
+                                                                    header_index=0)[ACLINE_NAMEMAP_SHEET]
+
     # verifying columns on data from mapping sheet
     verify_dataframe_columns(dataframe=acline_namemap_dataframe,
                              expected_columns=ACLINE_NAMEMAP_EXPECTED_COLS,
                              allow_extra_columns=True)
 
     #
-    acline_namemap_dataframe = parse_excel_sheets_to_dataframe_dict(file_path=ACLINE_NAMEMAP_FILEPATH,
-                                                                    sheets=[ACLINE_NAMEMAP_SHEET],
-                                                                    header_index=0)[ACLINE_NAMEMAP_SHEET]
-
-    # 
     return parse_dataframe_columns_to_dictionary(dataframe=acline_namemap_dataframe,
                                                  dict_key=ACLINE_NAMEMAP_KEY_NAME,
                                                  dict_value=ACLINE_NAMEMAP_VALUE_NAME)
@@ -388,9 +386,9 @@ def extract_namemap_excelsheet_to_dict() -> dict:
 def extract_lineseg_to_mrid_dataframe() -> pd.DataFrame:
     DLR_MRID_FILEPATH = os.path.dirname(__file__) + '/../tests/valid-testdata/seg_line_mrid.csv'
     # TODO verify expected columns
-        
+
     lineseg_to_mrid_dataframe = parse_csv_file_to_dataframe(DLR_MRID_FILEPATH)
-    
+
     MRIDMAP_EXPECTED_COLS = ['ACLINESEGMENT_MRID', LINE_EMSNAME_COL_NM, 'DLR_ENABLED']
 
     verify_dataframe_columns(dataframe=lineseg_to_mrid_dataframe,
@@ -417,7 +415,7 @@ def create_dlr_dataframe(conductor_dataframe: pd.DataFrame, dd20_to_scada_name: 
     # remove not used column
     conductor_dataframe = conductor_dataframe.drop(columns=['ACLINE_EMSNAME_EXPECTED'])
 
-    # Join two dataframes where emsname commen key    
+    # Join two dataframes where emsname commen key
     # TODO hvordan håndteres dem som ikke mappes (både fra dd20 og ets) - 2 lsit sammenligninger som giver warnings.
     dlr_dataframe = lineseg_to_mrid_dataframe.join(conductor_dataframe.set_index(LINE_EMSNAME_COL_NM), on=LINE_EMSNAME_COL_NM, how='inner')
 
@@ -429,7 +427,7 @@ def create_dlr_dataframe(conductor_dataframe: pd.DataFrame, dd20_to_scada_name: 
 
 
 def main():
-    
+
     # parsing data from dd20
     try:
         dd20_dataframe = extract_dd20_excelsheet_to_dataframe().copy()
@@ -451,7 +449,6 @@ def main():
     except Exception as e:
         log.exception(f"Parsing Namemap failed with the message: '{e}'")
         raise e
-    
 
     # TODO: Verify if data missing in columns where required
     try:
