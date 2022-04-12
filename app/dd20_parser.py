@@ -7,6 +7,9 @@ import pandas as pd
 # Initialize log
 log = logging.getLogger(__name__)
 
+# globally used constants
+LINE_EMSNAME_COL_NM = 'LINE_EMSNAME'
+
 
 def convert_voltage_level_to_letter(voltage_level: int) -> str:
     """Converts voltage level to voltage letter representation.
@@ -57,6 +60,7 @@ def convert_voltage_level_to_letter(voltage_level: int) -> str:
 def parse_csv_file_to_dataframe(file_path: str, header_index: int = 0) -> pd.DataFrame:
     '''
     Read CSV file and parse it to pandas dataframe.
+    Note. Line number 2 in the CSV file will be removed.
     Parameters
     ----------
     file_path: str
@@ -76,28 +80,28 @@ def parse_csv_file_to_dataframe(file_path: str, header_index: int = 0) -> pd.Dat
         log.info(f'CSV data from "{file_path}" was parsed to dataframe.')
     except Exception as e:
         log.exception(f'Parsing data from: "{file_path}" failed with message: {e}.')
-        raise
+        raise e
 
     return dataframe
 
 
-def parse_excel_sheets_to_dataframe_dict(file_path: str, sheets: list, header_index: list = None) -> dict:
-    """Read sheet from excel file and parse it to pandas dataframe.
+def parse_excel_sheets_to_dataframe_dict(file_path: str, sheets: list, header_index: int = 0) -> dict:
+    """Read sheets from excel file and parse them to a dictionary of pandas dataframes.
 
     Parameters
     ----------
-    TODO rewrite doc
     file_path : str
         Full path of the excel file.
-    sheet_name : str
-        Name of sheet in excel file.
+    sheets : str
+        List with names of sheets in excel.
     header_index : int
-        Index number for row to be used as header (Default = 0)
+        Index number for row to be used as header on sheets (Default = 0)
 
     Returns
     -------
-    pd.DataFrame
-        A dataframe containing the data from excel sheet.
+    dict
+        A dict og dataframes containing the data from excel sheet.
+        The dictionary key will be name of sheet.
     """
     # try to read data from excel file to dataframe.
     try:
@@ -110,10 +114,9 @@ def parse_excel_sheets_to_dataframe_dict(file_path: str, sheets: list, header_in
     return dataframe
 
 
-def define_dictonary_from_two_columns_in_a_dataframe(dataframe: pd.DataFrame, dict_key: str,
-                                                     dict_value: str) -> dict:
+def parse_dataframe_columns_to_dictionary(dataframe: pd.DataFrame, dict_key: str, dict_value: str) -> dict:
     '''
-    Read dataframe and parse it to dictonary.
+    Read two dataframe columns and parse them to a dictonary.
     Parameters
     ----------
     dataframe: pd.DataFrame
@@ -129,21 +132,19 @@ def define_dictonary_from_two_columns_in_a_dataframe(dataframe: pd.DataFrame, di
     '''
     # Checking the dictonary key and value to ensure that the user input is found in the dataframe.
     if dict_key not in dataframe:
-        log.exception(f'The column "{dict_key}" is not found in the dataframe, check "dict_key" input to the function.')
-        raise ValueError(f'The column "{dict_key}" is not found in the dataframe, check "dict_key" input to the function.')
+        raise ValueError(f'The column "{dict_key}" does not exist in the dataframe.')
 
     if dict_value not in dataframe:
-        log.exception(f'The column "{dict_value}" is not found in the dataframe, check "dict_value" input to the function.')
-        raise ValueError(f'The column "{dict_value}" is not found in the dataframe, check "dict_value" input to the function.')
+        raise ValueError(f'The column "{dict_value}" does not exist in the dataframe.')
 
     # Converting dataframe into a dictonary using user input to set key and value of the dictonary.
     try:
         dict_set = dataframe.set_index(dict_key).to_dict()[dict_value]
-        log.info(f'Dataframe was parsed to a dictonary with the key: "{dict_key}" and the value: "{dict_value}".')
+        log.info(f'Dataframe was parsed to a dictonary with key: "{dict_key}" and value: "{dict_value}".')
         log.debug(json.dumps(dict_set, indent=4, ensure_ascii=False))
 
     except Exception as e:
-        log.exception(f'Trying to create dictonary failed with message: {e}')
+        log.exception(f'Creating dictonary from dataframe columns "{dict_key}" and "{dict_value}" failed with message: {e}')
         raise
 
     return dict_set
@@ -187,23 +188,29 @@ def verify_dataframe_columns(dataframe: pd.DataFrame, expected_columns: list, al
 
 
 def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_line: pd.DataFrame) -> pd.DataFrame:
-    """Extract conductor data from DD20 dataframe and returns it to a dataframe.
+    """Extract conductor data from DD20 dataframes and returns it to one combined dataframe.
     The source data is DD20, which has a non-standard format, why customized cleaning and extraction from it is needed.
 
     Arguments
     ----------
-    # TODO rewrite
-    dataframe : pd.Dataframe
-        Pandas dataframe containing DD20 data.
+    dataframe_station : pd.Dataframe
+        Pandas dataframe containing DD20 data sheet with station data.
+    dataframe_line : pd.Dataframe
+        Pandas dataframe containing DD20 data sheet with line data.
 
     Returns
     -------
     dataframe : pd.Dataframe
-        Pandas dataframe, which will contain the following columns for each line in DD20:
+		Pandas dataframe, which will contain the following columns for each line in DD20:
         - ACLINE_EMSNAME_EXPECTED (expected EMSNAME of ACLINE SCADA, derived from columns 'Spændingsniveau' and 'Linjenavn')
         - ACLINE_DD20_NAME (DD20 'Linjenavn')
         - CONDUCTER_TYPE (DD20 'Luftledertype')
-        - TODO: add the rest
+        - CONDUCTER_COUNT (DD20 'Antal fasetråde')
+		- SYSTEM_COUNT (DD20 'Antal systemer')
+        - RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS (allowed continous loading of components on line.)
+        - RESTRICTIVE_COMPONENT_LIMIT_15M (allowed 15 minutes loading of components on line.)
+        - RESTRICTIVE_COMPONENT_LIMIT_1H (allowed 1 hour loading of components on line.)
+        - RESTRICTIVE_COMPONENT_LIMIT_40H (allowed 40 hour loading of components on line.)
         - RESTRICTIVE_COMPONENT_LIMIT (Most restrictive limit for components on line)
         - RESTRICTIVE_CABLE_LIMIT_CONTINUOUS (allowed continous loading of cable on line, if present.)
         - RESTRICTIVE_CABLE_LIMIT_15M (allowed 15 minutes loading of cable on line, if present.)
@@ -213,7 +220,6 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
 
     # Columns in DD20 (sheet 'Station') defined as constants, since data will be extracted from them
     DD20_STATION_LINENAME_COL_NM = 'Linjenavn'
-    DD20_LINJEDATA_LINENAME_COL_NM = 'System'
     DD20_KV_COL_NM = 'Spændingsniveau'
     DD20_CONDUCTOR_TYPE_COL_NM = 'Ledning'
     DD20_CONDUCTOR_COUNT_COL_NM = 'Antal fasetråde'
@@ -223,7 +229,8 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
     DD20_CABLE_1H_COL_NM = '1 time'
     DD20_CABLE_40H_COL_NM = '40 timer'
 
-    # Columns index hardcoded for reading from DD20 sheet "Linjedata" since no uniquie headers exist
+    # Columns name and index hardcoded for reading from DD20 sheet "Linjedata" since no uniquie headers exist
+    DD20_LINJEDATA_LINENAME_COL_NM = 'System'
     DD20_COMPONENT_CONTINIOUS_COL_INDEX = range(41, 55)
     DD20_COMPONENT_15M_COL_INDEX = range(55, 69)
     DD20_COMPONENT_1H_COL_INDEX = range(69, 83)
@@ -271,7 +278,7 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
         restrictive_40h_comp_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)].iloc[:, DD20_COMPONENT_40H_COL_INDEX].min(skipna=True).min(skipna=True)
                                        for line_name in acline_dd20_names]
 
-        # make lists of restrictive limits for cable (continuous, 15M, 1H and 40H)
+        # make lists of restrictive cable limits for all durations
         restrictive_continious_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_CONTINIOUS_COL_NM].min(skipna=True)
                                                for line_name in acline_dd20_names]
         restrictive_15m_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_15M_COL_NM].min(skipna=True)
@@ -305,7 +312,7 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
 
 
 def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
-    """Extract conductor data from DD20 excelsheet and return it in dataframe
+    """Extract conductor data from DD20 excelsheets and return it in combined dataframe
 
     Returns
     -------
@@ -323,20 +330,19 @@ def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
     # TEMP TEST HACK
     DD20_FILEPATH = DD20_FILEPATH.replace('/app/', '/tests/valid-testdata/')
 
+    # sheet names
     DD20_SHEETNAME_STATIONSDATA = "Stationsdata"
     DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
 
     # Expected columns in DD20 excel sheet 'stationsdata'
-    DD20_EXPECTED_COLS_STATIONSDATA = ['Linjenavn', 'Spændingsniveau', 'Antal sys.', 'Stationstype', 'IT1', 'Unnamed: 5',
-                                       'AF1', 'LA1', 'SA1', 'TR1', 'SK1', 'Unnamed: 11', 'SR1', 'Stationstype.1',
-                                       'IT2', 'Unnamed: 15', 'AF2', 'LA2', 'SA2', 'TR2', 'SK2', 'Unnamed: 21',
-                                       'SR2', 'Dato', 'Kommentar', 'Unnamed: 25', 'Kabeltype', 'Kontinuer',
-                                       '15 min', '1 time', '40 timer', 'Ledning']
+    DD20_EXPECTED_COLS_STATIONSDATA = ['Linjenavn', 'Spændingsniveau', 'Ledning', 'Antal fasetråde', 'Antal systemer',
+                                       'Kontinuer', '15 min', '1 time', '40 timer']
+
 
     # parsing data from DD20
     dd20_dataframe_dict = parse_excel_sheets_to_dataframe_dict(file_path=DD20_FILEPATH+DD20_FILENAME,
                                                                sheets=[DD20_SHEETNAME_STATIONSDATA, DD20_SHEETNAME_LINJEDATA],
-                                                               header_index=[DD20_HEADER_INDEX])
+                                                               header_index=DD20_HEADER_INDEX)
 
     # verifying columns on data from dd20
     # TODO: also for linjedata and/or hash val of columns instead
@@ -345,7 +351,8 @@ def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
                              allow_extra_columns=True)
 
     # extracting data for each line
-    return extract_conducter_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA], dataframe_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
+    return extract_conducter_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
+                                            dataframe_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
 
 
 def extract_namemap_excelsheet_to_dict() -> dict:
@@ -360,37 +367,31 @@ def extract_namemap_excelsheet_to_dict() -> dict:
     ACLINE_NAMEMAP_SHEET = 'DD20Mapping'
     ACLINE_NAMEMAP_KEY_NAME = 'DD20 Name'
     ACLINE_NAMEMAP_VALUE_NAME = 'ETS Name'
-    ACLINE_NAMEMAP_EXPECTED_COLS = ['DD20 Name', 'ETS Name', 'Comment', 'User']
+    ACLINE_NAMEMAP_EXPECTED_COLS = [ACLINE_NAMEMAP_KEY_NAME, ACLINE_NAMEMAP_VALUE_NAME]
 
-    #
-    acline_namemap_dataframme_dict = parse_excel_sheets_to_dataframe_dict(file_path=ACLINE_NAMEMAP_FILEPATH,
-                                                                          sheets=[ACLINE_NAMEMAP_SHEET],
-                                                                          header_index=[0])
-    acline_namemap_dataframe = acline_namemap_dataframme_dict[ACLINE_NAMEMAP_SHEET]
-
-    # verifying columns on data from dd20
-    # TODO: also for linjedata and/or hash val of columns instead
+    # verifying columns on data from mapping sheet
     verify_dataframe_columns(dataframe=acline_namemap_dataframe,
                              expected_columns=ACLINE_NAMEMAP_EXPECTED_COLS,
                              allow_extra_columns=True)
 
-    # Converting DD20 dataframe to a dictonary
-    # line_emsname_to_aclinesegment_mrid()
-    return define_dictonary_from_two_columns_in_a_dataframe(dataframe=acline_namemap_dataframe,
-                                                            dict_key=ACLINE_NAMEMAP_KEY_NAME,
-                                                            dict_value=ACLINE_NAMEMAP_VALUE_NAME)
+    #
+    acline_namemap_dataframe = parse_excel_sheets_to_dataframe_dict(file_path=ACLINE_NAMEMAP_FILEPATH,
+                                                                    sheets=[ACLINE_NAMEMAP_SHEET],
+                                                                    header_index=0)[ACLINE_NAMEMAP_SHEET]
+
+    # 
+    return parse_dataframe_columns_to_dictionary(dataframe=acline_namemap_dataframe,
+                                                 dict_key=ACLINE_NAMEMAP_KEY_NAME,
+                                                 dict_value=ACLINE_NAMEMAP_VALUE_NAME)
 
 
 def extract_lineseg_to_mrid_dataframe() -> pd.DataFrame:
     DLR_MRID_FILEPATH = os.path.dirname(__file__) + '/../tests/valid-testdata/seg_line_mrid.csv'
-    # MRIDMAP_LINENAME_COL_NM = 'LINE_EMSNAME'
-    # MRIDMAP_LINESEGMENT_MRID_COL_NM = 'ACLINESEGMENT_MRID'
     # TODO verify expected columns
-    
-    
+        
     lineseg_to_mrid_dataframe = parse_csv_file_to_dataframe(DLR_MRID_FILEPATH)
     
-    MRIDMAP_EXPECTED_COLS = ['ACLINESEGMENT_MRID', 'LINE_EMSNAME', 'DLR_ENABLED']
+    MRIDMAP_EXPECTED_COLS = ['ACLINESEGMENT_MRID', LINE_EMSNAME_COL_NM, 'DLR_ENABLED']
 
     verify_dataframe_columns(dataframe=lineseg_to_mrid_dataframe,
                              expected_columns=MRIDMAP_EXPECTED_COLS,
@@ -411,15 +412,14 @@ def create_dlr_dataframe(conductor_dataframe: pd.DataFrame, dd20_to_scada_name: 
     # append column with mapped EMSNAME
     mapped_name_list = [dd20_to_scada_name[x] if x in dd20_to_scada_name else x
                         for x in conductor_dataframe['ACLINE_EMSNAME_EXPECTED']]
+    conductor_dataframe[LINE_EMSNAME_COL_NM] = mapped_name_list
 
-    conductor_dataframe['LINE_EMSNAME'] = mapped_name_list
+    # remove not used column
     conductor_dataframe = conductor_dataframe.drop(columns=['ACLINE_EMSNAME_EXPECTED'])
 
     # Join two dataframes where emsname commen key    
-    # TODO replace yes og no med true/false
-    # TODO skriv ren og fjern kolonner som ikke skal bruges (fjern dem før join?)
-    # TODO hvordan håndteres dem som ikke mappes (både fra dd20 og ets)
-    dlr_dataframe = lineseg_to_mrid_dataframe.join(conductor_dataframe.set_index('LINE_EMSNAME'), on='LINE_EMSNAME', how='inner')
+    # TODO hvordan håndteres dem som ikke mappes (både fra dd20 og ets) - 2 lsit sammenligninger som giver warnings.
+    dlr_dataframe = lineseg_to_mrid_dataframe.join(conductor_dataframe.set_index(LINE_EMSNAME_COL_NM), on=LINE_EMSNAME_COL_NM, how='inner')
 
     # replace yes/no with true/false
     dlr_dataframe.loc[dlr_dataframe[MRIDMAP_DLR_ENABLED_COL_NM] == "YES", MRIDMAP_DLR_ENABLED_COL_NM] = True

@@ -107,7 +107,7 @@ def test_define_dictonary_from_two_columns_in_a_dataframe():
                                                                  MRID_KEY_NAME, MRID_VALUE_NAME) == TEST_DICTONARY
 """
 
-def test_define_dictonary_from_two_columns_in_a_dataframe2():
+def test_parse_dataframe_columns_to_dictionary2():
 
     LIMITS_NAME_FILEPATH = f'{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/Limits_other.xlsx'
     DD20_DATASHEET_NAME = 'DD20Mapping'
@@ -117,8 +117,7 @@ def test_define_dictonary_from_two_columns_in_a_dataframe2():
     dd20_dataframe = pd.read_excel(io=LIMITS_NAME_FILEPATH, sheet_name=DD20_DATASHEET_NAME)
     TEST_DICTONARY = {'E_EEE-FFF-1': 'E_EEEV-FFF-1'}
 
-    assert code.define_dictonary_from_two_columns_in_a_dataframe(dd20_dataframe,
-                                                                 DD20_KEY_NAME, DD20_VALUE_NAME) == TEST_DICTONARY
+    assert code.parse_dataframe_columns_to_dictionary(dd20_dataframe, DD20_KEY_NAME, DD20_VALUE_NAME) == TEST_DICTONARY
 
 
 """
