@@ -1,12 +1,18 @@
+# Generic modules
 import os
-import json
 import logging
+from time import sleep
+
+# Modules
+from singupy import api as singuapi
+from json import dumps
 import pandas as pd
+
 
 # Initialize log
 log = logging.getLogger(__name__)
 
-# globally used constants
+# Globally used constants
 LINE_EMSNAME_COL_NM = 'LINE_EMSNAME'
 
 
@@ -140,7 +146,7 @@ def parse_dataframe_columns_to_dictionary(dataframe: pd.DataFrame, dict_key: str
     try:
         dict_set = dataframe.set_index(dict_key).to_dict()[dict_value]
         log.info(f'Dataframe was parsed to a dictonary with key: "{dict_key}" and value: "{dict_value}".')
-        log.debug(json.dumps(dict_set, indent=4, ensure_ascii=False))
+        log.debug(dumps(dict_set, indent=4, ensure_ascii=False))
 
     except Exception as e:
         log.exception(f'Creating dictonary from dataframe columns "{dict_key}" and "{dict_value}" failed with message: {e}')
@@ -312,22 +318,16 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
 
 def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
     """Extract conductor data from DD20 excelsheets and return it in combined dataframe
-
+    # TODO: doc it properly
     Returns
     -------
     dataframe : pd.Dataframe
     """
-    # TODO: doc it properly
-    # TODO: mount DD20 file and read it automaitcally if new (later)
-    # TODO: change path to file moved via filemover
 
     # DD20 excel sheet naming and format
-    DD20_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/"
+    DD20_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/"
     DD20_FILENAME = "DD20.XLSM"
     DD20_HEADER_INDEX = 1
-
-    # TEMP TEST HACK
-    DD20_FILEPATH = DD20_FILEPATH.replace('/app/', '/tests/valid-testdata/')
 
     # sheet names
     DD20_SHEETNAME_STATIONSDATA = "Stationsdata"
@@ -398,26 +398,49 @@ def extract_lineseg_to_mrid_dataframe() -> pd.DataFrame:
     return lineseg_to_mrid_dataframe
 
 
-def create_dlr_dataframe(conductor_dataframe: pd.DataFrame, dd20_to_scada_name: dict, lineseg_to_mrid_dataframe: pd.DataFrame) -> pd.DataFrame:
-    # input: cleaned dataframe, dict (dd20 name --> ets name when not auto tranlateable), dict (name-mrid)
-    # output: dataframe with MRID inserted and mapping name (if present)
-    # CODE:
-    # use dict to fill out NAME_MAPPED (warning if mapping name not used, or just info?)
-    # use dict to fill out MRID (error if not possible to map?)
+def create_dlr_dataframe(conductor_dataframe: pd.DataFrame,
+                         dd20_to_scada_name: dict,
+                         lineseg_to_mrid_dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    TODO: doc me
+    """
 
+    # constant
     MRIDMAP_DLR_ENABLED_COL_NM = 'DLR_ENABLED'
 
-    # append column with mapped EMSNAME
+    # append column with list mapped name based on expected name if is existing in list, else keep name.
+    # Remove expected name column
     mapped_name_list = [dd20_to_scada_name[x] if x in dd20_to_scada_name else x
                         for x in conductor_dataframe['ACLINE_EMSNAME_EXPECTED']]
     conductor_dataframe[LINE_EMSNAME_COL_NM] = mapped_name_list
-
-    # remove not used column
     conductor_dataframe = conductor_dataframe.drop(columns=['ACLINE_EMSNAME_EXPECTED'])
 
+    # extract lists of unique line names from conductor and scada dataframe
+    lines_in_conductor_data = set(conductor_dataframe[LINE_EMSNAME_COL_NM].to_list())
+    lines_in_scada_data = set(lineseg_to_mrid_dataframe[LINE_EMSNAME_COL_NM].to_list())
+
+    # Create list of lines which have DLR enabled flag set True
+    lines_dlr_enabled = lineseg_to_mrid_dataframe.loc[lineseg_to_mrid_dataframe[MRIDMAP_DLR_ENABLED_COL_NM] == "YES", LINE_EMSNAME_COL_NM].to_list()
+
+    # report line names which are in DD20, but not ETS as info
+    lines_only_in_conductor_data = [x for x in lines_in_conductor_data if x not in lines_in_scada_data]
+    if lines_only_in_conductor_data:
+        log.info(f"Line(s) with name(s): '{lines_only_in_conductor_data}' exists in conductor data but not in SCADA data.")
+
+    # report line names which are in ETS, but not DD20 as info
+    lines_only_in_scada_data = [x for x in lines_in_scada_data if x not in lines_in_conductor_data]
+    if lines_only_in_scada_data:
+        log.info(f"Line(s) with name(s): '{lines_only_in_scada_data}' exists in SCADA data but not in conductor data.")
+
+    # report lines for which DLR is enabled, but date is not availiable in DD20 as errors
+    lines_dlr_enabled_data_missing = [x for x in lines_dlr_enabled if x not in lines_in_conductor_data]
+    if lines_dlr_enabled_data_missing:
+        log.error(f"Line(s) with name(s): '{lines_dlr_enabled_data_missing}', are enabled for DLR but has no conductor data.")
+
     # Join two dataframes where emsname commen key
-    # TODO hvordan håndteres dem som ikke mappes (både fra dd20 og ets) - 2 lsit sammenligninger som giver warnings.
-    dlr_dataframe = lineseg_to_mrid_dataframe.join(conductor_dataframe.set_index(LINE_EMSNAME_COL_NM), on=LINE_EMSNAME_COL_NM, how='inner')
+    dlr_dataframe = lineseg_to_mrid_dataframe.join(conductor_dataframe.set_index(LINE_EMSNAME_COL_NM),
+                                                   on=LINE_EMSNAME_COL_NM,
+                                                   how='inner')
 
     # replace yes/no with true/false
     dlr_dataframe.loc[dlr_dataframe[MRIDMAP_DLR_ENABLED_COL_NM] == "YES", MRIDMAP_DLR_ENABLED_COL_NM] = True
@@ -442,21 +465,23 @@ def main():
         log.exception(f"Parsing Namemap failed with the message: '{e}'")
         raise e
 
-    #
+    # parsing data from lineseg to mrid map
     try:
         lineseg_to_mrid_dataframe = extract_lineseg_to_mrid_dataframe()
-        print(lineseg_to_mrid_dataframe.to_csv())
     except Exception as e:
         log.exception(f"Parsing Namemap failed with the message: '{e}'")
         raise e
 
     # TODO: Verify if data missing in columns where required
     try:
-        final = create_dlr_dataframe(conductor_dataframe=dd20_dataframe, dd20_to_scada_name=dd20_to_scada_name, lineseg_to_mrid_dataframe=lineseg_to_mrid_dataframe)
-        print(final.to_string())
+        final_dataframe = create_dlr_dataframe(conductor_dataframe=dd20_dataframe,
+                                               dd20_to_scada_name=dd20_to_scada_name,
+                                               lineseg_to_mrid_dataframe=lineseg_to_mrid_dataframe)
     except Exception as e:
         log.exception(f".. Failed with the message: '{e}'")
         raise e
+
+    return final_dataframe
 
 
 if __name__ == "__main__":
@@ -464,9 +489,23 @@ if __name__ == "__main__":
     logging.basicConfig()
     logging.getLogger().setLevel(logging.INFO)
 
-    log.info("Collecting conductor data.")
+    log.info("Collecting conductor data and exposing via API.")
 
-    # TODO: make API
+    # TODO: replace loop with scheduler
+    # TODO: read only when new file (check all 3 files in one go?)
+    # TODO: make mock data flag fra env, else read from volume
+    # TODO: read file via mounted volume instead from filemover
     # TODO: keep old data if new read fails?
+    # TODO: verify hash of 3 top columns in DD20
+    # TODO: default port og via helm og env vars i stedet for (6666)
 
-    main()
+    while True:
+        dataframe = main()
+        log.info('Data collected.')
+        log.info(f"Data is: {dataframe.to_string()}")
+
+        port_api = 5666
+        coductor_data_api = singuapi.DataFrameAPI(dataframe, dbname='CONDUCTOR_DATA', port=port_api)
+        log.info(f"Data exposed via api on port '{port_api}'.")
+
+        sleep(300)
