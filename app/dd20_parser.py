@@ -212,6 +212,8 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
         - CONDUCTER_TYPE (DD20 'Luftledertype')
         - CONDUCTER_COUNT (DD20 'Antal fasetråde')
         - SYSTEM_COUNT (DD20 'Antal systemer')
+        - TODO: TEMP
+        - TODO: statisk for leder
         - RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS (allowed continous loading of components on line.)
         - RESTRICTIVE_COMPONENT_LIMIT_15M (allowed 15 minutes loading of components on line.)
         - RESTRICTIVE_COMPONENT_LIMIT_1H (allowed 1 hour loading of components on line.)
@@ -226,8 +228,9 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
     # Columns in DD20 (sheet 'Station') defined as constants, since data will be extracted from them
     DD20_STATION_LINENAME_COL_NM = 'Linjenavn'
     DD20_KV_COL_NM = 'Spændingsniveau'
-    DD20_CONDUCTOR_TYPE_COL_NM = 'Ledning'
+    DD20_CONDUCTOR_TYPE_COL_NM = 'Ledningstype'
     DD20_CONDUCTOR_COUNT_COL_NM = 'Antal fasetråde'
+    DD20_MAX_TEMP_COL_NM = 'Temperatur'
     DD20_SYSTEM_COUNT_COL_NM = 'Antal systemer'
     DD20_CABLE_CONTINIOUS_COL_NM = 'Kontinuer'
     DD20_CABLE_15M_COL_NM = '15 min'
@@ -236,6 +239,8 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
 
     # Columns name and index hardcoded for reading from DD20 sheet "Linjedata" since no uniquie headers exist
     DD20_LINJEDATA_LINENAME_COL_NM = 'System'
+    DD20_LINJEDATA_KONT_COL_NM = 'I-kontinuert'
+    DD20_LINJEDATA_ANTAL_SYS_COL_NM = 'Antal sys.'
     DD20_COMPONENT_CONTINIOUS_COL_INDEX = range(41, 55)
     DD20_COMPONENT_15M_COL_INDEX = range(55, 69)
     DD20_COMPONENT_1H_COL_INDEX = range(69, 83)
@@ -243,6 +248,9 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
 
     # TODO: build error if duplicata name (also check types or rely on try-catch?)
     try:
+
+        # -- make unique list of aclines 
+        
         # Select only rows where line name are present, by removing rows with null value and rows not containing "-"
         dataframe_station = dataframe_station[(dataframe_station[DD20_STATION_LINENAME_COL_NM].notna()) &
                                               (dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains("-"))]
@@ -261,17 +269,52 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
         acline_expected_ets_names = [f"{kv_name}_{acline_dd20_name.strip()}"
                                      for kv_name, acline_dd20_name in zip(acline_kv_names, acline_dd20_names)]
 
-        # make list of conductor type per line
-        conductor_type = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM] == line_name][DD20_CONDUCTOR_TYPE_COL_NM].values[0]
+
+        # -- make list of lines which have paralle representation --
+        aclines_double = dataframe_station[(dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(r'\(N\)'))][DD20_STATION_LINENAME_COL_NM].values.tolist()
+        aclines_double =  [x.replace('(N)', '').strip() for x in aclines_double]
+
+        # filter frame to remove sin representation of lines when ad parallel repræsentation is present
+        dataframe_station = dataframe_station[~dataframe_station[DD20_STATION_LINENAME_COL_NM].isin(aclines_double)]
+        
+        # TODO: verify that no uplicates are present in list of aclines
+
+        # make list of conductor type per line (TODO: check parallel)
+        conductor_type = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CONDUCTOR_TYPE_COL_NM].values[0]
                           for line_name in acline_dd20_names]
 
-        # make list of conductor count per line
-        conductor_count = [int(dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM] == line_name][DD20_CONDUCTOR_COUNT_COL_NM].values[0])
+        # make list of conductor count per line (TODO: verify if correct ore to take max?)
+        conductor_count = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CONDUCTOR_COUNT_COL_NM].values[0]
                            for line_name in acline_dd20_names]
 
-        # make list of system count per line
-        system_count = [int(dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM] == line_name][DD20_SYSTEM_COUNT_COL_NM].values[0])
+        # make list of system count per line (TODO: verify if correct ore to take max?)
+        system_count = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_SYSTEM_COUNT_COL_NM].values[0]
                         for line_name in acline_dd20_names]
+
+        # make list of max temperature per line (TODO: verify if correct for parallel)
+        max_temp = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_MAX_TEMP_COL_NM].values[0]
+                    for line_name in acline_dd20_names]
+        
+        # make lists of restrictive cable limits for all durations
+        restrictive_continious_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_CONTINIOUS_COL_NM].min(skipna=True)
+                                               for line_name in acline_dd20_names]
+        restrictive_15m_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_15M_COL_NM].min(skipna=True)
+                                        for line_name in acline_dd20_names]
+        restrictive_1h_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_1H_COL_NM].min(skipna=True)
+                                       for line_name in acline_dd20_names]
+        restrictive_40h_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_40H_COL_NM].min(skipna=True)
+                                        for line_name in acline_dd20_names]
+
+        # -- LINEDATA --
+
+        # remove single part of parallel line representation from sheet (lines with . in antal sys) as only paralle representation data is needed + only lines ('-')
+        dataframe_line = dataframe_line[(dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].notna()) &
+                                        (dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains("-")) &
+                                        ~(dataframe_line[DD20_LINJEDATA_ANTAL_SYS_COL_NM].str.contains(".", na=False))]
+        
+        # make list of coductor static limit (TODO: check if it is correct source?)
+        restrictive_continious_conductor_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)][DD20_LINJEDATA_KONT_COL_NM ].min(skipna=True)
+                                                   for line_name in acline_dd20_names]
 
         # restictive component limits for all durations
         restrictive_continious_comp_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)].iloc[:, DD20_COMPONENT_CONTINIOUS_COL_INDEX].min(skipna=True).min(skipna=True)
@@ -283,22 +326,14 @@ def extract_conducter_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
         restrictive_40h_comp_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)].iloc[:, DD20_COMPONENT_40H_COL_INDEX].min(skipna=True).min(skipna=True)
                                        for line_name in acline_dd20_names]
 
-        # make lists of restrictive cable limits for all durations
-        restrictive_continious_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_CONTINIOUS_COL_NM].min(skipna=True)
-                                               for line_name in acline_dd20_names]
-        restrictive_15m_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_15M_COL_NM].min(skipna=True)
-                                        for line_name in acline_dd20_names]
-        restrictive_1h_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_1H_COL_NM].min(skipna=True)
-                                       for line_name in acline_dd20_names]
-        restrictive_40h_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_40H_COL_NM].min(skipna=True)
-                                        for line_name in acline_dd20_names]
-
         # combine data to dictionary and dataframe
         conductor_data_dict = {'ACLINE_EMSNAME_EXPECTED': acline_expected_ets_names,
                                'ACLINE_DD20_NAME': acline_dd20_names,
                                'CONDUCTER_TYPE': conductor_type,
                                'CONDUCTER_COUNT': conductor_count,
                                'SYSTEM_COUNT': system_count,
+                               'MAX_TEMPERATURE': max_temp,
+                               'RESTRICTIVE_CONDUCTOR_LIMIT_CONTINIOUS' : restrictive_continious_conductor_limits,
                                'RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS': restrictive_continious_comp_limits,
                                'RESTRICTIVE_COMPONENT_LIMIT_15M': restrictive_15m_comp_limits,
                                'RESTRICTIVE_COMPONENT_LIMIT_1H': restrictive_1h_comp_limits,
@@ -334,7 +369,7 @@ def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
     DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
 
     # Expected columns in DD20 excel sheet 'stationsdata'
-    DD20_EXPECTED_COLS_STATIONSDATA = ['Linjenavn', 'Spændingsniveau', 'Ledning', 'Antal fasetråde', 'Antal systemer',
+    DD20_EXPECTED_COLS_STATIONSDATA = ['Linjenavn', 'Spændingsniveau', 'Ledningstype', 'Antal fasetråde', 'Antal systemer',
                                        'Kontinuer', '15 min', '1 time', '40 timer']
 
     # parsing data from DD20
@@ -429,6 +464,7 @@ def create_dlr_dataframe(conductor_dataframe: pd.DataFrame,
 
     # report line names which are in ETS, but not DD20 as info
     lines_only_in_scada_data = [x for x in lines_in_scada_data if x not in lines_in_conductor_data]
+    # TODO: list(set(self.topics_consumed_list) - set(self.topics_produced_list)) or differnence?
     if lines_only_in_scada_data:
         log.info(f"Line(s) with name(s): '{lines_only_in_scada_data}' exists in SCADA data but not in conductor data.")
 
@@ -438,6 +474,7 @@ def create_dlr_dataframe(conductor_dataframe: pd.DataFrame,
         log.error(f"Line(s) with name(s): '{lines_dlr_enabled_data_missing}', are enabled for DLR but has no conductor data.")
 
     # Join two dataframes where emsname commen key
+    # TODO: how to handle missing data? (dlr enabled but no conductor data)
     dlr_dataframe = lineseg_to_mrid_dataframe.join(conductor_dataframe.set_index(LINE_EMSNAME_COL_NM),
                                                    on=LINE_EMSNAME_COL_NM,
                                                    how='inner')
@@ -499,13 +536,15 @@ if __name__ == "__main__":
     # TODO: verify hash of 3 top columns in DD20
     # TODO: default port og via helm og env vars i stedet for (6666)
 
+    # TODO: Rewrite filter funktion så den er nice (loc?)
+
+    dataframe = main()
+    log.info('Data collected.')
+    log.debug(f"Data is: {dataframe.to_string()}")
+
+    port_api = 5666
+    coductor_data_api = singuapi.DataFrameAPI(dataframe, dbname='CONDUCTOR_DATA', port=port_api)
+    log.info(f"Data exposed via api on port '{port_api}'.")
+
     while True:
-        dataframe = main()
-        log.info('Data collected.')
-        log.info(f"Data is: {dataframe.to_string()}")
-
-        port_api = 5666
-        coductor_data_api = singuapi.DataFrameAPI(dataframe, dbname='CONDUCTOR_DATA', port=port_api)
-        log.info(f"Data exposed via api on port '{port_api}'.")
-
         sleep(300)

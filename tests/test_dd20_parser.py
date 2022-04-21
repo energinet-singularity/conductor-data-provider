@@ -7,7 +7,9 @@ expected_dd20_dict = {'ACLINE_EMSNAME_EXPECTED': ['E_EEE-FFF-1', 'E_EEE-FFF-2', 
                       'ACLINE_DD20_NAME': ['EEE-FFF-1', 'EEE-FFF-2', 'GGG-HHH', 'AAA-BBB', 'CCC-DDD', 'III-ÆØÅ'],
                       'CONDUCTER_TYPE': ['Conduck', 'Conduck', 'Conduck', 'Conduck', 'Conduck', 'Conduck'],
                       'CONDUCTER_COUNT': [2, 1, 1, 1, 1, 1],
-                      'SYSTEM_COUNT': [1, 1, 1, 2, 1, 1],
+                      'SYSTEM_COUNT': [1, 1, 2, 2, 1, 1],
+                      'MAX_TEMPERATURE': [70, 70, 70, 70, 70, 70],
+                      'RESTRICTIVE_CONDUCTOR_LIMIT_CONTINIOUS' : [1168, 1131, 1624, 1432, 801, 2413],
                       'RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS': [1600, 1200, 1250, 1600, 1200, 2400],
                       'RESTRICTIVE_COMPONENT_LIMIT_15M': [1600, 1200, 1250, 1600, 1200, 2400],
                       'RESTRICTIVE_COMPONENT_LIMIT_1H': [1600, 1200, 1250, 1600, 1200, 2400],
@@ -45,7 +47,9 @@ expected_dlr_dataframe_dict = {'ACLINESEGMENT_MRID': ['66b4596e-asfv-tyuy-5478-b
                                'ACLINE_DD20_NAME': ['EEE-FFF-1', 'EEE-FFF-2', 'GGG-HHH', 'GGG-HHH', 'CCC-DDD', 'III-ÆØÅ'],
                                'CONDUCTER_TYPE': ['Conduck', 'Conduck', 'Conduck', 'Conduck', 'Conduck', 'Conduck'],
                                'CONDUCTER_COUNT': [2, 1, 1, 1, 1, 1],
-                               'SYSTEM_COUNT': [1, 1, 1, 1, 1, 1],
+                               'SYSTEM_COUNT': [1, 1, 2, 2, 1, 1],
+                               'MAX_TEMPERATURE': [70, 70, 70, 70, 70, 70],
+                               'RESTRICTIVE_CONDUCTOR_LIMIT_CONTINIOUS' : [1168, 1131, 1624, 1624, 801, 2413],
                                'RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS': [1600, 1200, 1250, 1250, 1200, 2400],
                                'RESTRICTIVE_COMPONENT_LIMIT_15M': [1600, 1200, 1250, 1250, 1200, 2400],
                                'RESTRICTIVE_COMPONENT_LIMIT_1H': [1600, 1200, 1250, 1250, 1200, 2400],
@@ -73,8 +77,8 @@ def test_extract_conducter_data_from_dd20():
     resulting_dd20_dataframe = code.extract_conducter_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
                                                                      dataframe_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
 
-    # print(resulting_dd20_dataframe.to_string())
-    # print(expected_dd20_dataframe.to_string())
+    print(resulting_dd20_dataframe.to_string())
+    print(expected_dd20_dataframe.to_string())
 
     assert resulting_dd20_dataframe.equals(expected_dd20_dataframe)
 
@@ -84,8 +88,8 @@ def test_create_dlr_dataframe():
                                                         dd20_to_scada_name=expected_dd20_to_scada_name_dict,
                                                         lineseg_to_mrid_dataframe=expected_lineseg_to_mrid_dataframe)
 
-    print(resulting_dlr_dataframe.to_string())
-    print(expected_dlr_dataframe.to_string())
+    # print(resulting_dlr_dataframe.to_string())
+    # print(expected_dlr_dataframe.to_string())
 
     assert resulting_dlr_dataframe.equals(expected_dlr_dataframe)
 

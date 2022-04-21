@@ -3,3 +3,5 @@ chart/charts/
 **/__pycache__/
 
 DD20*
+
+test_data_api.ipynb
