@@ -2,6 +2,4 @@ chart/Chart.lock
 chart/charts/
 **/__pycache__/
 
-DD20*
-
-test_data_api.ipynb
+real-data/
