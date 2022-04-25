@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-import app.dd20_parser as code
+
 
 # expected DD20 data
 # TODO: build line with _1 and?

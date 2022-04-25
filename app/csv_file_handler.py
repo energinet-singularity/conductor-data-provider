@@ -8,6 +8,7 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 
+# TODO: lav line remove som parm
 def parse_csv_file_to_dataframe(file_path: str, header_index: int = 0) -> pd.DataFrame:
     '''
     Read CSV file and parse it to pandas dataframe.

@@ -9,7 +9,7 @@ import pandas as pd
 
 # App modules
 from excel_sheet_handler import parse_excel_sheets_to_dataframe_dict
-from dd20_parser import DD20Parser, extract_conductor_data_from_dd20
+from parse_dd20 import DD20Parser, extract_conductor_data_from_dd20
 from parse_mrid_map import extract_lineseg_to_mrid_dataframe
 from parse_name_map import extract_namemap_excelsheet_to_dict
 
@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 
 #
 LINE_EMSNAME_COL_NM = 'LINE_EMSNAME'
+
 
 def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
     """Extract conductor data from DD20 excelsheets and return it in combined dataframe
@@ -67,6 +68,7 @@ def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
     # extracting data for each line
     return extract_conductor_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
                                             dataframe_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
+
 
 def create_dlr_dataframe(conductor_dataframe: pd.DataFrame,
                          dd20_to_scada_name: dict,
