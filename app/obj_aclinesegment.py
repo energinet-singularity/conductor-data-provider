@@ -1,48 +1,62 @@
-import pandas as pd
+# import pandas as pd
 import logging
 
+# Initialize log
 log = logging.getLogger(__name__)
-logging.basicConfig()
-logging.getLogger().setLevel(logging.INFO)
-
 
 # TODO make acline class
 # TODO make aclinesegment class
 
-"""
-obj1 = ACLineSegment(mrid='a1')
-obj2 = ACLineSegment(mrid='b2', parm1=2)
-#print(obj1.mrid)
-objs = [obj1, obj2]
-#print(getattr(test, 'mrid'))
 
+class ACLineCharacteristics():
+    # TODO: setters or functions in init which validates input data
+    # TODO: https://docs.python.org/3/library/dataclasses.html
+    '''
+    Class for representing parameteres and restrictions on a AC-line connection between two stations.
 
-dataframe = pd.DataFrame([o.__dict__ for o in objs])
-print(dataframe)
+    The AC-line is represented by a name alongside parameters, which must be set based on a given datasource.
 
-data = [{attr: getattr(p,attr) for attr in dir(p) if not attr.startswith('_')} for p in objs]
-df = pd.DataFrame(data)
-print(df)
-"""
+    Attributes
+    ----------
+    name : str
+        Name of the AC-line.
+    name_datasoruce: str
+        Name of the AC-line in datasource which are used to set attributes.
+    TODO: describe all attributes
+    '''
 
+    def __init__(self, name: str, name_datasource: str,
+                 conductor_type: str, conductor_count: int, system_count: int,
+                 max_temperature: float, restrict_conductor_lim_continuous: float,
+                 restrict_component_lim_continuos: float, restrict_component_lim_15m: float,
+                 restrict_component_lim_1h: float, restrict_component_lim_40h: float,
+                 restrict_cable_lim_continuos: float, restrict_cable_lim_15m: float,
+                 restrict_cable_lim_1h: float, restrict_cable_lim_40h: float
+                 ):
+        self.name = name
+        self.name_datasource = name_datasource
+        self.conductor_type = conductor_type
+        self.conductor_count = conductor_count
+        self.system_count = system_count
+        self.max_temperature = max_temperature
+        self.restrict_conductor_lim_continuos = restrict_conductor_lim_continuous
+        self.restrict_component_lim_continuos = restrict_component_lim_continuos
+        self.restrict_component_lim_15m = restrict_component_lim_15m
+        self.restrict_component_lim_1h = restrict_component_lim_1h
+        self.restrict_component_lim_40h = restrict_component_lim_40h
+        self.restrict_cable_lim_continuos = restrict_cable_lim_continuos
+        self.restrict_cable_lim_15m = restrict_cable_lim_15m
+        self.restrict_cable_lim_1h = restrict_cable_lim_1h
+        self.restrict_cable_lim_40h = restrict_cable_lim_40h
 
-"""
-class DumbClass:
-    def __init__(self, p):
-        self._ciao = p
-
+    """
+    # MRID
     @property
-    # description = property(operator.attrgetter('_description'))
-    def ciao(self):
-        return self._ciao
+    def mrid(self) -> str:
+        return self.__mrid
 
-    @ciao.setter
-    def ciao(self, v):
-        log.info('set using settet')
-        self._ciao = v
-d = DumbClass("hi")
-print(d.ciao)
-
-d.ciao = 'bye'
-print(d.ciao)
-"""
+    # PARM1
+    @property
+    def parm1(self) -> str:
+        return self.__parm1
+    """

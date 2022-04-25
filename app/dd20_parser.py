@@ -5,247 +5,20 @@ from time import sleep, time
 
 # Modules
 from singupy import api as singuapi
-from json import dumps
 import pandas as pd
 
+# App modules
+from voltagelevel_handler import convert_voltage_level_to_letter
+from csv_file_handler import parse_csv_file_to_dataframe
+from excel_sheet_handler import parse_excel_sheets_to_dataframe_dict
+from dataframe_handler import parse_dataframe_columns_to_dictionary, verify_dataframe_columns
+from obj_aclinesegment import ACLineCharacteristics
 
 # Initialize log
 log = logging.getLogger(__name__)
 
 # Globally used constants
 LINE_EMSNAME_COL_NM = 'LINE_EMSNAME'
-
-
-def convert_voltage_level_to_letter(voltage_level: int) -> str:
-    # TODO: make using regex instead?
-    """Converts voltage level to voltage letter representation.
-
-    Parameters
-    ----------
-    voltage_level : int
-        Voltage level in kV.
-
-    Returns
-    -------
-    str
-        Voltage letter.
-
-    Example
-    -------
-        >>> convert_voltage_level_to_letter(400)
-        C
-    """
-    if voltage_level >= 420:
-        voltage_letter = 'B'
-    elif 380 <= voltage_level < 420:
-        voltage_letter = 'C'
-    elif 220 <= voltage_level < 380:
-        voltage_letter = 'D'
-    elif 110 <= voltage_level < 220:
-        voltage_letter = 'E'
-    elif 60 <= voltage_level < 110:
-        voltage_letter = 'F'
-    elif 45 <= voltage_level < 60:
-        voltage_letter = 'G'
-    elif 30 <= voltage_level < 45:
-        voltage_letter = 'H'
-    elif 20 <= voltage_level < 30:
-        voltage_letter = 'J'
-    elif 10 <= voltage_level < 20:
-        voltage_letter = 'K'
-    elif 6 <= voltage_level < 10:
-        voltage_letter = 'L'
-    elif 1 <= voltage_level < 6:
-        voltage_letter = 'M'
-    elif voltage_level < 1:
-        voltage_letter = 'N'
-
-    return voltage_letter
-
-
-def parse_csv_file_to_dataframe(file_path: str, header_index: int = 0) -> pd.DataFrame:
-    '''
-    Read CSV file and parse it to pandas dataframe.
-    Note. Line number 2 in the CSV file will be removed.
-    Parameters
-    ----------
-    file_path: str
-        Full path of the excel file.
-    header_index: int
-        Index number for row to be used as header (Default = 0)
-    Returns
-    -------
-        pd.DataFrame
-            A dataframe containing the data from csv file.
-    '''
-    # Trying to read data from CSV file and convert it to a dataframe.
-    try:
-        dataframe = pd.read_csv(file_path, delimiter=',', on_bad_lines='skip',
-                                header=header_index)
-        dataframe.drop(dataframe.head(1).index, inplace=True)
-        log.info(f'CSV data from "{file_path}" was parsed to dataframe.')
-    except Exception as e:
-        log.exception(f'Parsing data from: "{file_path}" failed with message: {e}.')
-        raise e
-
-    return dataframe
-
-
-def parse_excel_sheets_to_dataframe_dict(file_path: str, sheets: list, header_index: int = 0) -> dict:
-    """Read sheets from excel file and parse them to a dictionary of pandas dataframes.
-
-    Parameters
-    ----------
-    file_path : str
-        Full path of the excel file.
-    sheets : str
-        List with names of sheets in excel.
-    header_index : int
-        Index number for row to be used as header on sheets (Default = 0)
-
-    Returns
-    -------
-    dict
-        A dict of dataframes containing the data from excel sheet.
-        The dictionary key will be name of sheet.
-    """
-    # try to read data from excel file to dataframe.
-    try:
-        dataframe = pd.read_excel(io=file_path, sheet_name=sheets, header=header_index)
-        log.info(f"Excel data from sheet(s): '{sheets}' in: '{file_path}' was parsed to dataframe dictionary.")
-    except Exception as e:
-        log.exception(f"Parsing data from sheet(s): '{sheets}' in excel file: '{file_path}' failed with message: '{e}'.")
-        raise e
-
-    return dataframe
-
-
-def parse_dataframe_columns_to_dictionary(dataframe: pd.DataFrame, dict_key: str, dict_value: str) -> dict:
-    '''
-    Read two dataframe columns and parse them to a dictonary.
-    Parameters
-    ----------
-    dataframe: pd.DataFrame
-        Dataframe to convert.
-    dict_key: str
-        Column name to be used as key for the dictonary
-    dict_value: str
-        Column name to be used as value for the dictonary
-    Returns
-    -------
-        dict
-            A dictionary with the key/value specified by the user.
-    '''
-    # Checking the dictonary key and value to ensure that the user input is found in the dataframe.
-    if dict_key not in dataframe:
-        raise ValueError(f'The column "{dict_key}" does not exist in the dataframe.')
-
-    if dict_value not in dataframe:
-        raise ValueError(f'The column "{dict_value}" does not exist in the dataframe.')
-
-    # Converting dataframe into a dictonary using user input to set key and value of the dictonary.
-    try:
-        dict_set = dataframe.set_index(dict_key).to_dict()[dict_value]
-        log.info(f'Dataframe was parsed to a dictonary with key: "{dict_key}" and value: "{dict_value}".')
-        log.debug(dumps(dict_set, indent=4, ensure_ascii=False))
-
-    except Exception as e:
-        log.exception(f'Creating dictonary from dataframe columns "{dict_key}" and "{dict_value}" failed with message: {e}')
-        raise
-
-    return dict_set
-
-
-def verify_dataframe_columns(dataframe: pd.DataFrame, expected_columns: list, allow_extra_columns: bool = False) -> bool:
-    """Verify if columns in dataframe contains expected colums.
-
-    Parameters
-    ----------
-    dataframe : pd.Dataframe
-        Pandas dataframe.
-    expected_columns : list
-        List of expected columns.
-    allow_extra_columns : bool
-        Set True if columns in addition to the expected columns are accepted.
-        (Default = False)
-
-    Returns
-    -------
-    bool
-        True if columns are as expected, else False.
-    """
-    dataframe_columns = list(dataframe.columns)
-
-    # If extra columns are allowed in dataframe, check if expected columns are present in dataframe
-    if allow_extra_columns:
-        if all(item in dataframe_columns for item in expected_columns):
-            log.info('Dataframe contains expected columns.')
-        else:
-            raise ValueError(f"The columns: {expected_columns} are not present in dataframe, " +
-                             f"since it only has the columns: '{dataframe_columns}'.")
-
-    # If only expected columns are allowed in dataframe, check if only expected columns are in dataframe
-    else:
-        if sorted(dataframe_columns) == sorted(expected_columns):
-            log.info('Dataframe contains only expected columns.')
-        else:
-            raise ValueError(f"The columns: '{dataframe_columns}' in dataframe does not match expected columns: " +
-                             f"'{expected_columns}'.")
-
-
-class ACLineCharacteristics():
-    # TODO: setters or functions in init which validates input data
-    # TODO: https://docs.python.org/3/library/dataclasses.html
-    '''
-    Class for representing parameteres and restrictions on a AC-line connection between two stations.
-
-    The AC-line is represented by a name alongside parameters, which must be set based on a given datasource.
-
-    Attributes
-    ----------
-    name : str
-        Name of the AC-line.
-    name_datasoruce: str
-        Name of the AC-line in datasource which are used to set attributes.
-    TODO: describe all attributes
-    '''
-
-    def __init__(self, name: str, name_datasource: str,
-                 conductor_type: str, conductor_count: int, system_count: int,
-                 max_temperature: float, restrict_conductor_lim_continuous: float,
-                 restrict_component_lim_continuos: float, restrict_component_lim_15m: float,
-                 restrict_component_lim_1h: float, restrict_component_lim_40h: float,
-                 restrict_cable_lim_continuos: float, restrict_cable_lim_15m: float,
-                 restrict_cable_lim_1h: float, restrict_cable_lim_40h: float
-                 ):
-        self.name = name
-        self.name_datasource = name_datasource
-        self.conductor_type = conductor_type
-        self.conductor_count = conductor_count
-        self.system_count = system_count
-        self.max_temperature = max_temperature
-        self.restrict_conductor_lim_continuos = restrict_conductor_lim_continuous
-        self.restrict_component_lim_continuos = restrict_component_lim_continuos
-        self.restrict_component_lim_15m = restrict_component_lim_15m
-        self.restrict_component_lim_1h = restrict_component_lim_1h
-        self.restrict_component_lim_40h = restrict_component_lim_40h
-        self.restrict_cable_lim_continuos = restrict_cable_lim_continuos
-        self.restrict_cable_lim_15m = restrict_cable_lim_15m
-        self.restrict_cable_lim_1h = restrict_cable_lim_1h
-        self.restrict_cable_lim_40h = restrict_cable_lim_40h
-
-    """
-    # MRID
-    @property
-    def mrid(self) -> str:
-        return self.__mrid
-
-    # PARM1
-    @property
-    def parm1(self) -> str:
-        return self.__parm1
-    """
-# TODO: make class for aclinesegments
 
 
 class DD20Parser():
@@ -333,7 +106,7 @@ class DD20Parser():
             # - Removing rows not containing '-', since line names always contain this character
             # - Removing rows with '(N)', since it is a parallel line representation in DD20 format
             df_filtered = self.df_station_source[(self.df_station_source[self.station_linename_col_nm].notna()) &
-                                                (self.df_station_source[self.station_linename_col_nm].str.contains("-"))]
+                                                 (self.df_station_source[self.station_linename_col_nm].str.contains("-"))]
             df_filtered = df_filtered[~(df_filtered[self.station_linename_col_nm].str.contains(r'\(N\)'))]
 
             # Return list of unique DD20 names
