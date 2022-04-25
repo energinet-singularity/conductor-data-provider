@@ -22,5 +22,5 @@ COPY tests/valid-testdata/* /tests/valid-testdata/
 EXPOSE 5666
 
 # Run the application
-CMD ["python3", "-u", "/app/dd20_parser.py"]
+CMD ["python3", "-u", "/app/main.py"]
 # docker build . -t conduck:latest --rm

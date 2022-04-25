@@ -28,9 +28,9 @@ class ACLineCharacteristics():
     def __init__(self, name: str, name_datasource: str,
                  conductor_type: str, conductor_count: int, system_count: int,
                  max_temperature: float, restrict_conductor_lim_continuous: float,
-                 restrict_component_lim_continuos: float, restrict_component_lim_15m: float,
+                 restrict_component_lim_continuous: float, restrict_component_lim_15m: float,
                  restrict_component_lim_1h: float, restrict_component_lim_40h: float,
-                 restrict_cable_lim_continuos: float, restrict_cable_lim_15m: float,
+                 restrict_cable_lim_continuous: float, restrict_cable_lim_15m: float,
                  restrict_cable_lim_1h: float, restrict_cable_lim_40h: float
                  ):
         self.name = name
@@ -39,12 +39,12 @@ class ACLineCharacteristics():
         self.conductor_count = conductor_count
         self.system_count = system_count
         self.max_temperature = max_temperature
-        self.restrict_conductor_lim_continuos = restrict_conductor_lim_continuous
-        self.restrict_component_lim_continuos = restrict_component_lim_continuos
+        self.restrict_conductor_lim_continuous = restrict_conductor_lim_continuous
+        self.restrict_component_lim_continuous = restrict_component_lim_continuous
         self.restrict_component_lim_15m = restrict_component_lim_15m
         self.restrict_component_lim_1h = restrict_component_lim_1h
         self.restrict_component_lim_40h = restrict_component_lim_40h
-        self.restrict_cable_lim_continuos = restrict_cable_lim_continuos
+        self.restrict_cable_lim_continuous = restrict_cable_lim_continuous
         self.restrict_cable_lim_15m = restrict_cable_lim_15m
         self.restrict_cable_lim_1h = restrict_cable_lim_1h
         self.restrict_cable_lim_40h = restrict_cable_lim_40h

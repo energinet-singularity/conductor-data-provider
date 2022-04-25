@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 def parse_dataframe_columns_to_dictionary(dataframe: pd.DataFrame, dict_key: str, dict_value: str) -> dict:
     '''
     Read two dataframe columns and parse them to a dictonary.
+
     Parameters
     ----------
     dataframe: pd.DataFrame
@@ -20,6 +21,7 @@ def parse_dataframe_columns_to_dictionary(dataframe: pd.DataFrame, dict_key: str
         Column name to be used as key for the dictonary
     dict_value: str
         Column name to be used as value for the dictonary
+
     Returns
     -------
         dict

@@ -1,6 +1,14 @@
 import pandas as pd
 import os
 
+# App modules
+import app.voltagelevel_handler
+import app.csv_file_handler
+import app.dataframe_handler
+import app.excel_sheet_handler
+import app.obj_aclinesegment
+import app.parse_dd20
+
 
 # expected DD20 data
 # TODO: build line with _1 and?
@@ -71,11 +79,11 @@ def test_extract_conductor_data_from_dd20():
 
     # Input is DD20 file. Output is pandas datafram with conductor data (needed data in format below).
 
-    dd20_dataframe_dict = code.parse_excel_sheets_to_dataframe_dict(file_path=DD20_FILE,
+    dd20_dataframe_dict = app.parse_excel_sheets_to_dataframe_dict(file_path=DD20_FILE,
                                                                     sheets=[DD20_SHEETNAME_STATIONSDATA, DD20_SHEETNAME_LINJEDATA],
                                                                     header_index=[1])
 
-    resulting_dd20_dataframe = code.extract_conductor_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
+    resulting_dd20_dataframe = extract_conductor_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
                                                                      dataframe_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
 
     print(resulting_dd20_dataframe.to_string())
@@ -85,9 +93,9 @@ def test_extract_conductor_data_from_dd20():
 
 
 def test_create_dlr_dataframe():
-    resulting_dlr_dataframe = code.create_dlr_dataframe(conductor_dataframe=expected_dd20_dataframe,
-                                                        dd20_to_scada_name=expected_dd20_to_scada_name_dict,
-                                                        lineseg_to_mrid_dataframe=expected_lineseg_to_mrid_dataframe)
+    resulting_dlr_dataframe = create_dlr_dataframe(conductor_dataframe=expected_dd20_dataframe,
+                                                   dd20_to_scada_name=expected_dd20_to_scada_name_dict,
+                                                   lineseg_to_mrid_dataframe=expected_lineseg_to_mrid_dataframe)
 
     print(resulting_dlr_dataframe.to_string())
     print(expected_dlr_dataframe.to_string())
@@ -126,7 +134,7 @@ def test_parse_dataframe_columns_to_dictionary2():
     dd20_dataframe = pd.read_excel(io=LIMITS_NAME_FILEPATH, sheet_name=DD20_DATASHEET_NAME)
     TEST_DICTONARY = {'E_EEE-FFF_1': 'E_EEEV-FFF_1'}
 
-    assert code.parse_dataframe_columns_to_dictionary(dd20_dataframe, DD20_KEY_NAME, DD20_VALUE_NAME) == TEST_DICTONARY
+    assert parse_dataframe_columns_to_dictionary(dd20_dataframe, DD20_KEY_NAME, DD20_VALUE_NAME) == TEST_DICTONARY
 
 
 """

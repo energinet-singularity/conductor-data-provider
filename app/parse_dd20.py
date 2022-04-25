@@ -12,8 +12,9 @@ from obj_aclinesegment import ACLineCharacteristics
 # Initialize log
 log = logging.getLogger(__name__)
 
-#
-LINE_EMSNAME_COL_NM = 'LINE_EMSNAME'
+# TODO: try/except alle steder
+# TODO: type og value verify i ACLinesegment object
+# TODO: return og value via getters or?
 
 
 class DD20Parser():
@@ -32,11 +33,11 @@ class DD20Parser():
                  station_linename_col_nm: str = 'Linjenavn', station_kv_col_nm: str = 'Spændingsniveau',
                  station_conductor_count_col_nm: str = 'Antal fasetråde', station_system_count_col_nm: str = 'Antal systemer',
                  station_conductor_type_col_nm: str = 'Ledningstype', station_conductor_max_temp_col_nm: str = 'Temperatur',
-                 station_cablelim_continious_col_nm: str = 'Kontinuer', station_cablelim_15m_col_nm: str = '15 min',
+                 station_cablelim_continuous_col_nm: str = 'Kontinuer', station_cablelim_15m_col_nm: str = '15 min',
                  station_cablelim_1h_col_nm: str = '1 time', station_cablelim_40h_col_nm: str = '40 timer',
-                 line_linename_col_nm: str = 'System', line_kont_col_nm: str = 'I-kontinuert', line_antal_sys: str = 'Antal sys.',
-                 line_complim_continious_col_rng: range = range(41, 55), line_complim_15m_col_rng: range = range(55, 69),
-                 line_complim_continious_1h_col_rng: range = range(69, 83), line_complim_40h_col_rng: range = range(83, 97)):
+                 line_linename_col_nm: str = 'System', line_conductor_continuous_col_nm: str = 'I-kontinuert', line_antal_sys: str = 'Antal sys.',
+                 line_complim_continuous_col_rng: range = range(41, 55), line_complim_15m_col_rng: range = range(55, 69),
+                 line_complim_1h_col_rng: range = range(69, 83), line_complim_40h_col_rng: range = range(83, 97)):
 
         # init of value for column names (station)
         self.station_linename_col_nm = station_linename_col_nm
@@ -45,19 +46,19 @@ class DD20Parser():
         self.station_system_count_col_nm = station_system_count_col_nm
         self.station_conductor_type_col_nm = station_conductor_type_col_nm
         self.station_conductor_max_temp_col_nm = station_conductor_max_temp_col_nm
-        self.station_cablelim_continious_col_nm = station_cablelim_continious_col_nm
+        self.station_cablelim_continuous_col_nm = station_cablelim_continuous_col_nm
         self.station_cablelim_15m_col_nm = station_cablelim_15m_col_nm
         self.station_cablelim_1h_col_nm = station_cablelim_1h_col_nm
-        self.station_cablelim_40h_col_n = station_cablelim_40h_col_nm
-        self.line_complim_15m_col_rng = line_complim_15m_col_rng
-        self.line_complim_continious_1h_col_rng = line_complim_continious_1h_col_rng
-        self.line_complim_40h_col_rng = line_complim_40h_col_rng
+        self.station_cablelim_40h_col_nm = station_cablelim_40h_col_nm
 
         #  init of value for column names and indexing (linjedata)
         self.line_linename_col_nm = line_linename_col_nm
-        self.line_kont_col_nm = line_kont_col_nm
+        self.line_conductor_continuous_col_nm = line_conductor_continuous_col_nm
         self.line_antal_sys = line_antal_sys
-        self.line_complim_continious_col_rng = line_complim_continious_col_rng
+        self.line_complim_continuous_col_rng = line_complim_continuous_col_rng
+        self.line_complim_15m_col_rng = line_complim_15m_col_rng
+        self.line_complim_1h_col_rng = line_complim_1h_col_rng
+        self.line_complim_40h_col_rng = line_complim_40h_col_rng
 
         # dataframe init
         self.df_station_source = df_station
@@ -70,21 +71,25 @@ class DD20Parser():
         self.__df_line_clean = self.__prepare_df_line()
         self.__df_station_clean = self.__prepare_df_station()
 
-        # init dicts
+        # init dict with expected name
         self.__acline_emsname_expected_dict = self.__get_expected_acline_emsnames_to_dict()
+
+        # init from station data
         self.__conductor_type_dict = self.__get_conductor_types_to_dict()
         self.__conductor_count_dict = self.__get_conductor_counts_to_dict()
-        self.__system_count_dict = {}
-        self.__max_temperature_dict = {}
-        self.__restrict_conductor_lim_continuos_dict = {}
-        self.__restrict_component_lim_continuos_dict = {}
-        self.__restrict_component_lim_15m_dict = {}
-        self.__restrict_component_lim_1h_dict = {}
-        self.__restrict_component_lim_40h_dict = {}
-        self.__restrict_cable_lim_continuos_dict = {}
-        self.__restrict_cable_lim_15m_dict = {}
-        self.__restrict_cable_lim_1h_dict = {}
-        self.__restrict_cable_lim_40h_dict = {}
+        self.__system_count_dict = self.__get_system_counts_to_dict()
+        self.__max_temperature_dict = self.__get_max_temp_to_dict()
+        self.__restrict_cable_lim_continuous_dict = self.__get_restrict_cable_lim_continuous_to_dict()
+        self.__restrict_cable_lim_15m_dict = self.__get_restrict_cable_lim_15m_to_dict()
+        self.__restrict_cable_lim_1h_dict = self.__get_restrict_cable_lim_1h_to_dict()
+        self.__restrict_cable_lim_40h_dict = self.__get_restrict_cable_lim_40h_to_dict()
+
+        # init from line data
+        self.__restrict_conductor_lim_continuous_dict = self.__get_restrict_conductor_lim_continuous_to_dict()
+        self.__restrict_component_lim_continuous_dict = self.__get_restrict_component_lim_continuous_to_dict()
+        self.__restrict_component_lim_15m_dict = self.__get_restrict_component_lim_15m_to_dict()
+        self.__restrict_component_lim_1h_dict = self.__get_restrict_component_lim_1h_to_dict()
+        self.__restrict_component_lim_40h_dict = self.__get_restrict_component_lim_40h_to_dict()
 
         # output-ish (definer getter i stedet?)
         self.dataobjectlist = self.__create_object_list()
@@ -175,32 +180,6 @@ class DD20Parser():
                       for line_dd20name in self.__line_dd20_name_list}
 
         return acline_exp
-    """        # make list of conductor type per line (TODO: check parallel)
-            conductor_type = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CONDUCTOR_TYPE_COL_NM].values[0]
-                            for line_name in acline_dd20_names]
-
-            # make list of conductor count per line (TODO: verify if correct ore to take max?)
-            conductor_count = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CONDUCTOR_COUNT_COL_NM].values[0]
-                            for line_name in acline_dd20_names]
-
-            # make list of system count per line (TODO: verify if correct ore to take max?)
-            system_count = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_SYSTEM_COUNT_COL_NM].values[0]
-                            for line_name in acline_dd20_names]
-
-            # make list of max temperature per line (TODO: verify if correct for parallel)
-            max_temp = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_MAX_TEMP_COL_NM].values[0]
-                        for line_name in acline_dd20_names]
-
-            # make lists of restrictive cable limits for all durations
-            restrictive_continious_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_CONTINIOUS_COL_NM].values[0]
-                                                for line_name in acline_dd20_names]
-            restrictive_15m_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_15M_COL_NM].values[0]
-                                            for line_name in acline_dd20_names]
-            restrictive_1h_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_1H_COL_NM].values[0]
-                                        for line_name in acline_dd20_names]
-            restrictive_40h_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_40H_COL_NM].values[0]
-                                            for line_name in acline_dd20_names]
-    """
 
     def __get_conductor_types_to_dict(self):
         """ Returns dictionary with mapping from linenames in DD20 to corresponding 'Conductor type'."""
@@ -220,23 +199,122 @@ class DD20Parser():
             log.exception(f"Getting conductor count from Station-data sheet failed with message: '{e}'.")
             raise e
 
+    def __get_system_counts_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to number of systems."""
+        try:
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_system_count_col_nm].values[0]
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting syste, count from Station-data sheet failed with message: '{e}'.")
+            raise e
+
+    def __get_max_temp_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to maximum temperature."""
+        try:
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_conductor_max_temp_col_nm].values[0]
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting maximum temperature from Station-data sheet failed with message: '{e}'.")
+            raise e
+
+    def __get_restrict_cable_lim_continuous_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to restrictive continuous cable limit."""
+        try:
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_cablelim_continuous_col_nm].values[0]
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting restrictive continuous cable limit from Station-data sheet failed with message: '{e}'.")
+            raise e
+
+    def __get_restrict_cable_lim_15m_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to restrictive 15 min cable limit."""
+        try:
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_cablelim_15m_col_nm].values[0]
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting restrictive 15 min cable limit from Station-data sheet failed with message: '{e}'.")
+            raise e
+
+    def __get_restrict_cable_lim_1h_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to restrictive 1 hour cable limit."""
+        try:
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_cablelim_1h_col_nm].values[0]
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting restrictive 1 hour cable limit from Station-data sheet failed with message: '{e}'.")
+            raise e
+
+    def __get_restrict_cable_lim_40h_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to restrictive 40 hour cable limit."""
+        try:
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_cablelim_40h_col_nm].values[0]
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting restrictive 40 hour cable limit from Station-data sheet failed with message: '{e}'.")
+            raise e
+
+    def __get_restrict_conductor_lim_continuous_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to restrictive continuous conductor limit."""
+        try:
+            return {line_dd20name: self.__df_line_clean[self.__df_line_clean[self.line_linename_col_nm].str.contains(line_dd20name)][self.line_conductor_continuous_col_nm].min(skipna=True)
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting restrictive continuous conductor limit from Line-data sheet failed with message: '{e}'.")
+            raise e
+
+    def __get_restrict_component_lim_continuous_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to restrictive continuous component limit."""
+        try:
+            return {line_dd20name: self.__df_line_clean[self.__df_line_clean[self.line_linename_col_nm].str.contains(line_dd20name)].iloc[:, self.line_complim_continuous_col_rng].min(skipna=True).min(skipna=True)
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting restrictive continuous component limit from Line-data sheet failed with message: '{e}'.")
+            raise e
+
+    def __get_restrict_component_lim_15m_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to restrictive 15 min component limit."""
+        try:
+            return {line_dd20name: self.__df_line_clean[self.__df_line_clean[self.line_linename_col_nm].str.contains(line_dd20name)].iloc[:, self.line_complim_15m_col_rng].min(skipna=True).min(skipna=True)
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting restrictive 15 min component limit from Line-data sheet failed with message: '{e}'.")
+            raise e
+
+    def __get_restrict_component_lim_1h_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to restrictive 1 hour component limit."""
+        try:
+            return {line_dd20name: self.__df_line_clean[self.__df_line_clean[self.line_linename_col_nm].str.contains(line_dd20name)].iloc[:, self.line_complim_1h_col_rng].min(skipna=True).min(skipna=True)
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting restrictive 1 hour component limit from Line-data sheet failed with message: '{e}'.")
+            raise e
+
+    def __get_restrict_component_lim_40h_to_dict(self):
+        """ Returns dictionary with mapping from linenames in DD20 to restrictive 40 hour component limit."""
+        try:
+            return {line_dd20name: self.__df_line_clean[self.__df_line_clean[self.line_linename_col_nm].str.contains(line_dd20name)].iloc[:, self.line_complim_40h_col_rng].min(skipna=True).min(skipna=True)
+                    for line_dd20name in self.__line_dd20_name_list}
+        except Exception as e:
+            log.exception(f"Getting restrictive 40 hour component limit from Line-data sheet failed with message: '{e}'.")
+            raise e
+
     def __create_object_list(self):
         # TODO: via getter?
         obj_list = [ACLineCharacteristics(name=self.__acline_emsname_expected_dict[line_dd20_name],
                                           name_datasource=line_dd20_name,
                                           conductor_type=self.__conductor_type_dict[line_dd20_name],
                                           conductor_count=self.__conductor_count_dict[line_dd20_name],
-                                          system_count=None,
-                                          max_temperature=None,
-                                          restrict_conductor_lim_continuous=None,
-                                          restrict_component_lim_continuos=None,
-                                          restrict_component_lim_15m=None,
-                                          restrict_component_lim_1h=None,
-                                          restrict_component_lim_40h=None,
-                                          restrict_cable_lim_continuos=None,
-                                          restrict_cable_lim_15m=None,
-                                          restrict_cable_lim_1h=None,
-                                          restrict_cable_lim_40h=None)
+                                          system_count=self.__system_count_dict[line_dd20_name],
+                                          max_temperature=self.__max_temperature_dict[line_dd20_name],
+                                          restrict_cable_lim_continuous=self.__restrict_cable_lim_continuous_dict[line_dd20_name],
+                                          restrict_cable_lim_15m=self.__restrict_cable_lim_15m_dict[line_dd20_name],
+                                          restrict_cable_lim_1h=self.__restrict_cable_lim_1h_dict[line_dd20_name],
+                                          restrict_cable_lim_40h=self.__restrict_cable_lim_40h_dict[line_dd20_name],
+                                          restrict_conductor_lim_continuous=self.__restrict_conductor_lim_continuous_dict[line_dd20_name],
+                                          restrict_component_lim_continuous=self.__restrict_component_lim_continuous_dict[line_dd20_name],
+                                          restrict_component_lim_15m=self.__restrict_component_lim_15m_dict[line_dd20_name],
+                                          restrict_component_lim_1h=self.__restrict_component_lim_1h_dict[line_dd20_name],
+                                          restrict_component_lim_40h=self.__restrict_component_lim_40h_dict[line_dd20_name])
                     for line_dd20_name in self.__line_dd20_name_list]
         return obj_list
 
@@ -272,12 +350,12 @@ def extract_conductor_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
         - SYSTEM_COUNT (DD20 'Antal systemer')
         - TODO: TEMP
         - TODO: statisk for leder
-        - RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS (allowed continous loading of components on line.)
+        - RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS (allowed continuous loading of components on line.)
         - RESTRICTIVE_COMPONENT_LIMIT_15M (allowed 15 minutes loading of components on line.)
         - RESTRICTIVE_COMPONENT_LIMIT_1H (allowed 1 hour loading of components on line.)
         - RESTRICTIVE_COMPONENT_LIMIT_40H (allowed 40 hour loading of components on line.)
         - RESTRICTIVE_COMPONENT_LIMIT (Most restrictive limit for components on line)
-        - RESTRICTIVE_CABLE_LIMIT_CONTINUOUS (allowed continous loading of cable on line, if present.)
+        - RESTRICTIVE_CABLE_LIMIT_CONTINUOUS (allowed continuous loading of cable on line, if present.)
         - RESTRICTIVE_CABLE_LIMIT_15M (allowed 15 minutes loading of cable on line, if present.)
         - RESTRICTIVE_CABLE_LIMIT_1H (allowed 1 hour loading of cable on line, if present.)
         - RESTRICTIVE_CABLE_LIMIT_40H (allowed 40 hour loading of cable on line, if present.)
@@ -290,7 +368,7 @@ def extract_conductor_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
     DD20_CONDUCTOR_COUNT_COL_NM = 'Antal fasetråde'
     DD20_MAX_TEMP_COL_NM = 'Temperatur'
     DD20_SYSTEM_COUNT_COL_NM = 'Antal systemer'
-    DD20_CABLE_CONTINIOUS_COL_NM = 'Kontinuer'
+    DD20_CABLE_CONTINUOUS_COL_NM = 'Kontinuer'
     DD20_CABLE_15M_COL_NM = '15 min'
     DD20_CABLE_1H_COL_NM = '1 time'
     DD20_CABLE_40H_COL_NM = '40 timer'
@@ -299,7 +377,7 @@ def extract_conductor_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
     DD20_LINJEDATA_LINENAME_COL_NM = 'System'
     DD20_LINJEDATA_KONT_COL_NM = 'I-kontinuert'
     DD20_LINJEDATA_ANTAL_SYS_COL_NM = 'Antal sys.'
-    DD20_COMPONENT_CONTINIOUS_COL_INDEX = range(41, 55)
+    DD20_COMPONENT_CONTINUOUS_COL_INDEX = range(41, 55)
     DD20_COMPONENT_15M_COL_INDEX = range(55, 69)
     DD20_COMPONENT_1H_COL_INDEX = range(69, 83)
     DD20_COMPONENT_40H_COL_INDEX = range(83, 97)
@@ -367,7 +445,7 @@ def extract_conductor_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
                     for line_name in acline_dd20_names]
 
         # make lists of restrictive cable limits for all durations
-        restrictive_continious_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_CONTINIOUS_COL_NM].values[0]
+        restrictive_continuous_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_CONTINUOUS_COL_NM].values[0]
                                                for line_name in acline_dd20_names]
         restrictive_15m_cable_limits = [dataframe_station[dataframe_station[DD20_STATION_LINENAME_COL_NM].str.contains(line_name)][DD20_CABLE_15M_COL_NM].values[0]
                                         for line_name in acline_dd20_names]
@@ -388,11 +466,11 @@ def extract_conductor_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
                                         ~(dataframe_line[DD20_LINJEDATA_ANTAL_SYS_COL_NM].str.contains(".", na=False))]
 
         # make list of coductor static limit (TODO: check if it is correct source?)
-        restrictive_continious_conductor_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)][DD20_LINJEDATA_KONT_COL_NM].min(skipna=True)
+        restrictive_continuous_conductor_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)][DD20_LINJEDATA_KONT_COL_NM].min(skipna=True)
                                                    for line_name in acline_dd20_names]
 
         # restictive component limits for all durations
-        restrictive_continious_comp_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)].iloc[:, DD20_COMPONENT_CONTINIOUS_COL_INDEX].min(skipna=True).min(skipna=True)
+        restrictive_continuous_comp_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)].iloc[:, DD20_COMPONENT_CONTINUOUS_COL_INDEX].min(skipna=True).min(skipna=True)
                                               for line_name in acline_dd20_names]
         restrictive_15m_comp_limits = [dataframe_line[dataframe_line[DD20_LINJEDATA_LINENAME_COL_NM].str.contains(line_name)].iloc[:, DD20_COMPONENT_15M_COL_INDEX].min(skipna=True).min(skipna=True)
                                        for line_name in acline_dd20_names]
@@ -414,12 +492,12 @@ def extract_conductor_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_
                                'CONDUCTOR_COUNT': conductor_count,
                                'SYSTEM_COUNT': system_count,
                                'MAX_TEMPERATURE': max_temp,
-                               'RESTRICTIVE_CONDUCTOR_LIMIT_CONTINIOUS': restrictive_continious_conductor_limits,
-                               'RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS': restrictive_continious_comp_limits,
+                               'RESTRICTIVE_CONDUCTOR_LIMIT_CONTINUOUS': restrictive_continuous_conductor_limits,
+                               'RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS': restrictive_continuous_comp_limits,
                                'RESTRICTIVE_COMPONENT_LIMIT_15M': restrictive_15m_comp_limits,
                                'RESTRICTIVE_COMPONENT_LIMIT_1H': restrictive_1h_comp_limits,
                                'RESTRICTIVE_COMPONENT_LIMIT_40H': restrictive_40h_comp_limits,
-                               'RESTRICTIVE_CABLE_LIMIT_CONTINUOUS': restrictive_continious_cable_limits,
+                               'RESTRICTIVE_CABLE_LIMIT_CONTINUOUS': restrictive_continuous_cable_limits,
                                'RESTRICTIVE_CABLE_LIMIT_15M': restrictive_15m_cable_limits,
                                'RESTRICTIVE_CABLE_LIMIT_1H': restrictive_1h_cable_limits,
                                'RESTRICTIVE_CABLE_LIMIT_40H': restrictive_40h_cable_limits}

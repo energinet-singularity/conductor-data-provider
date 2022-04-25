@@ -8,66 +8,96 @@ from singupy import api as singuapi
 import pandas as pd
 
 # App modules
+from dataframe_handler import parse_dataframe_columns_to_dictionary, verify_dataframe_columns
+from csv_file_handler import parse_csv_file_to_dataframe
 from excel_sheet_handler import parse_excel_sheets_to_dataframe_dict
-from parse_dd20 import DD20Parser, extract_conductor_data_from_dd20
-from parse_mrid_map import extract_lineseg_to_mrid_dataframe
-from parse_name_map import extract_namemap_excelsheet_to_dict
+from parse_dd20 import DD20Parser
 
 # Initialize log
 log = logging.getLogger(__name__)
 
-#
-LINE_EMSNAME_COL_NM = 'LINE_EMSNAME'
-
 
 def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
-    """Extract conductor data from DD20 excelsheets and return it in combined dataframe
-    # TODO: doc it properly
-    Returns
-    -------
-    dataframe : pd.Dataframe
-    """
+    """Extract conductor data from DD20 excelsheets and return it in combined dataframe"""
 
-    # DD20 excel sheet naming and format
+    # DD20 excel file parameters
     DD20_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/"
     DD20_FILENAME = "DD20.XLSM"
     # DD20_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../real-data/"
     # DD20_FILENAME = "DD20new.XLSM"
     DD20_HEADER_INDEX = 1
-
-    # sheet names
     DD20_SHEETNAME_STATIONSDATA = "Stationsdata"
     DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
 
-    # Expected columns in DD20 excel sheet 'stationsdata'
-    """ DD20_EXPECTED_COLS_STATIONSDATA = ['Linjenavn', 'Spændingsniveau', 'Ledningstype', 'Antal fasetråde', 'Antal systemer',
-                                       'Kontinuer', '15 min', '1 time', '40 timer'] """
-
-    # parsing data from DD20
+    # parsing data from DD20 to dataframe dictionary
     dd20_dataframe_dict = parse_excel_sheets_to_dataframe_dict(file_path=DD20_FILEPATH+DD20_FILENAME,
                                                                sheets=[DD20_SHEETNAME_STATIONSDATA, DD20_SHEETNAME_LINJEDATA],
                                                                header_index=DD20_HEADER_INDEX)
 
+    # TODO: use hash function only or both?
+    # Expected columns in DD20 excel sheet 'stationsdata'
+    """ DD20_EXPECTED_COLS_STATIONSDATA = ['Linjenavn', 'Spændingsniveau', 'Ledningstype', 'Antal fasetråde', 'Antal systemer',
+                                       'Kontinuer', '15 min', '1 time', '40 timer'] """
     # verifying columns on data from dd20
-    # TODO: also for linjedata and/or hash val of columns instead
     """ verify_dataframe_columns(dataframe=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
                              expected_columns=DD20_EXPECTED_COLS_STATIONSDATA,
                              allow_extra_columns=True) """
 
-    # TESTCLASS
-    objs = DD20Parser(df_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
+    # Parsing dd20 data from dataframes to combined dataframe
+    dd20 = DD20Parser(df_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
                       df_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
-    # print(obj.acline_emsname_expected)
-    # print(obj.acline_dd20_name)
-    # dataframe = pd.DataFrame([o.__dict__ for o in objs])
-    # print(dataframe)
-    print(objs.dataframe)
-    # import sys
-    # sys.exit()
+    return dd20.dataframe
 
-    # extracting data for each line
-    return extract_conductor_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
-                                            dataframe_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
+    # OLD method:
+    # return extract_conductor_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA], dataframe_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
+
+
+def extract_namemap_excelsheet_to_dict() -> dict:
+    """Extract ....... TODO
+
+    Returns
+    -------
+    dict : dict
+    """
+    #
+    ACLINE_NAMEMAP_FILEPATH = os.path.dirname(__file__) + '/../tests/valid-testdata/Limits_other.xlsx'
+    # ACLINE_NAMEMAP_FILEPATH = os.path.dirname(__file__) + '/../real-data/Limits_other.xlsx'
+    ACLINE_NAMEMAP_SHEET = 'DD20Mapping'
+    ACLINE_NAMEMAP_KEY_NAME = 'DD20 Name'
+    ACLINE_NAMEMAP_VALUE_NAME = 'ETS Name'
+    ACLINE_NAMEMAP_EXPECTED_COLS = [ACLINE_NAMEMAP_KEY_NAME, ACLINE_NAMEMAP_VALUE_NAME]
+
+    #
+    acline_namemap_dataframe = parse_excel_sheets_to_dataframe_dict(file_path=ACLINE_NAMEMAP_FILEPATH,
+                                                                    sheets=[ACLINE_NAMEMAP_SHEET],
+                                                                    header_index=0)[ACLINE_NAMEMAP_SHEET]
+
+    # verifying columns on data from mapping sheet
+    verify_dataframe_columns(dataframe=acline_namemap_dataframe,
+                             expected_columns=ACLINE_NAMEMAP_EXPECTED_COLS,
+                             allow_extra_columns=True)
+
+    #
+    return parse_dataframe_columns_to_dictionary(dataframe=acline_namemap_dataframe,
+                                                 dict_key=ACLINE_NAMEMAP_KEY_NAME,
+                                                 dict_value=ACLINE_NAMEMAP_VALUE_NAME)
+
+
+def extract_lineseg_to_mrid_dataframe() -> pd.DataFrame:
+    DLR_MRID_FILEPATH = os.path.dirname(__file__) + '/../tests/valid-testdata/seg_line_mrid.csv'
+    # DLR_MRID_FILEPATH = os.path.dirname(__file__) + '/../real-data/seg_line_mrid_PROD.csv'
+    # TODO verify expected columns
+
+    lineseg_to_mrid_dataframe = parse_csv_file_to_dataframe(file_path=DLR_MRID_FILEPATH, drop_line_index=1)
+
+    # TODO set these somewhere else
+    MRIDMAP_EXPECTED_COLS = ['ACLINESEGMENT_MRID', 'LINE_EMSNAME', 'DLR_ENABLED']
+
+    verify_dataframe_columns(dataframe=lineseg_to_mrid_dataframe,
+                             expected_columns=MRIDMAP_EXPECTED_COLS,
+                             allow_extra_columns=True)
+
+    return lineseg_to_mrid_dataframe
 
 
 def create_dlr_dataframe(conductor_dataframe: pd.DataFrame,
@@ -79,13 +109,16 @@ def create_dlr_dataframe(conductor_dataframe: pd.DataFrame,
 
     # constant
     MRIDMAP_DLR_ENABLED_COL_NM = 'DLR_ENABLED'
+    LINE_EMSNAME_COL_NM = 'LINE_EMSNAME'
+    # EXPECTED_NAME_COL_NM = 'ACLINE_EMSNAME_EXPECTED'
+    EXPECTED_NAME_COL_NM = 'name'
 
     # append column with list mapped name based on expected name if is existing in list, else keep name.
     # Remove expected name column
     mapped_name_list = [dd20_to_scada_name[x] if x in dd20_to_scada_name else x
-                        for x in conductor_dataframe['ACLINE_EMSNAME_EXPECTED']]
+                        for x in conductor_dataframe[EXPECTED_NAME_COL_NM]]
     conductor_dataframe[LINE_EMSNAME_COL_NM] = mapped_name_list
-    conductor_dataframe = conductor_dataframe.drop(columns=['ACLINE_EMSNAME_EXPECTED'])
+    conductor_dataframe = conductor_dataframe.drop(columns=[EXPECTED_NAME_COL_NM])
 
     # extract lists of unique line names from conductor and scada dataframe
     # TODO: remove lines which are below 132 as DLR will not be enabled for them?
@@ -122,6 +155,9 @@ def create_dlr_dataframe(conductor_dataframe: pd.DataFrame,
     # replace yes/no with true/false
     dlr_dataframe.loc[dlr_dataframe[MRIDMAP_DLR_ENABLED_COL_NM] == "YES", MRIDMAP_DLR_ENABLED_COL_NM] = True
     dlr_dataframe.loc[dlr_dataframe[MRIDMAP_DLR_ENABLED_COL_NM] == "NO", MRIDMAP_DLR_ENABLED_COL_NM] = False
+
+    # force lowercase
+    dlr_dataframe.columns = dlr_dataframe.columns.str.upper()
 
     return dlr_dataframe
 
