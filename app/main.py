@@ -53,13 +53,12 @@ def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
 
 
 def extract_namemap_excelsheet_to_dict() -> dict:
-    """Extract ....... TODO
-
-    Returns
-    -------
-    dict : dict
     """
-    #
+    Extract manual name mapping from excel-sheet and return it to dictionary.
+    Mapping is used for names which are not aligned between DD20 and SCADA system.
+    """
+
+    # Mapping file parameters
     ACLINE_NAMEMAP_FILEPATH = os.path.dirname(__file__) + '/../tests/valid-testdata/Limits_other.xlsx'
     # ACLINE_NAMEMAP_FILEPATH = os.path.dirname(__file__) + '/../real-data/Limits_other.xlsx'
     ACLINE_NAMEMAP_SHEET = 'DD20Mapping'
@@ -67,7 +66,7 @@ def extract_namemap_excelsheet_to_dict() -> dict:
     ACLINE_NAMEMAP_VALUE_NAME = 'ETS Name'
     ACLINE_NAMEMAP_EXPECTED_COLS = [ACLINE_NAMEMAP_KEY_NAME, ACLINE_NAMEMAP_VALUE_NAME]
 
-    #
+    # parsing CSV files to dataframe
     acline_namemap_dataframe = parse_excel_sheets_to_dataframe_dict(file_path=ACLINE_NAMEMAP_FILEPATH,
                                                                     sheets=[ACLINE_NAMEMAP_SHEET],
                                                                     header_index=0)[ACLINE_NAMEMAP_SHEET]
@@ -77,13 +76,17 @@ def extract_namemap_excelsheet_to_dict() -> dict:
                              expected_columns=ACLINE_NAMEMAP_EXPECTED_COLS,
                              allow_extra_columns=True)
 
-    #
+    # creating dictionary for mapping
     return parse_dataframe_columns_to_dictionary(dataframe=acline_namemap_dataframe,
                                                  dict_key=ACLINE_NAMEMAP_KEY_NAME,
                                                  dict_value=ACLINE_NAMEMAP_VALUE_NAME)
 
 
 def extract_lineseg_to_mrid_dataframe() -> pd.DataFrame:
+    """
+    TODO: doc
+    """
+
     DLR_MRID_FILEPATH = os.path.dirname(__file__) + '/../tests/valid-testdata/seg_line_mrid.csv'
     # DLR_MRID_FILEPATH = os.path.dirname(__file__) + '/../real-data/seg_line_mrid_PROD.csv'
     # TODO verify expected columns
@@ -167,7 +170,7 @@ def main():
     # parsing data from dd20
     try:
         dd20_dataframe = extract_dd20_excelsheet_to_dataframe().copy()
-        print(dd20_dataframe)
+        # print(dd20_dataframe)
     except Exception as e:
         log.exception(f"Parsing DD20 failed with the message: '{e}'")
         raise e

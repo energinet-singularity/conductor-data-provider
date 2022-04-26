@@ -19,25 +19,52 @@ log = logging.getLogger(__name__)
 
 class DD20Parser():
     """
-    MAGIC
+    Class for parsing DD20, which is a Energinet in-house excel-file containing data for high voltage AC transmission lines.
+    Each AC lines is represented by a name alongside with limits for transmission capacity and other parameters.
+    A mock example of it can be found in 'tests/valid-testdata/DD20.XLSM'.
 
-    Explain that DD20 is a specific format, which will be parsed to both list of objects of type ? and a dataframe
+    TODO: describe data is parsed via dataframes or build in excel?
+
+    Data is extracted from sheets "Stationsdata" and "Linjedata - Sommer" are combined into objects.
+    A object for each AC line is added to a combined list of object.
+    list of the objects can be fetched via?
+    All AC line objects are also combinded into a dataframe where the columns represents the atributes of the object.
+    It can be fetched via ??
+
+    TODO: build dictionars into one init function
+    TODO: fetc only data to list of objects, make dataframe outside
 
     Attributes
     ----------
     df_station : pd.DataFrame
         Dataframe containing station data from DD20
+
+    Methods
+    ---------
+    get stuff?
+
     TODO: describe all attributes
     """
-    def __init__(self, df_station: pd.DataFrame, df_line: pd.DataFrame,
-                 station_linename_col_nm: str = 'Linjenavn', station_kv_col_nm: str = 'Spændingsniveau',
-                 station_conductor_count_col_nm: str = 'Antal fasetråde', station_system_count_col_nm: str = 'Antal systemer',
-                 station_conductor_type_col_nm: str = 'Ledningstype', station_conductor_max_temp_col_nm: str = 'Temperatur',
-                 station_cablelim_continuous_col_nm: str = 'Kontinuer', station_cablelim_15m_col_nm: str = '15 min',
-                 station_cablelim_1h_col_nm: str = '1 time', station_cablelim_40h_col_nm: str = '40 timer',
-                 line_linename_col_nm: str = 'System', line_conductor_continuous_col_nm: str = 'I-kontinuert', line_antal_sys: str = 'Antal sys.',
-                 line_complim_continuous_col_rng: range = range(41, 55), line_complim_15m_col_rng: range = range(55, 69),
-                 line_complim_1h_col_rng: range = range(69, 83), line_complim_40h_col_rng: range = range(83, 97)):
+    def __init__(self,
+                 df_station: pd.DataFrame,
+                 df_line: pd.DataFrame,
+                 station_linename_col_nm: str = 'Linjenavn',
+                 station_kv_col_nm: str = 'Spændingsniveau',
+                 station_conductor_count_col_nm: str = 'Antal fasetråde',
+                 station_system_count_col_nm: str = 'Antal systemer',
+                 station_conductor_type_col_nm: str = 'Ledningstype',
+                 station_conductor_max_temp_col_nm: str = 'Temperatur',
+                 station_cablelim_continuous_col_nm: str = 'Kontinuer',
+                 station_cablelim_15m_col_nm: str = '15 min',
+                 station_cablelim_1h_col_nm: str = '1 time',
+                 station_cablelim_40h_col_nm: str = '40 timer',
+                 line_linename_col_nm: str = 'System',
+                 line_conductor_continuous_col_nm: str = 'I-kontinuert',
+                 line_antal_sys: str = 'Antal sys.',
+                 line_complim_continuous_col_rng: range = range(41, 55),
+                 line_complim_15m_col_rng: range = range(55, 69),
+                 line_complim_1h_col_rng: range = range(69, 83),
+                 line_complim_40h_col_rng: range = range(83, 97)):
 
         # init of value for column names (station)
         self.station_linename_col_nm = station_linename_col_nm
@@ -53,7 +80,7 @@ class DD20Parser():
 
         #  init of value for column names and indexing (linjedata)
         self.line_linename_col_nm = line_linename_col_nm
-        self.line_conductor_continuous_col_nm = line_conductor_continuous_col_nm
+        self.line_conductor_continuous_col_nm = line_conductor_continuous_col_nm  # TODO: rename to better name (line staic restrict)
         self.line_antal_sys = line_antal_sys
         self.line_complim_continuous_col_rng = line_complim_continuous_col_rng
         self.line_complim_15m_col_rng = line_complim_15m_col_rng
@@ -220,7 +247,8 @@ class DD20Parser():
     def __get_restrict_cable_lim_continuous_to_dict(self):
         """ Returns dictionary with mapping from linenames in DD20 to restrictive continuous cable limit."""
         try:
-            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_cablelim_continuous_col_nm].values[0]
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)]
+            [self.station_cablelim_continuous_col_nm].values[0]
                     for line_dd20name in self.__line_dd20_name_list}
         except Exception as e:
             log.exception(f"Getting restrictive continuous cable limit from Station-data sheet failed with message: '{e}'.")
@@ -326,7 +354,7 @@ class DD20Parser():
         return dataframe
 
 
-# TODO: delete when class is made instead
+# TODO: OLD version - delete when class is made instead?
 def extract_conductor_data_from_dd20(dataframe_station: pd.DataFrame, dataframe_line: pd.DataFrame) -> pd.DataFrame:
     """
     Extract conductor data from DD20 dataframes and returns it to one combined dataframe.
