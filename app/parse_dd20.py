@@ -5,9 +5,9 @@ import logging
 import pandas as pd
 
 # App modules
-from voltagelevel_handler import convert_voltage_level_to_letter
-from dataframe_handler import parse_dataframe_columns_to_dictionary
-from obj_aclinesegment import ACLineCharacteristics
+from .voltagelevel_handler import convert_voltage_level_to_letter
+from .dataframe_handler import parse_dataframe_columns_to_dictionary
+from .obj_aclinesegment import ACLineCharacteristics
 
 # Initialize log
 log = logging.getLogger(__name__)
