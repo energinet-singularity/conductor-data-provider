@@ -4,7 +4,6 @@ import logging
 # Initialize log
 log = logging.getLogger(__name__)
 
-# TODO make acline class
 # TODO make aclinesegment class
 
 

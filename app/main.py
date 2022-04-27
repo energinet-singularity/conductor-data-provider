@@ -11,45 +11,10 @@ import pandas as pd
 from dataframe_handler import parse_dataframe_columns_to_dictionary, verify_dataframe_columns
 from csv_file_handler import parse_csv_file_to_dataframe
 from excel_sheet_handler import parse_excel_sheets_to_dataframe_dict
-from parse_dd20 import DD20Parser
+from parse_dd20 import DD20Parser, parse_dd20_excelsheets_to_dataframes, DD20StationDataframeParser
 
 # Initialize log
 log = logging.getLogger(__name__)
-
-
-def extract_dd20_excelsheet_to_dataframe() -> pd.DataFrame:
-    """Extract conductor data from DD20 excelsheets and return it in combined dataframe"""
-
-    # DD20 excel file parameters
-    DD20_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/"
-    DD20_FILENAME = "DD20.XLSM"
-    # DD20_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../real-data/"
-    # DD20_FILENAME = "DD20new.XLSM"
-    DD20_HEADER_INDEX = 1
-    DD20_SHEETNAME_STATIONSDATA = "Stationsdata"
-    DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
-
-    # parsing data from DD20 to dataframe dictionary
-    dd20_dataframe_dict = parse_excel_sheets_to_dataframe_dict(file_path=DD20_FILEPATH+DD20_FILENAME,
-                                                               sheets=[DD20_SHEETNAME_STATIONSDATA, DD20_SHEETNAME_LINJEDATA],
-                                                               header_index=DD20_HEADER_INDEX)
-
-    # TODO: use hash function only or both?
-    # Expected columns in DD20 excel sheet 'stationsdata'
-    """ DD20_EXPECTED_COLS_STATIONSDATA = ['Linjenavn', 'Spændingsniveau', 'Ledningstype', 'Antal fasetråde', 'Antal systemer',
-                                       'Kontinuer', '15 min', '1 time', '40 timer'] """
-    # verifying columns on data from dd20
-    """ verify_dataframe_columns(dataframe=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
-                             expected_columns=DD20_EXPECTED_COLS_STATIONSDATA,
-                             allow_extra_columns=True) """
-
-    # Parsing dd20 data from dataframes to combined dataframe
-    dd20 = DD20Parser(df_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
-                      df_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
-    return dd20.dataframe
-
-    # OLD method:
-    # return extract_conductor_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA], dataframe_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
 
 
 def extract_namemap_excelsheet_to_dict() -> dict:
@@ -114,7 +79,7 @@ def create_dlr_dataframe(conductor_dataframe: pd.DataFrame,
     MRIDMAP_DLR_ENABLED_COL_NM = 'DLR_ENABLED'
     LINE_EMSNAME_COL_NM = 'LINE_EMSNAME'
     # EXPECTED_NAME_COL_NM = 'ACLINE_EMSNAME_EXPECTED'
-    EXPECTED_NAME_COL_NM = 'name'
+    EXPECTED_NAME_COL_NM = 'acline_name_translated'
 
     # append column with list mapped name based on expected name if is existing in list, else keep name.
     # Remove expected name column
@@ -170,8 +135,18 @@ def main():
     # TODO: build use of mock data flag
 
     # parsing data from dd20
+    DD20_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/"
+    # DD20_FILENAME = "DD20.XLSM"
+    # DD20_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../real-data/"
+    # DD20_FILENAME = "DD20new.XLSM"
     try:
-        dd20_dataframe = extract_dd20_excelsheet_to_dataframe().copy()
+        df_station, df_line = parse_dd20_excelsheets_to_dataframes(folder_path=DD20_FILEPATH)
+        obj = DD20Parser(df_station=df_station, df_line=df_line)
+        dd20_dataframe = obj.dataframe
+
+        test = DD20StationDataframeParser(df_station=df_station)
+        print(test.conductor_count_dict)
+
         # print(dd20_dataframe)
     except Exception as e:
         log.exception(f"Parsing DD20 failed with the message: '{e}'")

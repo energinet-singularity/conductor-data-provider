@@ -8,6 +8,7 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 
+# TODO: delete module and build into other functions
 def parse_excel_sheets_to_dataframe_dict(file_path: str, sheets: list, header_index: int = 0) -> dict:
     """Read sheets from excel file and parse them to a dictionary of pandas dataframes.
 
