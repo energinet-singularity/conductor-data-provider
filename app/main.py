@@ -167,6 +167,8 @@ def create_dlr_dataframe(conductor_dataframe: pd.DataFrame,
 
 def main():
 
+    # TODO: build use of mock data flag
+
     # parsing data from dd20
     try:
         dd20_dataframe = extract_dd20_excelsheet_to_dataframe().copy()

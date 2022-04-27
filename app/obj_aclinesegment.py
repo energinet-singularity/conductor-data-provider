@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 # TODO make aclinesegment class
 
 
-class ACLineCharacteristics():
+class ACLineProperties():
     # TODO: setters or functions in init which validates input data
     # TODO: https://docs.python.org/3/library/dataclasses.html
     '''
@@ -25,16 +25,28 @@ class ACLineCharacteristics():
     TODO: describe all attributes
     '''
 
-    def __init__(self, name: str, name_datasource: str,
-                 conductor_type: str, conductor_count: int, system_count: int,
-                 max_temperature: float, restrict_conductor_lim_continuous: float,
-                 restrict_component_lim_continuous: float, restrict_component_lim_15m: float,
-                 restrict_component_lim_1h: float, restrict_component_lim_40h: float,
-                 restrict_cable_lim_continuous: float, restrict_cable_lim_15m: float,
-                 restrict_cable_lim_1h: float, restrict_cable_lim_40h: float
+    def __init__(self,
+                 acline_name_translated: str,
+                 acline_name_datasource: str,
+                 datasource: str,
+                 conductor_type: str,
+                 conductor_count: int,
+                 system_count: int,
+                 max_temperature: float,
+                 restrict_conductor_lim_continuous: float,
+                 restrict_component_lim_continuous: float,
+                 restrict_component_lim_15m: float,
+                 restrict_component_lim_1h: float,
+                 restrict_component_lim_40h: float,
+                 restrict_cable_lim_continuous: float,
+                 restrict_cable_lim_15m: float,
+                 restrict_cable_lim_1h: float,
+                 restrict_cable_lim_40h: float
                  ):
-        self.name = name
-        self.name_datasource = name_datasource
+
+        self.acline_name_translated = acline_name_translated
+        self.acline_name_datasource = acline_name_datasource
+        self.datasource = datasource
         self.conductor_type = conductor_type
         self.conductor_count = conductor_count
         self.system_count = system_count

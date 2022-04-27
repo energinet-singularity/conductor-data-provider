@@ -9,6 +9,58 @@ image:
   pullPolicy: IfNotPresent
   tag: "0.0.5"
 
+#Setup file-mover dependency first
+conductorInputVolume: 
+  persistentVolumeClaim:
+    claimName: conductor-data-pvc
+
+conductorDataVolume:
+  accessMode: ReadWriteOnce
+  size: 1G
+  storageClass: standard
+
+file-mover:
+  folderMounts:
+    input:
+      enabled: true
+      volume:
+        emptyDir: {}
+    output:
+      enabled: true
+      volume:
+        persistentVolumeClaim:
+          claimName: conductor-data-pvc
+  podLabels:
+    fm-conductor-parser: "S1"
+  selectorLabels:
+    fm-conductor-parser: "S1"
+  affinity:
+    podAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: conductor-fm-parser
+                operator: In
+                values:
+                - S1
+          topologyKey: "kubernetes.io/hostname"
+
+podLabels:
+  conductor-fm-parser: "S1"
+selectorLabels:
+  conductor-fm-parser: "S1"
+affinity:
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: fm-conductor-parser
+              operator: In
+              values:
+              - S1
+        topologyKey: "kubernetes.io/hostname"
 
 #Default settings not used in this setup
 imagePullSecrets: []

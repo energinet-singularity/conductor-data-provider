@@ -34,7 +34,7 @@ class DD20LineDataParser():
 
 class DD20ACLineMapper():
 # sammel data fra de 2 ark
-# husk at tjekke ssamme aclines er i begge sheets
+# husk at tjekke ssamme aclines er i begge sheets (error hvis den mangler i den anden og omvendt)
 # husk at overvej opdeling er mapper for begge sheet her
     pass
 
@@ -231,7 +231,7 @@ class DD20Parser():
 
         return acline_exp
     # TODO: lav hjælpefunktion det i stedet blot returnere dict, eller evt. blot værdi?
-    # get single row, column val
+    # get single row, column val (check det kun er single row, ellers fail)
     # get min of column for rows
     # get min of columns and
 
