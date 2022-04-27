@@ -5,9 +5,9 @@ import logging
 import pandas as pd
 
 # App modules
-from .voltagelevel_handler import convert_voltage_level_to_letter
-from .dataframe_handler import parse_dataframe_columns_to_dictionary
-from .obj_aclinesegment import ACLineCharacteristics
+from voltagelevel_handler import convert_voltage_level_to_letter
+from dataframe_handler import parse_dataframe_columns_to_dictionary
+from obj_aclinesegment import ACLineCharacteristics
 
 # Initialize log
 log = logging.getLogger(__name__)
@@ -15,6 +15,29 @@ log = logging.getLogger(__name__)
 # TODO: try/except alle steder
 # TODO: type og value verify i ACLinesegment object
 # TODO: return og value via getters or?
+
+class DD20ExcelSheetToDataframeDict():
+# parse fra excel fil til 2 dataframe
+# byg pandas funktion her ind i i stedet for hjælper?
+    pass
+
+class DD20StationDataParser():
+# parse kun data fra station ark til dictionarys som mappes fra name til prop
+# husk at lav hjælpe funktioner til at hente værdier ud
+    pass
+
+
+class DD20LineDataParser():
+# parse kun data fra line ark til dictionarys som mappes fra name til prop
+# husk at lav hjælpe funktioner til at hente værdier ud
+    pass
+
+class DD20ACLineMapper():
+# sammel data fra de 2 ark
+# husk at tjekke ssamme aclines er i begge sheets
+# husk at overvej opdeling er mapper for begge sheet her
+    pass
+
 
 
 class DD20Parser():
@@ -207,11 +230,16 @@ class DD20Parser():
                       for line_dd20name in self.__line_dd20_name_list}
 
         return acline_exp
+    # TODO: lav hjælpefunktion det i stedet blot returnere dict, eller evt. blot værdi?
+    # get single row, column val
+    # get min of column for rows
+    # get min of columns and
 
     def __get_conductor_types_to_dict(self):
         """ Returns dictionary with mapping from linenames in DD20 to corresponding 'Conductor type'."""
         try:
-            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_conductor_type_col_nm].values[0]
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)]
+                    [self.station_conductor_type_col_nm].values[0]
                     for line_dd20name in self.__line_dd20_name_list}
         except Exception as e:
             log.exception(f"Getting conductor type from Station-data sheet failed with message: '{e}'.")
@@ -220,7 +248,8 @@ class DD20Parser():
     def __get_conductor_counts_to_dict(self):
         """ Returns dictionary with mapping from linenames in DD20 to number of conductors."""
         try:
-            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_conductor_count_col_nm].values[0]
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)]
+                    [self.station_conductor_count_col_nm].values[0]
                     for line_dd20name in self.__line_dd20_name_list}
         except Exception as e:
             log.exception(f"Getting conductor count from Station-data sheet failed with message: '{e}'.")
@@ -229,7 +258,8 @@ class DD20Parser():
     def __get_system_counts_to_dict(self):
         """ Returns dictionary with mapping from linenames in DD20 to number of systems."""
         try:
-            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_system_count_col_nm].values[0]
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)]
+                    [self.station_system_count_col_nm].values[0]
                     for line_dd20name in self.__line_dd20_name_list}
         except Exception as e:
             log.exception(f"Getting syste, count from Station-data sheet failed with message: '{e}'.")
@@ -238,7 +268,8 @@ class DD20Parser():
     def __get_max_temp_to_dict(self):
         """ Returns dictionary with mapping from linenames in DD20 to maximum temperature."""
         try:
-            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_conductor_max_temp_col_nm].values[0]
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)]
+                    [self.station_conductor_max_temp_col_nm].values[0]
                     for line_dd20name in self.__line_dd20_name_list}
         except Exception as e:
             log.exception(f"Getting maximum temperature from Station-data sheet failed with message: '{e}'.")
@@ -248,7 +279,7 @@ class DD20Parser():
         """ Returns dictionary with mapping from linenames in DD20 to restrictive continuous cable limit."""
         try:
             return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)]
-            [self.station_cablelim_continuous_col_nm].values[0]
+                    [self.station_cablelim_continuous_col_nm].values[0]
                     for line_dd20name in self.__line_dd20_name_list}
         except Exception as e:
             log.exception(f"Getting restrictive continuous cable limit from Station-data sheet failed with message: '{e}'.")
@@ -257,7 +288,8 @@ class DD20Parser():
     def __get_restrict_cable_lim_15m_to_dict(self):
         """ Returns dictionary with mapping from linenames in DD20 to restrictive 15 min cable limit."""
         try:
-            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_cablelim_15m_col_nm].values[0]
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)]
+                    [self.station_cablelim_15m_col_nm].values[0]
                     for line_dd20name in self.__line_dd20_name_list}
         except Exception as e:
             log.exception(f"Getting restrictive 15 min cable limit from Station-data sheet failed with message: '{e}'.")
@@ -266,7 +298,8 @@ class DD20Parser():
     def __get_restrict_cable_lim_1h_to_dict(self):
         """ Returns dictionary with mapping from linenames in DD20 to restrictive 1 hour cable limit."""
         try:
-            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_cablelim_1h_col_nm].values[0]
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)]
+                    [self.station_cablelim_1h_col_nm].values[0]
                     for line_dd20name in self.__line_dd20_name_list}
         except Exception as e:
             log.exception(f"Getting restrictive 1 hour cable limit from Station-data sheet failed with message: '{e}'.")
@@ -275,7 +308,8 @@ class DD20Parser():
     def __get_restrict_cable_lim_40h_to_dict(self):
         """ Returns dictionary with mapping from linenames in DD20 to restrictive 40 hour cable limit."""
         try:
-            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)][self.station_cablelim_40h_col_nm].values[0]
+            return {line_dd20name: self.__df_station_clean[self.__df_station_clean[self.station_linename_col_nm].str.contains(line_dd20name)]
+                    [self.station_cablelim_40h_col_nm].values[0]
                     for line_dd20name in self.__line_dd20_name_list}
         except Exception as e:
             log.exception(f"Getting restrictive 40 hour cable limit from Station-data sheet failed with message: '{e}'.")
@@ -284,7 +318,8 @@ class DD20Parser():
     def __get_restrict_conductor_lim_continuous_to_dict(self):
         """ Returns dictionary with mapping from linenames in DD20 to restrictive continuous conductor limit."""
         try:
-            return {line_dd20name: self.__df_line_clean[self.__df_line_clean[self.line_linename_col_nm].str.contains(line_dd20name)][self.line_conductor_continuous_col_nm].min(skipna=True)
+            return {line_dd20name: self.__df_line_clean[self.__df_line_clean[self.line_linename_col_nm].str.contains(line_dd20name)]
+                    [self.line_conductor_continuous_col_nm].min(skipna=True)
                     for line_dd20name in self.__line_dd20_name_list}
         except Exception as e:
             log.exception(f"Getting restrictive continuous conductor limit from Line-data sheet failed with message: '{e}'.")

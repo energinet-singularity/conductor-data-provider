@@ -8,10 +8,10 @@ from singupy import api as singuapi
 import pandas as pd
 
 # App modules
-from .dataframe_handler import parse_dataframe_columns_to_dictionary, verify_dataframe_columns
-from .csv_file_handler import parse_csv_file_to_dataframe
-from .excel_sheet_handler import parse_excel_sheets_to_dataframe_dict
-from .parse_dd20 import DD20Parser
+from dataframe_handler import parse_dataframe_columns_to_dictionary, verify_dataframe_columns
+from csv_file_handler import parse_csv_file_to_dataframe
+from excel_sheet_handler import parse_excel_sheets_to_dataframe_dict
+from parse_dd20 import DD20Parser
 
 # Initialize log
 log = logging.getLogger(__name__)
