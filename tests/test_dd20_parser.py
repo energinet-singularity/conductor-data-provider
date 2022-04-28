@@ -8,11 +8,10 @@ import os
 # import app.excel_sheet_handler
 #import app.main
 # import app.obj_aclinesegment
-import app.parse_dd20
-
-
-
-
+import app.helpers.dataframe_handler
+import app.helpers.csv_file_handler
+import app.helpers.excel_sheet_handler
+import app.helpers.parse_dd20
 
 # expected DD20 data
 # TODO: build line with _1 and?
@@ -77,18 +76,22 @@ expected_dlr_dataframe = pd.DataFrame.from_dict(expected_dlr_dataframe_dict).fil
 # TODO: add negative test with invalid data also
 def test_extract_conductor_data_from_dd20():
 
-    DD20_SHEETNAME_STATIONSDATA = "Stationsdata"
-    DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
-    DD20_FILE = f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM"
+    DD20_FILE = f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/"
 
     # Input is DD20 file. Output is pandas datafram with conductor data (needed data in format below).
 
-    dd20_dataframe_dict = app.main.parse_excel_sheets_to_dataframe_dict(file_path=DD20_FILE,
+    """dd20_dataframe_dict = app.helpers.excel_sheet_handler.parse_excel_sheets_to_dataframe_dict(file_path=DD20_FILE,
                                                                     sheets=[DD20_SHEETNAME_STATIONSDATA, DD20_SHEETNAME_LINJEDATA],
-                                                                    header_index=[1])
+                                                                    header_index=[1])"""
+    df_station, df_line = app.helpers.parse_dd20.parse_dd20_excelsheets_to_dataframes(folder_path=DD20_FILE)
 
-    resulting_dd20_dataframe = app.parse_dd20.extract_conductor_data_from_dd20(dataframe_station=dd20_dataframe_dict[DD20_SHEETNAME_STATIONSDATA],
-                                                                     dataframe_line=dd20_dataframe_dict[DD20_SHEETNAME_LINJEDATA])
+    data_station = app.helpers.parse_dd20.DD20StationDataframeParser(df_station=df_station)
+
+    data_line = app.helpers.parse_dd20.DD20LineDataframeParser(df_line=df_line)
+
+    obj = app.helpers.parse_dd20.DD20_to_acline_properties_mapper(data_station=data_station, data_line=data_line)
+
+    resulting_dd20_dataframe = pd.DataFrame(data=[o.__dict__ for o in obj])
 
     print(resulting_dd20_dataframe.to_string())
     print(expected_dd20_dataframe.to_string())
