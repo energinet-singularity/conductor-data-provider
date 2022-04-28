@@ -2,16 +2,10 @@ import pandas as pd
 import os
 
 # App modules
-
-# import app.csv_file_handler
-# import app.dataframe_handler
-# import app.excel_sheet_handler
-#import app.main
-# import app.obj_aclinesegment
-import app.helpers.dataframe_handler
-import app.helpers.csv_file_handler
-import app.helpers.excel_sheet_handler
-import app.helpers.parse_dd20
+from app.helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
+from app.helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dict
+from app.helpers.parse_mrid_map import parse_aclineseg_scada_data_to_dataframe
+from app.helpers.join_data import create_conductor_dataframe
 
 # expected DD20 data
 # TODO: build line with _1 and?
@@ -101,8 +95,8 @@ def test_extract_conductor_data_from_dd20():
 
 def test_create_dlr_dataframe():
     resulting_dlr_dataframe = app.main.create_dlr_dataframe(conductor_dataframe=expected_dd20_dataframe,
-                                                   dd20_to_scada_name=expected_dd20_to_scada_name_dict,
-                                                   lineseg_to_mrid_dataframe=expected_lineseg_to_mrid_dataframe)
+                                                            dd20_to_scada_name=expected_dd20_to_scada_name_dict,
+                                                            lineseg_to_mrid_dataframe=expected_lineseg_to_mrid_dataframe)
 
     print(resulting_dlr_dataframe.to_string())
     print(expected_dlr_dataframe.to_string())
