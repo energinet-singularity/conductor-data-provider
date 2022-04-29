@@ -21,9 +21,9 @@ def get_aclinesegment_properties():
     Function for gathering AC-line conductor properties and exposing them via REST API.
     The conductor properties are exposed with a unique identifier called "ACLINESEGMENT_MRID".
 
-    The conductor properties are gathred from a non-standard format called "DD20" and combined with mapping data
-    from non-standard datasource from SCADA system. It is done in order to establish link bewteen conductor data
-    from DD20 and SCADA database records.
+    The conductor properties are gathred from a non-standard format called "DD20"(excel-file) and combined with mapping data
+    from non-standard datasource from SCADA system (excel and csv-file).
+    It is done in order to establish link bewteen conductor data from DD20 and SCADA database records.
 
     The usecase is to provide coductor data for Dynamic Line Rating calculations to be utilized in a SCADA system.
 
@@ -33,16 +33,18 @@ def get_aclinesegment_properties():
         A object for each AC-line is created. All objects are gathered into a dataframe holding all extracted data.
     2. "DD20 name to SCADA AC-line name mapping" excel-file.
         Mapping from DD20 AC-line name to AC-line name used in SCADA system are parsed to a dictionary.
+        The need for this mapping is present, since not all AC-line names are aligned between SCADA and DD20.
     3. "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.
         Mapping from AC-line name used in SCADA system to AC-linesegment MRID in SCADA system are parsed to a dataframe.
+        The AC-linesegment MRID is a unique identifier, which all conductor data must be linked to.
 
     Returns
     -------
         pd.DataFrame
-            A dataframe containing conductor data represented row-wise by AC-Linsegment MRID.
+            A dataframe containing conductor data represented row-wise with AC-Linsegment MRID as unique key.
     """
     DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/"
-    # os.path.dirname(__file__) + '/../real-data/
+    # DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../real-data/"
 
     # 1. parsing data from dd20 file
     try:
@@ -95,9 +97,11 @@ if __name__ == "__main__":
 
     dataframe = get_aclinesegment_properties()
 
-    log.info('Data collected.')
+    """log.info('Data type is:')
     print(dataframe.dtypes)
-    print(dataframe.to_string())
+    log.info('Data is:')
+    print(dataframe.to_string())"""
+
     log.debug(f"Data is: {dataframe.to_string()}")
 
     port_api = 5666

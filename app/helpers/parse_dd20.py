@@ -13,59 +13,9 @@ log = logging.getLogger(__name__)
 # TODO: return og value via getters or?
 # TODO: add hash funktion to verify columns did not change
 
-# TODO move to module?
-@dataclass(eq=True)
-class ACLineProperties:
-    """
-    Class for representing parameteres and restrictions on a AC-line connection between two stations.
-    The AC-line is represented by a name alongside parameters, which must be set based on a given datasource.
 
-    Attributes
-    ----------
-    name : str
-        Name of the AC-line.
-    name_datasoruce: str
-        Name of the AC-line in datasource which are used to set attributes.
-    TODO: describe all attributes
-            Pandas dataframe, which will contain the following columns for each line in DD20:
-        - ACLINE_EMSNAME_EXPECTED (expected EMSNAME of ACLINE SCADA, derived from columns 'Spændingsniveau' and 'Linjenavn')
-        - ACLINE_DD20_NAME (DD20 'Linjenavn')
-        - CONDUCTOR_TYPE (DD20 'Luftledertype')
-        - CONDUCTOR_COUNT (DD20 'Antal fasetråde')
-        - SYSTEM_COUNT (DD20 'Antal systemer')
-        - TODO: TEMP
-        - TODO: statisk for leder
-        - RESTRICTIVE_COMPONENT_LIMIT_CONTINUOUS (allowed continuous loading of components on line.)
-        - RESTRICTIVE_COMPONENT_LIMIT_15M (allowed 15 minutes loading of components on line.)
-        - RESTRICTIVE_COMPONENT_LIMIT_1H (allowed 1 hour loading of components on line.)
-        - RESTRICTIVE_COMPONENT_LIMIT_40H (allowed 40 hour loading of components on line.)
-        - RESTRICTIVE_COMPONENT_LIMIT (Most restrictive limit for components on line)
-        - RESTRICTIVE_CABLE_LIMIT_CONTINUOUS (allowed continuous loading of cable on line, if present.)
-        - RESTRICTIVE_CABLE_LIMIT_15M (allowed 15 minutes loading of cable on line, if present.)
-        - RESTRICTIVE_CABLE_LIMIT_1H (allowed 1 hour loading of cable on line, if present.)
-        - RESTRICTIVE_CABLE_LIMIT_40H (allowed 40 hour loading of cable on line, if present.)
-    """
-    acline_name_translated: str
-    acline_name_datasource: str
-    datasource: str
-    conductor_type: str
-    conductor_count: int
-    system_count: int
-    max_temperature: float
-    restrict_conductor_lim_continuous: float
-    restrict_component_lim_continuous: float
-    restrict_component_lim_15m: float
-    restrict_component_lim_1h: float
-    restrict_component_lim_40h: float
-    restrict_cable_lim_continuous: float
-    restrict_cable_lim_15m: float
-    restrict_cable_lim_1h: float
-    restrict_cable_lim_40h: float
-    # TODO: valideringsregler for attributes
-
-
-# TODO: move to lib
 def convert_voltage_level_to_letter(voltage_level: int) -> str:
+    # TODO: move to lib
     # TODO: make using regex instead?
     """Converts voltage level to voltage letter representation.
 
@@ -112,10 +62,68 @@ def convert_voltage_level_to_letter(voltage_level: int) -> str:
     return voltage_letter
 
 
-class DD20StationDataframeParser():
-    # parse kun data fra station ark til dictionarys som mappes fra name til prop
-    # husk at lav hjælpe funktioner til at hente værdier ud
+@dataclass(eq=True)
+class ACLineProperties:
+    """
+    Class for representing parameteres and restrictions on a overhead AC-line connection between two stations.
+    The AC-line is represented by a name alongside parameters, which must be set based on a given datasource.
 
+    Attributes
+    ----------
+    acline_name_translated : str
+        Translated name of the AC-line, can be used to alternative naming that the one in datasource.
+    acline_name_datasource: str
+        Name of the AC-line in datasource which are used to set attributes.
+    datasource: str
+        Datasoruce for parameteres and restrictions on a AC-line.
+    conductor_type: str
+        Type name of the conductor used on the AC-line
+    conductor_count: int
+        Amount of conductors used for the AC-line.
+    system_count: int
+        Anount of systems in parallel for the AC-line.
+    max_temperature: float
+        Maximum allowed temperature in celsius degrees for the conductor.
+    restrict_conductor_lim_continuous: float
+        Allowed continuous ampere loading of conducter.
+    restrict_component_lim_continuous: float
+        Allowed continuous ampere loading of components along the AC-line.
+    restrict_component_lim_15m: float
+        Allowed 15 minutes ampere loading of components along the AC-line.
+    restrict_component_lim_1h: float
+        Allowed 1 hour ampere loading of components along the AC-line.
+    restrict_component_lim_40h: float
+        Allowed 40 hour ampere loading of components along the AC-line.
+    restrict_cable_lim_continuous: float
+        Allowed continuous ampere loading of cabling along the AC-line, if any.
+    restrict_cable_lim_15m: float
+        Allowed 15 minutes ampere loading of cabling along the AC-line, if any.
+    restrict_cable_lim_1h: float.
+         Allowed 15 minutes ampere loading of cabling along the AC-line, if any.
+    restrict_cable_lim_40h: float
+         Allowed 15 minutes ampere loading of cabling along the AC-line, if any.
+    """
+    acline_name_translated: str
+    acline_name_datasource: str
+    datasource: str
+    conductor_type: str
+    conductor_count: int
+    system_count: int
+    max_temperature: float
+    restrict_conductor_lim_continuous: float
+    restrict_component_lim_continuous: float
+    restrict_component_lim_15m: float
+    restrict_component_lim_1h: float
+    restrict_component_lim_40h: float
+    restrict_cable_lim_continuous: float
+    restrict_cable_lim_15m: float
+    restrict_cable_lim_1h: float
+    restrict_cable_lim_40h: float
+    # TODO: valideringsregler for attributes (int værdier skal være mellem 0 og ?, temp mellem 0 og 100, ampere mellem 0 og 9999)
+    # TODO: valider hvilke værdier der skal være sat og hvilke der er optional/NaN
+
+
+class DD20StationDataframeParser():
     """
     Class for parsing DD20, which is a Energinet in-house excel-file containing data for high voltage AC transmission lines.
     Each AC lines is represented by a name alongside with limits for transmission capacity and other parameters.
@@ -132,6 +140,11 @@ class DD20StationDataframeParser():
     TODO: build dictionars into one init function
     TODO: fetc only data to list of objects, make dataframe outside
 
+    Arguments
+    ----------
+    dataframe_station : pd.Dataframe
+        Pandas dataframe containing DD20 data sheet with station data.
+    
     Attributes
     ----------
     df_station : pd.DataFrame
@@ -141,12 +154,9 @@ class DD20StationDataframeParser():
     ---------
     get stuff?
 
-    TODO: describe all attributes
+    TODO: describe all attributes which are exposed
 
-    Arguments
-    ----------
-    dataframe_station : pd.Dataframe
-        Pandas dataframe containing DD20 data sheet with station data.
+
     """
     def __init__(self,
                  df_station: pd.DataFrame,
@@ -368,7 +378,7 @@ class DD20LineDataframeParser():
                     for acline_dd20name in self.acline_name_list}
             return dict
         except Exception as e:
-            # TODO: proper error>
+            # TODO: proper error
             log.exception(f"Getting ? failed with message: '{e}'.")
             raise e
 
@@ -469,6 +479,7 @@ def parse_dd20_excelsheets_to_dataframe(folder_path: str, file_name: str = "DD20
     file_path = folder_path + file_name
 
     # parsing data from DD20 to dataframe dictionary
+    # TODO: how to handle if encoding fails? 
     dd20_dataframe_dict = pd.read_excel(io=file_path, sheet_name=DD20_SHEET_LIST, header=DD20_HEADER_INDEX)
 
     # TODO: use hash function only or both?

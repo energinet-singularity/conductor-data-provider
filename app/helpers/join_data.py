@@ -23,6 +23,9 @@ def create_conductor_dataframe(conductor_dataframe: pd.DataFrame,
 
     # append column with list mapped name based on expected name if is existing in list, else keep name.
     # Remove expected name column
+
+    print(dd20_to_scada_name)
+
     mapped_name_list = [dd20_to_scada_name[x] if x in dd20_to_scada_name else x
                         for x in conductor_dataframe[EXPECTED_NAME_COL_NM]]
     conductor_dataframe[LINE_EMSNAME_COL_NM] = mapped_name_list
@@ -62,7 +65,9 @@ def create_conductor_dataframe(conductor_dataframe: pd.DataFrame,
                                                 on=LINE_EMSNAME_COL_NM,
                                                 how='inner')
 
-    # force lowercase
+    # TODO: make mrid as index in dataframe?
+
+    # force uppercase
     dlr_dataframe.columns = dlr_dataframe.columns.str.upper()
 
     return dlr_dataframe

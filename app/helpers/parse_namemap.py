@@ -8,8 +8,8 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 
-# TODO: move to lib
 def verify_dataframe_columns(dataframe: pd.DataFrame, expected_columns: list, allow_extra_columns: bool = False) -> bool:
+    # TODO: move funbction to singupy lib
     """
     Verify if columns in dataframe contains expected colums.
 
@@ -50,6 +50,7 @@ def verify_dataframe_columns(dataframe: pd.DataFrame, expected_columns: list, al
 def parse_acline_namemap_excelsheet_to_dict(folder_path: str, file_name: str = "Limits_other.xlsx") -> dict:
     """
     Extract manual name mapping from excel-sheet and return it to dictionary.
+    The name mapping is from "AC-line name in DD20" to "AC-line name in SCADA"
     Mapping is used for names which are not aligned between DD20 and SCADA system.
 
     An example of the file can be seen in test-data file:
@@ -68,14 +69,14 @@ def parse_acline_namemap_excelsheet_to_dict(folder_path: str, file_name: str = "
     dict
         Dictionary with mapping from AC-line name in DD20 to AC-line name in SCADA.
     """
-    # TODO: move config of constants outside code
+    # TODO: move config of constants outside code?
     ACLINE_NAMEMAP_SHEET = 'DD20Mapping'
     ACLINE_NAME_DD20 = 'DD20 Name'
     ACLINE_NAME_SCADA = 'ETS Name'
-    ACLINE_NAMEMAP_EXPECTED_COLS = [ACLINE_NAME_DD20, ACLINE_NAME_SCADA]
+
+    file_path = folder_path + file_name
 
     # proces data frem excel file to dictionary
-    file_path = folder_path + file_name
     try:
         # parse data from excel to dataframe
         acline_namemap_dataframe = pd.read_excel(file_path, sheet_name=ACLINE_NAMEMAP_SHEET)
@@ -83,7 +84,7 @@ def parse_acline_namemap_excelsheet_to_dict(folder_path: str, file_name: str = "
 
         # verify that expected columns are present
         verify_dataframe_columns(dataframe=acline_namemap_dataframe,
-                                 expected_columns=ACLINE_NAMEMAP_EXPECTED_COLS,
+                                 expected_columns=[ACLINE_NAME_DD20, ACLINE_NAME_SCADA],
                                  allow_extra_columns=True)
 
         # create dictionary for mapping

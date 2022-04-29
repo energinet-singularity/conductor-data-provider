@@ -8,8 +8,8 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 
-# TODO: move to lib
 def verify_dataframe_columns(dataframe: pd.DataFrame, expected_columns: list, allow_extra_columns: bool = False) -> bool:
+    # TODO: move funbction to singupy lib
     """
     Verify if columns in dataframe contains expected colums.
 
@@ -72,8 +72,9 @@ def parse_aclineseg_scada_csvdata_to_dataframe(folder_path: str, file_name: str 
     DLR_ENABLED_COL_NM = 'DLR_ENABLED'
     EXPECTED_COLUMNS = ['ACLINESEGMENT_MRID', 'LINE_EMSNAME', 'DLR_ENABLED']
 
-    # process data from csv file til dataframe
     file_path = folder_path + file_name
+
+    # process data from csv file til dataframe
     try:
         # read data from CSV to dataframe and drop row with index 1 as it contains only hyphnens
         aclineseg_scada_dataframe = pd.read_csv(file_path, delimiter=',', on_bad_lines='skip', header=CSV_FILE_HEADER_INDEX)
