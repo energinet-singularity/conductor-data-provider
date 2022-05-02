@@ -43,6 +43,8 @@ def get_aclinesegment_properties():
         pd.DataFrame
             A dataframe containing conductor data represented row-wise with AC-Linsegment MRID as unique key.
     """
+    # TODO: pass filepatch via env var
+    # TODO: parse others settings via env vars also or leave as defaults on funtions/class?
     # DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/"
     DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../real-data/"
 

@@ -9,13 +9,6 @@ from singupy.conversion import kv_to_letter
 # Initialize log
 log = logging.getLogger(__name__)
 
-# TODO: try/except alle steder
-# TODO: type og value verify i ACLinesegment object
-# TODO: return og value via getters or?
-# TODO: add hash funktion to verify columns did not change
-# TODO: regler for (int værdier skal være mellem 0 og ?, temp mellem 0 og 100, ampere mellem 0 og 9999)
-# TODO: valider hvilke værdier der skal være sat og hvilke der er optional/NaN
-
 
 @dataclass(eq=True)
 class ACLineProperties:
@@ -58,6 +51,9 @@ class ACLineProperties:
     restrict_cable_lim_40h: float
          Allowed 15 minutes ampere loading of cabling along the AC-line, if any.
     """
+    # TODO: type og value verify i ACLinesegment object
+    # TODO: regler for (int værdier skal være mellem 0 og ?, temp mellem 0 og 100, ampere mellem 0 og 9999)
+    # TODO: valider hvilke værdier der skal være sat og hvilke der er optional/NaN
     acline_name_translated: str
     acline_name_datasource: str
     datasource: str
@@ -113,7 +109,7 @@ class DD20StationDataframeParser():
         Dictionary with mapping from AC-line name to allowed 40 hour ampere loading of cabling along the AC-line, if any.
 
     df_station : pd.DataFrame
-        Dataframe containing station sheet "Stationsdata" of DD20 excel file.
+        Dataframe containing data from sheet "Stationsdata" of DD20 excel file.
     acline_name_col_nm : str, default='Linjenavn'
         Name of column containing AC-line name.
     kv_col_nm : str, Default='Spændingsniveau'
@@ -193,7 +189,7 @@ class DD20StationDataframeParser():
         # Get unique list of acline names present in dataframe
         self.acline_name_list = self.__get_acline_name_list()
 
-        # Init value dicts:
+        # Init value dicts
         self.conductor_kv_level_dict = self.__create_acline_name_to_column_single_value_dict(column_name=self.__kv_col_nm)
         self.conductor_count_dict = self.__create_acline_name_to_column_single_value_dict(column_name=self.__conductor_count_col_nm)
         self.system_count_dict = self.__create_acline_name_to_column_single_value_dict(column_name=self.__system_count_col_nm)
@@ -204,31 +200,6 @@ class DD20StationDataframeParser():
         self.cablelim_1h_dict = self.__create_acline_name_to_column_single_value_dict(column_name=self.__cablelim_1h_col_nm)
         self.cablelim_40h_dict = self.__create_acline_name_to_column_single_value_dict(column_name=self.__cablelim_40h_col_nm)
 
-    def __get_acline_name_list(self):
-        """
-        Create list of unique AC-line names which exist in dataframe.
-
-        Returns
-        -------
-        list
-            List of unique AC-line names.
-        """
-        try:
-            # Filtering dataframe on 'linename' column to get only unique line names by:
-            # - Removing rows with null
-            # - Removing rows not containing '-', since line names always contain this character
-            # - Removing rows with '(N)', since it is a parallel line representation in DD20 format
-            df_filtered = self.__df_station_source[(self.__df_station_source[self.__acline_name_col_nm].notna()) &
-                                                   (self.__df_station_source[self.__acline_name_col_nm].str.contains("-"))]
-            df_filtered = df_filtered[~(df_filtered[self.__acline_name_col_nm].str.contains(r'\(N\)'))]
-
-            # Return list of unique DD20 names
-            acline_names = set(df_filtered[self.__acline_name_col_nm].values.tolist())
-
-            return acline_names
-        except Exception as e:
-            log.exception(f"Getting list of line names present in DD20 line sheet failed with message: '{e}'.")
-            raise e
 
     def __prepare_df_station(self):
         """
@@ -278,6 +249,33 @@ class DD20StationDataframeParser():
             log.exception(f"Preparing DD20 dataframe from Station-data sheet failed with message: '{e}'.")
             raise e
 
+
+    def __get_acline_name_list(self):
+        """
+        Create list of unique AC-line names which exist in dataframe.
+
+        Returns
+        -------
+        list
+            List of unique AC-line names.
+        """
+        try:
+            # Filtering dataframe on 'linename' column to get only unique line names by:
+            # - Removing rows with null
+            # - Removing rows not containing '-', since line names always contain this character
+            # - Removing rows with '(N)', since it is a parallel line representation in DD20 format
+            df_filtered = self.__df_station_source[(self.__df_station_source[self.__acline_name_col_nm].notna()) &
+                                                   (self.__df_station_source[self.__acline_name_col_nm].str.contains("-"))]
+            df_filtered = df_filtered[~(df_filtered[self.__acline_name_col_nm].str.contains(r'\(N\)'))]
+
+            # Return list of unique DD20 names
+            acline_names = list(set(df_filtered[self.__acline_name_col_nm].values.tolist()))
+
+            return acline_names
+        except Exception as e:
+            log.exception(f"Getting list of line names present in DD20 line sheet failed with message: '{e}'.")
+            raise e
+
     def __create_acline_name_to_column_single_value_dict(self, column_name: str):
         """ 
         Returns dictionary with mapping from acline names in DD20 to corresponding value from column name.
@@ -305,13 +303,53 @@ class DD20StationDataframeParser():
 
 
 class DD20LineDataframeParser():
-    # parse kun data fra line ark til dictionarys som mappes fra name til prop
-    # husk at lav hjælpe funktioner til at hente værdier ud
     """
-    Arguments
+    Class for representing "line data" from DD20 as dictionarys with mapping from each AC-line name
+    in dataframe to miscellaneous properties.
+
+    The data "line data" need to be parsed as parameter "df_line" upon instantiation.
+    Dictionarys exists as atributes to the class after initialisation.
+
+    The "line data" is the data presented in sheet "Linjedata - Sommer" of DD20 excel file.
+    DD20 is a non-standard format containing data for high voltage AC transmission lines.
+    Each AC-line is represented by a name alongside with limits for transmission capacity and other parameters.
+    A mock example of it can be found in 'tests/valid-testdata/DD20.XLSM'. 
+
+    Attributes
     ----------
-    dataframe_line : pd.Dataframe
-        Pandas dataframe containing DD20 data sheet with line data.a.
+    acline_name_list : list
+        List of names for AC-lines present in dataframe.
+    conductor_kv_level_dict : dict
+        Dictionary with mapping from AC-line name to voltagelevel in kV.
+    acline_lim_continuous_dict : dict
+        Dictionary with mapping from AC-line name to allowed continuous ampere loading of conducter.
+    complim_continuous_dict : dict
+        Dictionary with mapping from AC-line name to allowed continuous ampere loading of components along the AC-line.
+    complim_15m_dict : dict
+        Dictionary with mapping from AC-line name to allowed 15 minutes ampere loading of components along the AC-line.
+    complim_1h_dict : dict
+        Dictionary with mapping from AC-line name to allowed 1 hour ampere loading of components along the AC-line.
+    complim_40h_dict : dict
+        Dictionary with mapping from AC-line name to allowed 40 hour ampere loading of components along the AC-line.
+
+    df_line : pd.DataFrame
+        Dataframe containing data from sheet "Linjedata - Sommer" of DD20 excel file.
+    acline_name_col_nm : str, default='System'
+        Name of column containing AC-line name.
+    kv_col_nm : str, Default='Spændingsniveau'
+        Name of column containing voltagelevel in kV.
+    acline_lim_continuous_col_nm : str, Default = 'I-kontinuert'
+        Name of column containing allowed continuous ampere loading of conducter.
+    system_count_col_nm : str, Default='Antal sys.'
+        Name of columns containing system count.
+    complim_continuous_col_rng : range, Default=range(41, 55)
+        Range of columns which contains allowed continuous ampere loading of components along the AC-line.
+    complim_15m_col_rng : range, Default=range(55, 69)
+        Range of columns which contains allowed 15 minutes ampere loading of components along the AC-line.
+    complim_1h_col_rng : range, Default=range(69, 83)
+        Range of columns which contains allowed 1 hour ampere loading of components along the AC-line.
+    complim_40h_col_rng : range, Defualt=range(83, 97))
+        Range of columns which contains allowed 40 hour ampere loading of components along the AC-line.
     """
     def __init__(self,
                  df_line: pd.DataFrame,
@@ -323,8 +361,30 @@ class DD20LineDataframeParser():
                  complim_15m_col_rng: range = range(55, 69),
                  complim_1h_col_rng: range = range(69, 83),
                  complim_40h_col_rng: range = range(83, 97)):
+        """
+        Parameters
+        ----------
+        df_line : pd.DataFrame
+            Dataframe containing data from sheet "Linjedata - Sommer" of DD20 excel file.
+        acline_name_col_nm : str, default='System'
+            Name of column containing AC-line name.
+        kv_col_nm : str, Default='Spændingsniveau'
+            Name of column containing voltagelevel in kV.
+        acline_lim_continuous_col_nm : str, Default = 'I-kontinuert'
+            Name of column containing allowed continuous ampere loading of conducter.
+        system_count_col_nm : str, Default='Antal sys.'
+            Name of columns containing system count.
+        complim_continuous_col_rng : range, Default=range(41, 55)
+            Range of columns which contains allowed continuous ampere loading of components along the AC-line.
+        complim_15m_col_rng : range, Default=range(55, 69)
+            Range of columns which contains allowed 15 minutes ampere loading of components along the AC-line.
+        complim_1h_col_rng : range, Default=range(69, 83)
+            Range of columns which contains allowed 1 hour ampere loading of components along the AC-line.
+        complim_40h_col_rng : range, Defualt=range(83, 97))
+            Range of columns which contains allowed 40 hour ampere loading of components along the AC-line.
+        """
 
-        #  init of value for column names and indexing (linjedata)
+        # Init of parameters
         self.__df_line_soruce = df_line
         self.__acline_name_col_nm = acline_name_col_nm
         self.__kv_col_nm = kv_col_nm
@@ -335,14 +395,13 @@ class DD20LineDataframeParser():
         self.__complim_1h_col_rng = complim_1h_col_rng
         self.__complim_40h_col_rng = complim_40h_col_rng
 
-        # cleaned dataframes (parallel representatio only)
+        # Cleaning dataframe
         self.__df_line_clean = self.__prepare_df_line()
 
-        # get unique acline names
+        # Get unique list of acline names present in dataframe
         self.acline_name_list = self.__get_acline_name_list()
 
-        # dict init
-        # KV og de 4 comp limits
+        # Init value dicts
         self.acline_lim_continuous_dict = self.__create_acline_name_to_column_min_value_dict(column_name=self.__acline_lim_continuous_col_nm)
         self.conductor_kv_level_dict = self.__create_acline_name_to_column_min_value_dict(column_name=self.__kv_col_nm)
         self.complim_continuous_dict = self.__create_acline_name_to_column_range_min_value_dict(column_range=self.__complim_continuous_col_rng)
@@ -369,18 +428,15 @@ class DD20LineDataframeParser():
             raise e
 
     def __get_acline_name_list(self):
-        # TODO: add check for duplicate names
         """
-        TODO: doc
-        returns list of namesish
+        Create list of unique AC-line names which exist in dataframe.
+
+        Returns
+        -------
+        list
+            List of unique AC-line names.
         """
         try:
-            # Filtering dataframe on 'linename' column to get only unique line names by:
-            # - Removing rows with null
-            # - Removing rows not containing '-', since line names always contain this character
-            # - Removing rows with '(N)', since it is a parallel line representation in DD20 format
-            # df_filtered = self.__df_line_clean[~(df_filtered[self.__acline_name_col_nm].str.contains(r'\(N\)'))]
-
             # Return list of DD20 names
             acline_names = self.__df_line_clean[self.__acline_name_col_nm].values.tolist()
 
@@ -430,6 +486,7 @@ def DD20_to_acline_properties_mapper(data_station: object, data_line: object):
     All AC line objects are also combinded into a dataframe where the columns represents the atributes of the object.
     It can be fetched via ??
     """
+    # Try/except?
     # dictionarys som input, dictionary for hver attribute på endelig ac onjekrt
     # sammel data fra de 2 ark
     # tjek at samme aclines og kv kombi er i begge sheets (error hvis den mangler i den anden og omvendt)
@@ -462,6 +519,7 @@ def DD20_to_acline_properties_mapper(data_station: object, data_line: object):
     acline_name_to_complim_40h = data_line.complim_40h_dict
 
     # tjeck lines in both
+    # TODO: include kv to account for kv match also?
     names_in_station_but_not_line = list(set(st_acline_names).difference(ln_acline_names))
     names_in_line_but_not_station = list(set(ln_acline_names).difference(st_acline_names))
     # TODO: make with if and exception
@@ -497,7 +555,8 @@ def DD20_to_acline_properties_mapper(data_station: object, data_line: object):
 
 def parse_dd20_excelsheets_to_dataframe(folder_path: str, file_name: str = "DD20.XLSM") -> pd.DataFrame:
     """
-    Wrapper function, maybe put in main?
+    Wrapper function, maybe put in main? if not then parse parameters via arguments
+    
     Extract conductor data from DD20 excel-sheets and return it to one combined dataframe.
     The source data is DD20, which has a non-standard format, why customized cleaning and extraction from it is needed.
 
@@ -528,6 +587,7 @@ def parse_dd20_excelsheets_to_dataframe(folder_path: str, file_name: str = "DD20
     dd20_dataframe_dict = pd.read_excel(io=file_path, sheet_name=DD20_SHEET_LIST, header=DD20_HEADER_INDEX)
 
     # TODO: use hash function only or both?
+    # TODO: build into parser classes or externally?
     # Expected columns in DD20 excel sheet 'stationsdata'
     """ DD20_EXPECTED_COLS_STATIONSDATA = ['Linjenavn', 'Spændingsniveau', 'Ledningstype', 'Antal fasetråde', 'Antal systemer',
                                        'Kontinuer', '15 min', '1 time', '40 timer'] """

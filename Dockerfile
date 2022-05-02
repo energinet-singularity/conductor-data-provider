@@ -17,10 +17,12 @@ USER localuser
 
 # Copy required files into container
 COPY app/* /app/
+COPY app/helpers/* /app/helpers/
 COPY tests/valid-testdata/* /tests/valid-testdata/
+# COPY real-data/* real-data/
 
 EXPOSE 5666
 
 # Run the application
 CMD ["python3", "-u", "/app/main.py"]
-
+# docker build . -t conduck:latest --rm

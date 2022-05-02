@@ -9,7 +9,11 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 
-def parse_acline_namemap_excelsheet_to_dict(folder_path: str, file_name: str = "Limits_other.xlsx") -> dict:
+def parse_acline_namemap_excelsheet_to_dict(folder_path: str,
+                                            file_name: str = "Limits_other.xlsx",
+                                            excel_sheet_name: str = "DD20Mapping",
+                                            dd20_name_col_nm: str = "DD20 Name",
+                                            scada_name_col_nm: str = "ETS Name")-> dict:
     """
     Extract manual name mapping from excel-sheet and return it to dictionary.
     The name mapping is from "AC-line name in DD20" to "AC-line name in SCADA"
@@ -25,37 +29,41 @@ def parse_acline_namemap_excelsheet_to_dict(folder_path: str, file_name: str = "
     file_name : str
         (optional) Name of excel-file.
         Default = "Limits_other.xlsx"
-
+    excel_sheet_name : str
+        (optional) Name of sheet in excel-file which containes mapping.
+        Default = "DD20Mapping"
+    dd20_name_col_nm : str
+        (optional) Name of column which contains DD20 name.
+        Default = "DD20 Name"
+    scada_name_col_nm : str
+        (optional) Name of column which contains SCADA name.
+        Default = "ETS Name"
     Returns
     -------
     dict
         Dictionary with mapping from AC-line name in DD20 to AC-line name in SCADA.
     """
-    # TODO: move config of constants outside code?
-    ACLINE_NAMEMAP_SHEET = 'DD20Mapping'
-    ACLINE_NAME_DD20 = 'DD20 Name'
-    ACLINE_NAME_SCADA = 'ETS Name'
 
     file_path = folder_path + file_name
 
     # proces data frem excel file to dictionary
     try:
         # parse data from excel to dataframe
-        acline_namemap_dataframe = pd.read_excel(file_path, sheet_name=ACLINE_NAMEMAP_SHEET)
+        acline_namemap_dataframe = pd.read_excel(file_path, sheet_name=excel_sheet_name)
         log.debug(f"Data from excel-file {file_path} is: {acline_namemap_dataframe.to_string()}")
 
         # verify that expected columns are present
         dataframe_columns(dataframe=acline_namemap_dataframe,
-                          expected_columns=[ACLINE_NAME_DD20, ACLINE_NAME_SCADA],
+                          expected_columns=[dd20_name_col_nm, scada_name_col_nm],
                           allow_extra_columns=True)
 
-        # create dictionary for mapping
-        acline_namemap_dict = acline_namemap_dataframe.set_index(ACLINE_NAME_DD20).to_dict()[ACLINE_NAME_SCADA]
-        log.info(f"AC-line name mapping in sheet: '{ACLINE_NAMEMAP_SHEET} of file '{file_path}' was parsed to dictionary.")
+        # create dictionary for mapping between DD20 name and SCADA name
+        acline_namemap_dict = acline_namemap_dataframe.set_index(dd20_name_col_nm).to_dict()[scada_name_col_nm]
+        log.info(f"AC-line name mapping in sheet: '{excel_sheet_name}' of file '{file_path}' was parsed to dictionary.")
 
         return acline_namemap_dict
 
     except Exception as e:
-        log.exception(f"Parsing AC-line name mapping in sheet: '{ACLINE_NAMEMAP_SHEET} of file '{file_path}' " +
+        log.exception(f"Parsing AC-line name mapping in sheet: '{excel_sheet_name}' of file '{file_path}' " +
                       f"failed with message: '{e}'.")
         raise e
