@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 # Modules
 import pandas as pd
+from singupy.conversion import kv_to_letter
 
 # Initialize log
 log = logging.getLogger(__name__)
@@ -12,54 +13,8 @@ log = logging.getLogger(__name__)
 # TODO: type og value verify i ACLinesegment object
 # TODO: return og value via getters or?
 # TODO: add hash funktion to verify columns did not change
-
-
-def convert_voltage_level_to_letter(voltage_level: int) -> str:
-    # TODO: move to lib
-    # TODO: make using regex instead?
-    """Converts voltage level to voltage letter representation.
-
-    Parameters
-    ----------
-    voltage_level : int
-        Voltage level in kV.
-
-    Returns
-    -------
-    str
-        Voltage letter.
-
-    Example
-    -------
-        >>> convert_voltage_level_to_letter(400)
-        C
-    """
-    if voltage_level >= 420:
-        voltage_letter = 'B'
-    elif 380 <= voltage_level < 420:
-        voltage_letter = 'C'
-    elif 220 <= voltage_level < 380:
-        voltage_letter = 'D'
-    elif 110 <= voltage_level < 220:
-        voltage_letter = 'E'
-    elif 60 <= voltage_level < 110:
-        voltage_letter = 'F'
-    elif 45 <= voltage_level < 60:
-        voltage_letter = 'G'
-    elif 30 <= voltage_level < 45:
-        voltage_letter = 'H'
-    elif 20 <= voltage_level < 30:
-        voltage_letter = 'J'
-    elif 10 <= voltage_level < 20:
-        voltage_letter = 'K'
-    elif 6 <= voltage_level < 10:
-        voltage_letter = 'L'
-    elif 1 <= voltage_level < 6:
-        voltage_letter = 'M'
-    elif voltage_level < 1:
-        voltage_letter = 'N'
-
-    return voltage_letter
+# TODO: regler for (int værdier skal være mellem 0 og ?, temp mellem 0 og 100, ampere mellem 0 og 9999)
+# TODO: valider hvilke værdier der skal være sat og hvilke der er optional/NaN
 
 
 @dataclass(eq=True)
@@ -119,8 +74,6 @@ class ACLineProperties:
     restrict_cable_lim_15m: float
     restrict_cable_lim_1h: float
     restrict_cable_lim_40h: float
-    # TODO: regler for (int værdier skal være mellem 0 og ?, temp mellem 0 og 100, ampere mellem 0 og 9999)
-    # TODO: valider hvilke værdier der skal være sat og hvilke der er optional/NaN
 
 
 class DD20StationDataframeParser():
@@ -128,13 +81,13 @@ class DD20StationDataframeParser():
     Class for representing "station data" from DD20 as dictionarys with mapping from each AC-line name
     in dataframe to miscellaneous properties.
 
-    Each AC-line in the dataframe will be represented in dictionarys with mapping from AC-line name
-    to miscellaneous properties. Dictionarys exists as atributes to the class after initialisation.
+    The data "station data" need to be parsed as paramerer "df_station" upon instantiation.
+    Dictionarys exists as atributes to the class after initialisation.
 
     The "station data" is the data presented in sheet "Stationsdata" of DD20 excel file.
     DD20 is a non-standard format containing data for high voltage AC transmission lines.
     Each AC-line is represented by a name alongside with limits for transmission capacity and other parameters.
-    A mock example of it can be found in 'tests/valid-testdata/DD20.XLSM'.
+    A mock example of it can be found in 'tests/valid-testdata/DD20.XLSM'. 
 
     Attributes
     ----------
@@ -234,13 +187,13 @@ class DD20StationDataframeParser():
         self.__cablelim_1h_col_nm = cablelim_1h_col_nm
         self.__cablelim_40h_col_nm = cablelim_40h_col_nm
 
-        # cleaned dataframe (parallel representatio only)
+        # Cleaning dataframe
         self.__df_station_clean = self.__prepare_df_station()
 
-        # get unique acline names
+        # Get unique list of acline names present in dataframe
         self.acline_name_list = self.__get_acline_name_list()
 
-        # init value dicts:
+        # Init value dicts:
         self.conductor_kv_level_dict = self.__create_acline_name_to_column_single_value_dict(column_name=self.__kv_col_nm)
         self.conductor_count_dict = self.__create_acline_name_to_column_single_value_dict(column_name=self.__conductor_count_col_nm)
         self.system_count_dict = self.__create_acline_name_to_column_single_value_dict(column_name=self.__system_count_col_nm)
@@ -253,8 +206,12 @@ class DD20StationDataframeParser():
 
     def __get_acline_name_list(self):
         """
-        TODO: doc
-        returns list of namesish
+        Create list of unique AC-line names which exist in dataframe.
+
+        Returns
+        -------
+        list
+            List of unique AC-line names.
         """
         try:
             # Filtering dataframe on 'linename' column to get only unique line names by:
@@ -314,18 +271,29 @@ class DD20StationDataframeParser():
 
             # TODO: verify only one row is present per ac-line before returning value, since else DD20 format has error
 
-            #
+            # 
             return df_station_filtered
 
         except Exception as e:
             log.exception(f"Preparing DD20 dataframe from Station-data sheet failed with message: '{e}'.")
             raise e
 
-    # TODO: general function to extract data for row, column and error if more rows returned
     def __create_acline_name_to_column_single_value_dict(self, column_name: str):
-        """ Returns dictionary with mapping from acline names in DD20 to corresponding value from column name."""
+        """ 
+        Returns dictionary with mapping from acline names in DD20 to corresponding value from column name.
+
+        Parameters
+        ----------
+        column_name : str
+            Name of column for which value must be extracted.
+        
+        Returns
+        -------
+        dict
+            Mapping from each AC-line name to value in choosen column.
+        """
         try:
-            # for each acline:
+            # for each AC line in DD20:
             # - filter dataframe to only rows which has the linename
             # - pick only value for column
             dict = {acline_dd20name: self.__df_station_clean[self.__df_station_clean[self.__acline_name_col_nm] == acline_dd20name][column_name].values[0]
@@ -503,7 +471,7 @@ def DD20_to_acline_properties_mapper(data_station: object, data_line: object):
     # as lines are present in both, just use one
     # TODO: make with regex instead
     acline_name__to_translated_name = {acline_dd20name:
-                                       f"{convert_voltage_level_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}_{acline_dd20name.strip()[:len(acline_dd20name.strip())-3]}{acline_dd20name.strip()[-3:].replace('-','_')}"
+                                       f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}_{acline_dd20name.strip()[:len(acline_dd20name.strip())-3]}{acline_dd20name.strip()[-3:].replace('-','_')}"
                                        for acline_dd20name in st_acline_names}
 
     # return obj list

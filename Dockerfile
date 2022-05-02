@@ -23,4 +23,4 @@ EXPOSE 5666
 
 # Run the application
 CMD ["python3", "-u", "/app/main.py"]
-# docker build . -t conduck:latest --rm
+

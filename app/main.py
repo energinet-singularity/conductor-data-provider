@@ -43,8 +43,8 @@ def get_aclinesegment_properties():
         pd.DataFrame
             A dataframe containing conductor data represented row-wise with AC-Linsegment MRID as unique key.
     """
-    DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/"
-    # DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../real-data/"
+    # DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/"
+    DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../real-data/"
 
     # 1. parsing data from dd20 file
     try:
@@ -55,7 +55,6 @@ def get_aclinesegment_properties():
 
     # 2. parsing data from name map file
     try:
-        #  os.path.dirname(__file__) + '/../real-data/
         dd20_to_scada_acline_name = parse_acline_namemap_excelsheet_to_dict(folder_path=DATA_INPUT_FILEPATH)
     except Exception as e:
         log.exception(f"Parsing Name mapping failed with message: '{e}'")
@@ -96,11 +95,6 @@ if __name__ == "__main__":
     # TODO: schdule job to scandir every 5 secound and update dataframe if new data can be fetched
 
     dataframe = get_aclinesegment_properties()
-
-    """log.info('Data type is:')
-    print(dataframe.dtypes)
-    log.info('Data is:')
-    print(dataframe.to_string())"""
 
     log.debug(f"Data is: {dataframe.to_string()}")
 

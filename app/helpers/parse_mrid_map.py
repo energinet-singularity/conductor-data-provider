@@ -2,49 +2,11 @@
 import logging
 
 # Modules
+from singupy.verification import dataframe_columns
 import pandas as pd
 
 # Initialize log
 log = logging.getLogger(__name__)
-
-
-def verify_dataframe_columns(dataframe: pd.DataFrame, expected_columns: list, allow_extra_columns: bool = False) -> bool:
-    # TODO: move funbction to singupy lib
-    """
-    Verify if columns in dataframe contains expected colums.
-
-    Parameters
-    ----------
-    dataframe : pd.Dataframe
-        Pandas dataframe.
-    expected_columns : list
-        List of expected columns.
-    allow_extra_columns : bool
-        Set True if columns in addition to the expected columns are accepted.
-        (Default = False)
-
-    Returns
-    -------
-    bool
-        True if columns are as expected, else False.
-    """
-    dataframe_columns = list(dataframe.columns)
-
-    # If extra columns are allowed in dataframe, check if expected columns are present in dataframe
-    if allow_extra_columns:
-        if all(item in dataframe_columns for item in expected_columns):
-            log.info('Dataframe contains expected columns.')
-        else:
-            raise ValueError(f"The columns: {expected_columns} are not present in dataframe, " +
-                             f"since it only has the columns: '{dataframe_columns}'.")
-
-    # If only expected columns are allowed in dataframe, check if only expected columns are in dataframe
-    else:
-        if sorted(dataframe_columns) == sorted(expected_columns):
-            log.info('Dataframe contains only expected columns.')
-        else:
-            raise ValueError(f"The columns: '{dataframe_columns}' in dataframe does not match expected columns: " +
-                             f"'{expected_columns}'.")
 
 
 def parse_aclineseg_scada_csvdata_to_dataframe(folder_path: str, file_name: str = "seg_line_mrid.csv") -> pd.DataFrame:
@@ -88,9 +50,9 @@ def parse_aclineseg_scada_csvdata_to_dataframe(folder_path: str, file_name: str 
         aclineseg_scada_dataframe = aclineseg_scada_dataframe.astype({DLR_ENABLED_COL_NM: bool})
 
         # verify that expected columns are present
-        verify_dataframe_columns(dataframe=aclineseg_scada_dataframe,
-                                 expected_columns=EXPECTED_COLUMNS,
-                                 allow_extra_columns=True)
+        dataframe_columns(dataframe=aclineseg_scada_dataframe,
+                          expected_columns=EXPECTED_COLUMNS,
+                          allow_extra_columns=True)
 
         log.info(f'AC-linsegment csv-data from "{file_path}" was parsed to dataframe.')
         log.debug(f"Data from csv-file {file_path} is: {aclineseg_scada_dataframe.to_string()}")
