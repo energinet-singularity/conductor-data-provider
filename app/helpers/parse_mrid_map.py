@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 def parse_aclineseg_scada_csvdata_to_dataframe(folder_path: str,
-                                               file_name: str = "seg_line_mrid.csv",
+                                               file_name: str = "seg_line_mrid_PROD.csv",
                                                aclinesegment_mrid_col_nm: str = "ACLINESEGMENT_MRID",
                                                acline_name_col_nm: str = "LINE_EMSNAME",
                                                dlr_enabled_col_nm: str = "DLR_ENABLED") -> pd.DataFrame:
@@ -47,7 +47,7 @@ def parse_aclineseg_scada_csvdata_to_dataframe(folder_path: str,
     # process data from csv file til dataframe
     try:
         # read data from CSV to dataframe and drop row with index 1 as it contains only hyphnens
-        aclineseg_scada_dataframe = pd.read_csv(file_path, delimiter=',', on_bad_lines='skip')
+        aclineseg_scada_dataframe = pd.read_csv(file_path, delimiter=',', on_bad_lines='skip', encoding='cp1252')
         aclineseg_scada_dataframe.drop(aclineseg_scada_dataframe.head(1).index, inplace=True)
 
         # replace yes/no with true/false
