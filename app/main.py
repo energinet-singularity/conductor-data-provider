@@ -9,15 +9,16 @@ from singupy import api as singuapi
 import pandas as pd
 
 # App modules
-from helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
-from helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dict
-from helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
-from helpers.join_data import create_conductor_dataframe
+from app.helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
+from app.helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dict
+from app.helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
+from app.helpers.join_data import create_conductor_dataframe
 
 # Initialize log
 log = logging.getLogger(__name__)
 
 # TODO: Correct standard paths and remove the next two lines
+# TODO: Fix helpers so they accept a path without a slash at the end (use os.path.join() to join path and filename!)
 # DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/"
 # DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../real-data/"
 
@@ -104,23 +105,24 @@ class ACLineSegmentProperties():
                 file_update_time = os.path.getmtime(input.path)
 
                 if file_update_time != input.mtime:
+                    log.info(f"Updating {input.name} file")
                     data_change = True
                     input.mtime = file_update_time
-                    input.dataframe = input.func(folder_path=os.path.split(input.path)[0],
+                    input.dataframe = input.func(folder_path=f"{os.path.split(input.path)[0]}/",
                                                  file_name=os.path.split(input.path)[1])
             except Exception as e:
                 log.exception(f"Parsing {input.name} failed with message: '{e}'")
                 raise e
 
-            # Combine data into common dataframe
-            try:
-                if data_change:
-                    self.dataframe = create_conductor_dataframe(conductor_dataframe=self.__DD20.dataframe,
-                                                                dd20_to_scada_name=self.__DD20_MAP.dataframe,
-                                                                scada_mapping_datafram=self.__MRID_MAP.dataframe)
-            except Exception as e:
-                log.exception(f"Creating dataframe with AC-linesegment properties failed with message: '{e}'")
-                raise e
+        # Combine data into common dataframe
+        try:
+            if data_change:
+                self.dataframe = create_conductor_dataframe(conductor_dataframe=self.__DD20.dataframe,
+                                                            dd20_to_scada_name=self.__DD20_MAP.dataframe,
+                                                            scada_mapping_datafram=self.__MRID_MAP.dataframe)
+        except Exception as e:
+            log.exception(f"Creating dataframe with AC-linesegment properties failed with message: '{e}'")
+            raise e
 
         return self.dataframe
 
@@ -166,13 +168,9 @@ if __name__ == "__main__":
     # Load environment variables
     try:
         api_port = int(os.environ.get('PORT', '5000'))
-    except Exception:
-        raise ValueError(f"Invalid PORT ({os.environ.get('PORT', '5000')}) value.")
-
-    try:
         api_dbname = os.environ.get('DBNAME', 'CONDUCTOR_DATA').upper()
     except Exception:
-        raise ValueError(f"Invalid DBNAME ({os.environ.get('DBNAME', 'CONDUCTOR_DATA').upper()}) value.")
+        raise ValueError(f"Invalid API config (ENV. vars PORT and DBNAME)")
 
     log.info("Collecting conductor data and exposing via API.")
 
