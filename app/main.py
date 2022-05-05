@@ -170,7 +170,7 @@ if __name__ == "__main__":
         api_port = int(os.environ.get('PORT', '5000'))
         api_dbname = os.environ.get('DBNAME', 'CONDUCTOR_DATA').upper()
     except Exception:
-        raise ValueError(f"Invalid API config (ENV. vars PORT and DBNAME)")
+        raise ValueError(f"Invalid API config (PORT and/or DBNAME)")
 
     log.info("Collecting conductor data and exposing via API.")
 

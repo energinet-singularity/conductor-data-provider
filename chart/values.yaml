@@ -3,13 +3,12 @@
 # Declare variables to be passed into your templates.
 replicaCount: 1
 
-#TEMPLATE INFO: Remember to fix the below repo path and remove this comment
 image:
   repository: ghcr.io/energinet-singularity/conduck/energinet-singularity/conduck
   pullPolicy: IfNotPresent
   tag: "0.0.5"
 
-#Setup file-mover dependency first
+# Setup PVC
 conductorInputVolume: 
   persistentVolumeClaim:
     claimName: conductor-data-pvc
@@ -19,6 +18,7 @@ conductorDataVolume:
   size: 1G
   storageClass: standard
 
+# Setup file-mover
 file-mover:
   folderMounts:
     input:
@@ -47,6 +47,7 @@ file-mover:
                 - S1
           topologyKey: "kubernetes.io/hostname"
 
+# Setup affinity (including labels)
 podLabels:
   conductor-fm-parser: "S1"
 selectorLabels:
@@ -61,6 +62,17 @@ affinity:
               values:
               - S1
         topologyKey: "kubernetes.io/hostname"
+
+# Environment variables
+#api:
+#  port: 5999
+#  dbname: "othername"
+#debug: "TRUE"
+#mock_data: "TRUE"
+#filepath:
+#  dd20: "/other/place/file.xlsm"
+#  dd20_mapping: "/this/place/file.xlsx"
+#  mrid_mapping: "/new/place/file.csv"
 
 #Default settings not used in this setup
 imagePullSecrets: []
