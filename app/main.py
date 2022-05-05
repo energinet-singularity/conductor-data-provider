@@ -9,18 +9,15 @@ from singupy import api as singuapi
 import pandas as pd
 
 # App modules
-from app.helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
-from app.helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dict
-from app.helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
-from app.helpers.join_data import create_conductor_dataframe
+from helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
+from helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dict
+from helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
+from helpers.join_data import create_conductor_dataframe
 
 # Initialize log
 log = logging.getLogger(__name__)
 
-# TODO: Correct standard paths and remove the next two lines
 # TODO: Fix helpers so they accept a path without a slash at the end (use os.path.join() to join path and filename!)
-# DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/"
-# DATA_INPUT_FILEPATH = f"{os.path.dirname(os.path.realpath(__file__))}/../real-data/"
 
 
 class ACLineSegmentProperties():

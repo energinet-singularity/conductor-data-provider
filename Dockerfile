@@ -16,12 +16,10 @@ RUN pip3 install --upgrade pip && \
 USER localuser
 
 # Copy required files into container
-COPY app/* /app/
-COPY app/helpers/* /app/helpers/
-COPY tests/valid-testdata/* /tests/valid-testdata/
-# COPY real-data/* real-data/
+COPY app/ /app/
+COPY tests/valid-testdata/* /test-data/
 
-EXPOSE 5666
+EXPOSE 5000
 
 # Run the application
 CMD ["python3", "-u", "/app/main.py"]
