@@ -43,6 +43,9 @@ def parse_aclineseg_scada_csvdata_to_dataframe(file_path: str,
         aclineseg_scada_dataframe = pd.read_csv(file_path, delimiter=',', on_bad_lines='skip', encoding='cp1252')
         aclineseg_scada_dataframe.drop(aclineseg_scada_dataframe.head(1).index, inplace=True)
 
+        # restting index to start from 0
+        aclineseg_scada_dataframe.reset_index(drop=True, inplace=True)
+
         # replace yes/no with true/false
         aclineseg_scada_dataframe.loc[aclineseg_scada_dataframe[dlr_enabled_col_nm] == "YES", dlr_enabled_col_nm] = True
         aclineseg_scada_dataframe.loc[aclineseg_scada_dataframe[dlr_enabled_col_nm] == "NO", dlr_enabled_col_nm] = False

@@ -578,7 +578,7 @@ def DD20_to_acline_properties_mapper(data_station: DD20StationDataframeParser, d
                                            f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}_{acline_dd20name.strip()[:len(acline_dd20name.strip())-3]}{acline_dd20name.strip()[-3:].replace('-','_')}"
                                            for acline_dd20name in station_acline_names}
 
-        # Map station and line data to ACLine properties
+        # Map station and line data to list with objects of the type "ACLineProperties" dataclass.
         obj_list = [ACLineProperties(acline_name_translated=acline_name_to_translated_name[acline_dd20_name],
                                      acline_name_datasource=acline_dd20_name,
                                      datasource="DD20",

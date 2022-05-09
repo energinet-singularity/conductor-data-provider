@@ -5,16 +5,15 @@ import pytest
 
 # App modules
 from app.helpers.parse_dd20 import DD20StationDataframeParser, DD20LineDataframeParser
-# from app.helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dict
-# from app.helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
-# from app.helpers.join_data import create_conductor_dataframe
+from app.helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
+from app.helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dataframe
 
 # Global parameters
 DD20_HEADER_INDEX = 1
 DD20_SHEETNAME_STATIONSDATA = "Stationsdata"
 DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
 
-# fixtures
+# fixtures for DD20
 @pytest.fixture
 def dd20_data_frame_dict():
     dd20_file_path = (f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM")
@@ -201,21 +200,57 @@ def test_DD20LineDataframeParser(dd20_data_frame_dict):
                                  'III-ÆØÅ': 2400}
     assert data_parse_result.get_complim_40h_dict() == complim_40h_dict_expected
 
+# test combined DD20 dataframe eller blot objekter hver for sig, eller begge?
+
+
 # TEST: map parse
 # expected_dd20_to_scada_name_dict = {'E_EEE-FFF_1': 'E_EEEV-FFF_1'} - given E_EEE-FFF_1 then E_EEEV-FFF_1
+def test_parse_acline_namemap_excelsheet_to_dataframe():
+    """
+    This test verfies that Excel file with AC-line name mapping is parsed correcrtly
+    """
+    # expected dataframe
+    expected_acline_namemap_dict = {'DD20 Name': ['E_EEE-FFF_1'],
+                                    'ETS Name': ['E_EEEV-FFF_1'],
+                                    'Comment': ['andet navn i ETS. Forkert model.'],
+                                    'User': ['AWI']}
+    expected_acline_namemap_dataframe = pd.DataFrame.from_dict(expected_acline_namemap_dict)
+
+    # resulting dataframe from valid testfile
+    name_mapping_filepath =  f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/Limits_other.xlsx"
+    resulting_acline_namemap_dataframe = parse_acline_namemap_excelsheet_to_dataframe(file_path=name_mapping_filepath)
+
+    # assert
+    assert resulting_acline_namemap_dataframe.equals(expected_acline_namemap_dataframe)
+
+
 
 
 # TEST: mrid parse
-expected_lineseg_to_mrid_dict = {'ACLINESEGMENT_MRID': ['66b4596e-asfv-tyuy-5478-bd208f26a446',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a447',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a451',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a452',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a455',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a457',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a459'],
-                                 'LINE_EMSNAME': ['E_EEEV-FFF_1', 'E_EEE-FFF_2', 'E_GGG-HHH', 'E_GGG-HHH', 'D_CCC-DDD', 'C_III-ÆØÅ', 'C_ASK-ERS'],
-                                 'DLR_ENABLED': [True, True, False, False, True, True, True]}
-expected_lineseg_to_mrid_dataframe = pd.DataFrame.from_dict(expected_lineseg_to_mrid_dict)
+def test_parse_aclineseg_scada_csvdata_to_dataframe():
+    """
+    This test verfies that CSV file with aclineseg mapping is parsed correcrtly
+    """
+    # expected dataframe
+    expected_lineseg_to_mrid_dict = {'ACLINESEGMENT_MRID': ['66b4596e-asfv-tyuy-5478-bd208f26a446',
+                                                            '66b4596e-asfv-tyuy-5478-bd208f26a447',
+                                                            '66b4596e-asfv-tyuy-5478-bd208f26a451',
+                                                            '66b4596e-asfv-tyuy-5478-bd208f26a452',
+                                                            '66b4596e-asfv-tyuy-5478-bd208f26a455',
+                                                            '66b4596e-asfv-tyuy-5478-bd208f26a457',
+                                                            '66b4596e-asfv-tyuy-5478-bd208f26a459'],
+                                    'LINE_EMSNAME': ['E_EEEV-FFF_1', 'E_EEE-FFF_2', 'E_GGG-HHH', 'E_GGG-HHH', 'D_CCC-DDD', 'C_III-ÆØÅ', 'C_ASK-ERS'],
+                                    'DLR_ENABLED': [True, True, False, False, True, True, True]}
+    expected_lineseg_to_mrid_dataframe = pd.DataFrame.from_dict(expected_lineseg_to_mrid_dict)
+
+    # resulting dataframe from valid testfile
+    mrid_mapping_filepath =  f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/seg_line_mrid_PROD.csv"
+    resulting_lineseg_to_mrid_dataframe = parse_aclineseg_scada_csvdata_to_dataframe(file_path=mrid_mapping_filepath)
+
+    # assert
+    assert resulting_lineseg_to_mrid_dataframe.equals(expected_lineseg_to_mrid_dataframe)
+
+
 
 # TEST final merge
 #
