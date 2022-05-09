@@ -10,7 +10,7 @@ from singupy.conversion import kv_to_letter
 log = logging.getLogger(__name__)
 
 
-@dataclass(eq=True)
+@dataclass
 class ACLineProperties:
     """
     Class for representing parameteres and restrictions on a overhead AC-line connection between two stations.
@@ -522,7 +522,6 @@ class DD20LineDataframeParser():
             raise e
 
 
-# TODO: overvej at håndtere data vi 2 nye liste data objekter i stedet for dictionarys
 def DD20_to_acline_properties_mapper(data_station: DD20StationDataframeParser, data_line: DD20LineDataframeParser):
     """
     Data is extracted from sheets "Stationsdata" and "Linjedata - Sommer" are combined into objects.
@@ -540,71 +539,76 @@ def DD20_to_acline_properties_mapper(data_station: DD20StationDataframeParser, d
     # init object og returner dem i liste
     # Først tjekke der er enighed om navne fra begge kilder, Derefter kombiner dicts til liste af acline objekter
 
-    # init name lists
-    st_acline_names = data_station.acline_name_list
-    ln_acline_names = data_line.acline_name_list
+    try:
+        # Create lists with AC-Line names present in object from station and line
+        station_acline_names = data_station.acline_name_list
+        line_acline_names = data_line.acline_name_list
 
-    # init kv mapping dict
-    st_acline_name_to_conductor_kv_level = data_station.get_conductor_kv_level_dict()
-    # ln_acline_name_to_conductor_kv_level = data_line.conductor_kv_level_dict
+        # Verfify that the same names are present in both station and line data, since else DD20 format has an error.
+        names_in_station_but_not_line = list(set(station_acline_names).difference(line_acline_names))
+        if names_in_station_but_not_line:
+            raise ValueError(f"The following AC-line names are present in station " +
+                             "but not line sheet of DD20: {names_in_station_but_not_line}.")
 
-    # init acline properties dict
-    acline_name_to_conductor_count = data_station.get_conductor_count_dict()
-    acline_name_to_system_count = data_station.get_system_count_dict()
-    acline_name_to_conductor_type = data_station.get_conductor_type_dict()
-    acline_name_to_conductor_max_temp = data_station.get_conductor_max_temp_dict()
-    acline_name_to_cablelim_continuous = data_station.get_cablelim_continuous_dict()
-    acline_name_to_cablelim_15m = data_station.get_cablelim_15m_dict()
-    acline_name_to_cablelim_1h = data_station.get_cablelim_1h_dict()
-    acline_name_to_cablelim_40h = data_station.get_cablelim_40h_dict()
-    acline_name_to_lim_continuous = data_line.get_acline_lim_continuous_dict()
-    acline_name_to_complim_continuous = data_line.get_complim_continuous_dict()
-    acline_name_to_complim_15m = data_line.get_complim_15m_dict()
-    acline_name_to_complim_1h = data_line.get_complim_1h_dict()
-    acline_name_to_complim_40h = data_line.get_complim_40h_dict()
+        names_in_line_but_not_station = list(set(line_acline_names).difference(station_acline_names))
+        if names_in_line_but_not_station:
+            raise ValueError(f"The following AC-line names are present in line " +
+                             "but not station sheet of DD20: {names_in_line_but_not_station}.")
 
-    # tjeck lines in both
-    # TODO: include kv to account for kv match also?
-    names_in_station_but_not_line = list(set(st_acline_names).difference(ln_acline_names))
-    names_in_line_but_not_station = list(set(ln_acline_names).difference(st_acline_names))
-    # TODO: make with if and exception
-    print(f" in station but not line {names_in_station_but_not_line}")
-    print(f" in line but not station {names_in_line_but_not_station}")
+        # Init AC-Line properties mapping dictionarys via methods on objects
+        acline_name_to_conductor_count = data_station.get_conductor_count_dict()
+        acline_name_to_system_count = data_station.get_system_count_dict()
+        acline_name_to_conductor_type = data_station.get_conductor_type_dict()
+        acline_name_to_conductor_max_temp = data_station.get_conductor_max_temp_dict()
+        acline_name_to_cablelim_continuous = data_station.get_cablelim_continuous_dict()
+        acline_name_to_cablelim_15m = data_station.get_cablelim_15m_dict()
+        acline_name_to_cablelim_1h = data_station.get_cablelim_1h_dict()
+        acline_name_to_cablelim_40h = data_station.get_cablelim_40h_dict()
+        acline_name_to_lim_continuous = data_line.get_acline_lim_continuous_dict()
+        acline_name_to_complim_continuous = data_line.get_complim_continuous_dict()
+        acline_name_to_complim_15m = data_line.get_complim_15m_dict()
+        acline_name_to_complim_1h = data_line.get_complim_1h_dict()
+        acline_name_to_complim_40h = data_line.get_complim_40h_dict()
 
-    # as lines are present in both, just use one
-    # TODO: make with regex instead
-    acline_name__to_translated_name = {acline_dd20name:
-                                       f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}_{acline_dd20name.strip()[:len(acline_dd20name.strip())-3]}{acline_dd20name.strip()[-3:].replace('-','_')}"
-                                       for acline_dd20name in st_acline_names}
+        # Init kv mapping dict (only use from station since we just checked on agrement on line names)
+        st_acline_name_to_conductor_kv_level = data_station.get_conductor_kv_level_dict()
 
-    # return obj list
-    obj_list = [ACLineProperties(acline_name_translated=acline_name__to_translated_name[acline_dd20_name],
-                                 acline_name_datasource=acline_dd20_name,
-                                 datasource="DD20",
-                                 conductor_type=acline_name_to_conductor_type[acline_dd20_name],
-                                 conductor_count=acline_name_to_conductor_count[acline_dd20_name],
-                                 system_count=acline_name_to_system_count[acline_dd20_name],
-                                 max_temperature=acline_name_to_conductor_max_temp[acline_dd20_name],
-                                 restrict_cable_lim_continuous=acline_name_to_cablelim_continuous[acline_dd20_name],
-                                 restrict_cable_lim_15m=acline_name_to_cablelim_15m[acline_dd20_name],
-                                 restrict_cable_lim_1h=acline_name_to_cablelim_1h[acline_dd20_name],
-                                 restrict_cable_lim_40h=acline_name_to_cablelim_40h[acline_dd20_name],
-                                 restrict_conductor_lim_continuous=acline_name_to_lim_continuous[acline_dd20_name],
-                                 restrict_component_lim_continuous=acline_name_to_complim_continuous[acline_dd20_name],
-                                 restrict_component_lim_15m=acline_name_to_complim_15m[acline_dd20_name],
-                                 restrict_component_lim_1h=acline_name_to_complim_1h[acline_dd20_name],
-                                 restrict_component_lim_40h=acline_name_to_complim_40h[acline_dd20_name])
-                for acline_dd20_name in st_acline_names]
-    return obj_list
+        # TODO: make with regex instead and doc (see example from GIS)
+        acline_name_to_translated_name = {acline_dd20name:
+                                           f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}_{acline_dd20name.strip()[:len(acline_dd20name.strip())-3]}{acline_dd20name.strip()[-3:].replace('-','_')}"
+                                           for acline_dd20name in station_acline_names}
+
+        # Map station and line data to ACLine properties
+        obj_list = [ACLineProperties(acline_name_translated=acline_name_to_translated_name[acline_dd20_name],
+                                     acline_name_datasource=acline_dd20_name,
+                                     datasource="DD20",
+                                     conductor_type=acline_name_to_conductor_type[acline_dd20_name],
+                                     conductor_count=acline_name_to_conductor_count[acline_dd20_name],
+                                     system_count=acline_name_to_system_count[acline_dd20_name],
+                                     max_temperature=acline_name_to_conductor_max_temp[acline_dd20_name],
+                                     restrict_cable_lim_continuous=acline_name_to_cablelim_continuous[acline_dd20_name],
+                                     restrict_cable_lim_15m=acline_name_to_cablelim_15m[acline_dd20_name],
+                                     restrict_cable_lim_1h=acline_name_to_cablelim_1h[acline_dd20_name],
+                                     restrict_cable_lim_40h=acline_name_to_cablelim_40h[acline_dd20_name],
+                                     restrict_conductor_lim_continuous=acline_name_to_lim_continuous[acline_dd20_name],
+                                     restrict_component_lim_continuous=acline_name_to_complim_continuous[acline_dd20_name],
+                                     restrict_component_lim_15m=acline_name_to_complim_15m[acline_dd20_name],
+                                     restrict_component_lim_1h=acline_name_to_complim_1h[acline_dd20_name],
+                                     restrict_component_lim_40h=acline_name_to_complim_40h[acline_dd20_name])
+                    for acline_dd20_name in station_acline_names]
+        return obj_list
+
+    except Exception as e:
+        log.exception(f"Mapping DD20 data from station and line to common object failed with message: '{e}'.")
+        raise e
 
 
-def parse_dd20_excelsheets_to_dataframe(folder_path: str,
-                                        file_name: str = "DD20.XLSM",
+def parse_dd20_excelsheets_to_dataframe(file_path: str,
                                         header_index: int = 1,
                                         sheetname_linedata: str = "Linjedata - Sommer",
                                         sheetname_stationsdata: str = "Stationsdata") -> pd.DataFrame:
     """
-    Wrapper function, maybe put in main? if not then parse parameters via arguments
+    Wrapper function
 
     Extract conductor data from DD20 excel-sheets and return it to one combined dataframe.
     The source data is DD20, which has a non-standard format, why customized cleaning and extraction from it is needed.
@@ -620,10 +624,12 @@ def parse_dd20_excelsheets_to_dataframe(folder_path: str,
 
     """
     # TODO: doc and prettyfi
-    # TODO: try, except
+    # TODO: try, except og fang log på det hele her?
 
     # parsing data from DD20 to dataframe dictionary
-    dd20_dataframe_dict = pd.read_excel(io=folder_path + file_name, sheet_name=[sheetname_linedata, sheetname_stationsdata], header=header_index)
+    dd20_dataframe_dict = pd.read_excel(io=file_path,
+                                        sheet_name=[sheetname_linedata, sheetname_stationsdata],
+                                        header=header_index)
 
     # TODO: use hash function on both dataframes (here or in the parser?)
     data_station = DD20StationDataframeParser(df_station=dd20_dataframe_dict[sheetname_stationsdata])

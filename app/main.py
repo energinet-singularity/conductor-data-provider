@@ -10,14 +10,12 @@ import pandas as pd
 
 # App modules
 from helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
-from helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dict
+from helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dataframe
 from helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
 from helpers.join_data import create_conductor_dataframe
 
 # Initialize log
 log = logging.getLogger(__name__)
-
-# TODO: Fix helpers so they accept a path without a slash at the end (use os.path.join() to join path and filename!)
 
 
 class ACLineSegmentProperties():
@@ -45,6 +43,13 @@ class ACLineSegmentProperties():
 
     @dataclass
     class __Metadata:
+        """
+        TODO: doc it
+        Attributes
+        ----------
+        name : str
+            xxx
+        """
         name: str
         path: str
         func: callable
@@ -57,17 +62,17 @@ class ACLineSegmentProperties():
 
         Parameters
         ----------
-        dd20_filepath : str, default: '/input/DD20.XLSM'
+        dd20_filepath : str
             Path of the DD20 excel-file
-        dd20_mapping_filepath : str, default: '/input/Limits_other.xlsx'
-            Path of the mapping file between DD20 and SCADA names
-        mrid_mapping_filepath : str, default: '/input/seg_line_mrid_PROD.csv'
-            Path of the mapping file between Line name and MRID
+        dd20_mapping_filepath : str
+            Path of the mapping excel-file between DD20 and SCADA names
+        mrid_mapping_filepath : str
+            Path of the mapping csv-file between Line name and MRID
         refresh_data : bool, default: True
             If True data will automatically be loaded at instantiation
         """
         self.__DD20 = self.__Metadata('DD20', dd20_filepath, parse_dd20_excelsheets_to_dataframe)
-        self.__DD20_MAP = self.__Metadata('DD20 name mapping', dd20_mapping_filepath, parse_acline_namemap_excelsheet_to_dict)
+        self.__DD20_MAP = self.__Metadata('DD20 name mapping', dd20_mapping_filepath, parse_acline_namemap_excelsheet_to_dataframe)
         self.__MRID_MAP = self.__Metadata('MRID mapping', mrid_mapping_filepath, parse_aclineseg_scada_csvdata_to_dataframe)
         self.dataframe = None
 
@@ -95,6 +100,7 @@ class ACLineSegmentProperties():
         pd.DataFrame
             Will return the combined dataframe
         """
+        log.info("Checking if files has updated and data refreh is needed.")
         data_change = False
 
         for input in [self.__DD20, self.__DD20_MAP, self.__MRID_MAP]:
@@ -105,8 +111,7 @@ class ACLineSegmentProperties():
                     log.info(f"Updating {input.name} file")
                     data_change = True
                     input.mtime = file_update_time
-                    input.dataframe = input.func(folder_path=f"{os.path.split(input.path)[0]}/",
-                                                 file_name=os.path.split(input.path)[1])
+                    input.dataframe = input.func(file_path=input.path)
             except Exception as e:
                 log.exception(f"Parsing {input.name} failed with message: '{e}'")
                 raise e
@@ -114,9 +119,12 @@ class ACLineSegmentProperties():
         # Combine data into common dataframe
         try:
             if data_change:
-                self.dataframe = create_conductor_dataframe(conductor_dataframe=self.__DD20.dataframe,
+                log.info("Files has changed, refreshing data for API.")
+                self.dataframe = create_conductor_dataframe(conductor_data=self.__DD20.dataframe,
                                                             dd20_to_scada_name=self.__DD20_MAP.dataframe,
-                                                            scada_mapping_datafram=self.__MRID_MAP.dataframe)
+                                                            scada_mapping=self.__MRID_MAP.dataframe)
+            else:
+                log.info("Files has not changed, refresh of data for API not needed.")
         except Exception as e:
             log.exception(f"Creating dataframe with AC-linesegment properties failed with message: '{e}'")
             raise e
@@ -126,7 +134,23 @@ class ACLineSegmentProperties():
 
 if __name__ == "__main__":
 
+    """
+    TODO: doc
+    """
+
     time_begin = time()
+
+    # default values for filepaths
+    DD20_FILEPATH_DEFAULT = '/input/DD20.XLSM'
+    DD20_MAPPING_FILEPATH_DEFAULT = '/input/Limits_other.xlsx'
+    MRID_MAPPING_FILEPATH_DEFAULT = '/input/seg_line_mrid_PROD.csv'
+    # TEMP: test data
+    DD20_FILEPATH_DEFAULT = f'{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/DD20.XLSM'
+    DD20_MAPPING_FILEPATH_DEFAULT = f'{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/Limits_other.xlsx'
+    MRID_MAPPING_FILEPATH_DEFAULT = f'{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/seg_line_mrid_PROD.csv'
+
+    # refresh rate for checking if new data is avalialbe from files
+    REFRESH_RATE_API_INPUT = 60
 
     # Set up logging
     if os.environ.get('DEBUG', 'FALSE').upper() == 'FALSE':
@@ -142,19 +166,20 @@ if __name__ == "__main__":
 
     log.info("Loading environment variables.")
 
-    # Load file paths - or use default
+    # Load file paths from env vars - or use defaults
     try:
-        dd20_filepath = os.environ.get("DD20FILEPATH", '/input/DD20.XLSM')
-        dd20_mapping_filepath = os.environ.get("DD20MAPPINGFILEPATH", '/input/Limits_other.xlsx')
-        mrid_mapping_filepath = os.environ.get("MRIDMAPPINGFILEPATH", '/input/seg_line_mrid_PROD.csv')
+        dd20_filepath = os.environ.get("DD20FILEPATH", DD20_FILEPATH_DEFAULT)
+        dd20_mapping_filepath = os.environ.get("DD20MAPPINGFILEPATH", DD20_MAPPING_FILEPATH_DEFAULT)
+        mrid_mapping_filepath = os.environ.get("MRIDMAPPINGFILEPATH", MRID_MAPPING_FILEPATH_DEFAULT)
     except Exception:
         raise ValueError(f"Error while loading one or more file paths.")
 
     # Set up mocking of data
     if os.environ.get('USE_MOCK_DATA', 'FALSE').upper() == 'FALSE':
         pass
-    elif os.environ['USE_MOCK_DATA'] == 'TRUE':
+    elif os.environ['USE_MOCK_DATA'].upper() == 'TRUE':
         # Mock-data will overrule file paths
+        # TODO: will only work in container, is it ok?
         dd20_filepath = '/test-data/DD20.XLSM'
         dd20_mapping_filepath = '/test-data/Limits_other.xlsx'
         mrid_mapping_filepath = '/test-data/seg_line_mrid_PROD.csv'
@@ -162,7 +187,7 @@ if __name__ == "__main__":
         raise ValueError(f"'USE_MOCK_DATA' env. variable is '{os.environ['USE_MOCK_DATA']}',"
                          " but must be either 'TRUE', 'FALSE' or unset.")
 
-    # Load environment variables
+    # Load environment variables for API
     try:
         api_port = int(os.environ.get('PORT', '5000'))
         api_dbname = os.environ.get('DBNAME', 'CONDUCTOR_DATA').upper()
@@ -178,5 +203,5 @@ if __name__ == "__main__":
     log.info(f"Started up in {round(time()-time_begin,3)} seconds")
 
     while True:
+        sleep(REFRESH_RATE_API_INPUT)
         conductor_api[api_dbname] = conductor_data.refresh_data()
-        sleep(60)

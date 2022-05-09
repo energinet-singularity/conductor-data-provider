@@ -18,7 +18,8 @@ DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
 @pytest.fixture
 def dd20_data_frame_dict():
     dd20_file_path = (f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM")
-    return pd.read_excel(io=dd20_file_path, sheet_name=[DD20_SHEETNAME_STATIONSDATA,DD20_SHEETNAME_LINJEDATA], header=DD20_HEADER_INDEX)
+    return pd.read_excel(io=dd20_file_path, sheet_name=[DD20_SHEETNAME_STATIONSDATA, DD20_SHEETNAME_LINJEDATA], header=DD20_HEADER_INDEX)
+
 
 def test_DD20StationDataframeParser(dd20_data_frame_dict):
     """
@@ -32,7 +33,7 @@ def test_DD20StationDataframeParser(dd20_data_frame_dict):
     # Test dataframe has expected amount of datarows
     df_row_count_expected = 12
     assert len(df_stationdata.index) == df_row_count_expected
-    
+
     # Test acline name list contain expected names
     acline_list_expected = ['AAA-BBB',
                             'CCC-DDD',
@@ -80,11 +81,11 @@ def test_DD20StationDataframeParser(dd20_data_frame_dict):
 
     # Test mapping from AC-line name to max temperature.
     max_temperature_dict_expected = {'AAA-BBB': 70,
-                                    'CCC-DDD': 70,
-                                    'EEE-FFF-1': 70,
-                                    'EEE-FFF-2': 70,
-                                    'GGG-HHH': 70,
-                                    'III-ÆØÅ': 70}
+                                     'CCC-DDD': 70,
+                                     'EEE-FFF-1': 70,
+                                     'EEE-FFF-2': 70,
+                                     'GGG-HHH': 70,
+                                     'III-ÆØÅ': 70}
     assert data_parse_result.get_conductor_max_temp_dict() == max_temperature_dict_expected
 
     # Test mapping from AC-line name to allowed continuous ampere loading of cabling along the AC-line.
@@ -107,11 +108,11 @@ def test_DD20StationDataframeParser(dd20_data_frame_dict):
 
     # Test mapping from AC-line name to allowed 1 hour ampere loading of cabling along the AC-line.
     cablelim_1h_dict_expected = {'AAA-BBB': 1000,
-                                  'CCC-DDD': nan,
-                                  'EEE-FFF-1': 900,
-                                  'EEE-FFF-2': 900,
-                                  'GGG-HHH': nan,
-                                  'III-ÆØÅ': nan}
+                                 'CCC-DDD': nan,
+                                 'EEE-FFF-1': 900,
+                                 'EEE-FFF-2': 900,
+                                 'GGG-HHH': nan,
+                                 'III-ÆØÅ': nan}
     assert data_parse_result.get_cablelim_1h_dict() == cablelim_1h_dict_expected
 
     # Test mapping from AC-line name to allowed 40 hour ampere loading of cabling along the AC-line.
@@ -122,6 +123,7 @@ def test_DD20StationDataframeParser(dd20_data_frame_dict):
                                   'GGG-HHH': nan,
                                   'III-ÆØÅ': nan}
     assert data_parse_result.get_cablelim_40h_dict() == cablelim_40h_dict_expected
+
 
 def test_DD20LineDataframeParser(dd20_data_frame_dict):
     """
@@ -135,7 +137,7 @@ def test_DD20LineDataframeParser(dd20_data_frame_dict):
     # Test dataframe has expected amount of datarows
     df_row_count_expected = 29
     assert len(df_linedata.index) == df_row_count_expected
-    
+
     # Test acline name list contain expected names
     acline_list_expected = ['AAA-BBB',
                             'CCC-DDD',
@@ -164,41 +166,56 @@ def test_DD20LineDataframeParser(dd20_data_frame_dict):
     assert data_parse_result.get_acline_lim_continuous_dict() == acline_lim_continuous_dict_expected
 
     # Test mapping from AC-line name to allowed continuous ampere loading of components along the AC-line.
-    complim_continuous_dict_expected= {'AAA-BBB': 1600,
-                                       'CCC-DDD': 1200,
-                                       'EEE-FFF-1': 400,
-                                       'EEE-FFF-2': 1200,
-                                       'GGG-HHH': 100,
-                                       'III-ÆØÅ': 2400}
+    complim_continuous_dict_expected = {'AAA-BBB': 1600,
+                                        'CCC-DDD': 1200,
+                                        'EEE-FFF-1': 400,
+                                        'EEE-FFF-2': 1200,
+                                        'GGG-HHH': 100,
+                                        'III-ÆØÅ': 2400}
     assert data_parse_result.get_complim_continuous_dict() == complim_continuous_dict_expected
 
     # Test mapping from AC-line name to allowed 15 minutes ampere loading of components along the AC-line.
-    complim_15m_dict_expected= {'AAA-BBB': 1600,
-                                'CCC-DDD': 1200,
-                                'EEE-FFF-1': 415,
-                                'EEE-FFF-2': 1200,
-                                'GGG-HHH': 115,
-                                'III-ÆØÅ': 2400}
+    complim_15m_dict_expected = {'AAA-BBB': 1600,
+                                 'CCC-DDD': 1200,
+                                 'EEE-FFF-1': 415,
+                                 'EEE-FFF-2': 1200,
+                                 'GGG-HHH': 115,
+                                 'III-ÆØÅ': 2400}
     assert data_parse_result.get_complim_15m_dict() == complim_15m_dict_expected
 
     # Test mapping from AC-line name to allowed 1 hour ampere loading of components along the AC-line.
-    complim_1h_dict_expected= {'AAA-BBB': 1600,
-                               'CCC-DDD': 1200,
-                               'EEE-FFF-1': 460,
-                               'EEE-FFF-2': 1200,
-                               'GGG-HHH': 160,
-                               'III-ÆØÅ': 2400}
+    complim_1h_dict_expected = {'AAA-BBB': 1600,
+                                'CCC-DDD': 1200,
+                                'EEE-FFF-1': 460,
+                                'EEE-FFF-2': 1200,
+                                'GGG-HHH': 160,
+                                'III-ÆØÅ': 2400}
     assert data_parse_result.get_complim_1h_dict() == complim_1h_dict_expected
 
     # Test mapping from AC-line name to allowed 40 hour ampere loading of components along the AC-line.
-    complim_40h_dict_expected= {'AAA-BBB': 1600,
-                                'CCC-DDD': 1200,
-                                'EEE-FFF-1': 440,
-                                'EEE-FFF-2': 1200,
-                                'GGG-HHH': 140,
-                                'III-ÆØÅ': 2400}
+    complim_40h_dict_expected = {'AAA-BBB': 1600,
+                                 'CCC-DDD': 1200,
+                                 'EEE-FFF-1': 440,
+                                 'EEE-FFF-2': 1200,
+                                 'GGG-HHH': 140,
+                                 'III-ÆØÅ': 2400}
     assert data_parse_result.get_complim_40h_dict() == complim_40h_dict_expected
 
+# TEST: map parse
+# expected_dd20_to_scada_name_dict = {'E_EEE-FFF_1': 'E_EEEV-FFF_1'} - given E_EEE-FFF_1 then E_EEEV-FFF_1
+
+
+# TEST: mrid parse
+expected_lineseg_to_mrid_dict = {'ACLINESEGMENT_MRID': ['66b4596e-asfv-tyuy-5478-bd208f26a446',
+                                                        '66b4596e-asfv-tyuy-5478-bd208f26a447',
+                                                        '66b4596e-asfv-tyuy-5478-bd208f26a451',
+                                                        '66b4596e-asfv-tyuy-5478-bd208f26a452',
+                                                        '66b4596e-asfv-tyuy-5478-bd208f26a455',
+                                                        '66b4596e-asfv-tyuy-5478-bd208f26a457',
+                                                        '66b4596e-asfv-tyuy-5478-bd208f26a459'],
+                                 'LINE_EMSNAME': ['E_EEEV-FFF_1', 'E_EEE-FFF_2', 'E_GGG-HHH', 'E_GGG-HHH', 'D_CCC-DDD', 'C_III-ÆØÅ', 'C_ASK-ERS'],
+                                 'DLR_ENABLED': [True, True, False, False, True, True, True]}
+expected_lineseg_to_mrid_dataframe = pd.DataFrame.from_dict(expected_lineseg_to_mrid_dict)
 
 # TEST final merge
 #
@@ -225,25 +242,6 @@ expected_dlr_dataframe_dict = {'ACLINESEGMENT_MRID': ['66b4596e-asfv-tyuy-5478-b
                                'RESTRICTIVE_CABLE_LIMIT_1H': [900, 900, None,  None, None, None],
                                'RESTRICTIVE_CABLE_LIMIT_40H': [800, 800, None, None, None, None]}
 expected_dlr_dataframe = pd.DataFrame.from_dict(expected_dlr_dataframe_dict).fillna('None')
-
-
-# TEST: map parse
-# expected_dd20_to_scada_name_dict = {'E_EEE-FFF_1': 'E_EEEV-FFF_1'} - given E_EEE-FFF_1 then E_EEEV-FFF_1
-
-
-# TEST: mrid parse
-expected_lineseg_to_mrid_dict = {'ACLINESEGMENT_MRID': ['66b4596e-asfv-tyuy-5478-bd208f26a446',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a447',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a451',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a452',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a455',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a457',
-                                                        '66b4596e-asfv-tyuy-5478-bd208f26a459'],
-                                 'LINE_EMSNAME': ['E_EEEV-FFF_1', 'E_EEE-FFF_2', 'E_GGG-HHH', 'E_GGG-HHH', 'D_CCC-DDD', 'C_III-ÆØÅ', 'C_ASK-ERS'],
-                                 'DLR_ENABLED': [True, True, False, False, True, True, True]}
-expected_lineseg_to_mrid_dataframe = pd.DataFrame.from_dict(expected_lineseg_to_mrid_dict)
-
-
 
 
 """
