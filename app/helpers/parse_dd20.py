@@ -3,6 +3,7 @@ import logging
 from dataclasses import dataclass
 
 # Modules
+import re
 import pandas as pd
 from singupy.conversion import kv_to_letter
 
@@ -592,30 +593,59 @@ def DD20_to_acline_properties_mapper(data_station: DD20StationDataframeParser, d
         # Init kv mapping dict (only use from station since we just checked on agrement on line names)
         st_acline_name_to_conductor_kv_level = data_station.get_conductor_kv_level_dict()
 
-        # TODO: make with regex instead and doc (see example from GIS)
-        acline_name_to_translated_name = {acline_dd20name:
-                                          f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}_{acline_dd20name.strip()[:len(acline_dd20name.strip())-3]}{acline_dd20name.strip()[-3:].replace('-','_')}"
-                                          for acline_dd20name in station_acline_names}
+        # # TODO: make with regex instead and doc (see example from GIS)
+        # acline_name_to_translated_name = {acline_dd20name:
+        #                                   f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}_{acline_dd20name.strip()[:len(acline_dd20name.strip())-3]}{acline_dd20name.strip()[-3:].replace('-','_')}"
+        #                                   for acline_dd20name in station_acline_names}
+        '''
+        Regex expression to restructur DD20 names to ETS names.
+        (?P<STN1>\\w{3,4}?) makes a group 'STN1' and input a word between 3-4 chars
+        (?P<STN2>\\w{3,4}?) makes a group 'STN2' and input should be a word between 3-4 chars
+        (?P<id>\\d)? makes a group 'id' and if there is a digit it the end of the name it stores it
+        '''
+        acline_name_to_translated_name = {}
+        none_translated_acline_name = []
+        REGEX = r'^(?P<STN1>\w{3,4}?)-(?P<STN2>\w{3,4}?)-?(?P<id>\d)?$'
+
+        for acline_dd20name in station_acline_names:
+            match = re.match(REGEX, acline_dd20name)
+            if match:
+                # Converting the extracted voltage number to a letter with the function kv_to_letter
+                volt = f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}"
+                # The restructed name matching the syntax of the desired name
+                ets_name = f"{volt}_{match.group('STN1')}-{match.group('STN2')}"
+                if match.group('id') is not None:
+                    ets_name += f"_{match.group('id')}"
+                acline_name_to_translated_name[acline_dd20name] = ets_name
+            else:
+                none_translated_acline_name.append(acline_dd20name)
+
+        # Review the none_translated_names and throwing a error if there is any names not translated
+        if none_translated_acline_name:
+            log.error(f'List of names not translated by the function:{none_translated_acline_name}')
+            raise
+        else:
+            log.info('Alle names from the acline_dd20name column have been translated.')
 
         # Map station and line data to list with objects of the type "ACLineProperties" dataclass.
         acline_objects = [ACLineProperties(
-                          acline_name_translated=acline_name_to_translated_name[acline_dd20_name],
-                          acline_name_datasource=acline_dd20_name,
+                          acline_name_translated=acline_name_to_translated_name[acline_dd20name],
+                          acline_name_datasource=acline_dd20name,
                           datasource="DD20",
-                          conductor_type=acline_name_to_conductor_type[acline_dd20_name],
-                          conductor_count=acline_name_to_conductor_count[acline_dd20_name],
-                          system_count=acline_name_to_system_count[acline_dd20_name],
-                          max_temperature=acline_name_to_conductor_max_temp[acline_dd20_name],
-                          restrict_cable_lim_continuous=acline_name_to_cablelim_continuous[acline_dd20_name],
-                          restrict_cable_lim_15m=acline_name_to_cablelim_15m[acline_dd20_name],
-                          restrict_cable_lim_1h=acline_name_to_cablelim_1h[acline_dd20_name],
-                          restrict_cable_lim_40h=acline_name_to_cablelim_40h[acline_dd20_name],
-                          restrict_conductor_lim_continuous=acline_name_to_lim_continuous[acline_dd20_name],
-                          restrict_component_lim_continuous=acline_name_to_complim_continuous[acline_dd20_name],
-                          restrict_component_lim_15m=acline_name_to_complim_15m[acline_dd20_name],
-                          restrict_component_lim_1h=acline_name_to_complim_1h[acline_dd20_name],
-                          restrict_component_lim_40h=acline_name_to_complim_40h[acline_dd20_name])
-                          for acline_dd20_name in station_acline_names]
+                          conductor_type=acline_name_to_conductor_type[acline_dd20name],
+                          conductor_count=acline_name_to_conductor_count[acline_dd20name],
+                          system_count=acline_name_to_system_count[acline_dd20name],
+                          max_temperature=acline_name_to_conductor_max_temp[acline_dd20name],
+                          restrict_cable_lim_continuous=acline_name_to_cablelim_continuous[acline_dd20name],
+                          restrict_cable_lim_15m=acline_name_to_cablelim_15m[acline_dd20name],
+                          restrict_cable_lim_1h=acline_name_to_cablelim_1h[acline_dd20name],
+                          restrict_cable_lim_40h=acline_name_to_cablelim_40h[acline_dd20name],
+                          restrict_conductor_lim_continuous=acline_name_to_lim_continuous[acline_dd20name],
+                          restrict_component_lim_continuous=acline_name_to_complim_continuous[acline_dd20name],
+                          restrict_component_lim_15m=acline_name_to_complim_15m[acline_dd20name],
+                          restrict_component_lim_1h=acline_name_to_complim_1h[acline_dd20name],
+                          restrict_component_lim_40h=acline_name_to_complim_40h[acline_dd20name])
+                          for acline_dd20name in station_acline_names]
         return acline_objects
 
     except Exception as e:
