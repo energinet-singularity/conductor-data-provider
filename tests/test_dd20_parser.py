@@ -206,7 +206,7 @@ def test_parse_dd20_excelsheets_to_dataframe(dd20_data):
     """
     TODO: doc
     """
-    # arrange
+    # arrange expected data
     expected_dd20_dataframe_columns = ['acline_name_translated', 'acline_name_datasource', 'datasource',
                                        'conductor_type', 'conductor_count', 'system_count', 'max_temperature',
                                        'restrict_conductor_lim_continuous',
@@ -215,19 +215,25 @@ def test_parse_dd20_excelsheets_to_dataframe(dd20_data):
                                        'restrict_cable_lim_continuous', 'restrict_cable_lim_15m',
                                        'restrict_cable_lim_1h', 'restrict_cable_lim_40h']
 
+    expected_translated_acline_names = {'AAA-BBB': 'E_AAA-BBB',
+                                        'CCC-DDD': 'D_CCC-DDD',
+                                        'EEE-FFF-1': 'E_EEE-FFF_1',
+                                        'EEE-FFF-2': 'E_EEE-FFF_2',
+                                        'GGG-HHH': 'E_GGG-HHH',
+                                        'III-ÆØÅ': 'C_III-ÆØÅ'}
+
     # act
     resulting_dd20_dataframe = parse_dd20_excelsheets_to_dataframe(file_path=DD20_FILE_PATH)
     resulting_dd20_dataframe_columns = resulting_dd20_dataframe.columns.to_list()
 
     # Test if expect amount of columns are present
     assert len(resulting_dd20_dataframe_columns) == len(expected_dd20_dataframe_columns)
+
     # Test if expected column names are present
     assert sorted(resulting_dd20_dataframe_columns) == sorted(expected_dd20_dataframe_columns)
 
     # Test if names are mapped correctly
-    expected_translated_acline_names = {'AAA-BBB': 'E_AAA-BBB', 'CCC-DDD': 'D_CCC-DDD', 'EEE-FFF-1': 'E_EEE-FFF_1', 'EEE-FFF-2': 'E_EEE-FFF_2', 'GGG-HHH': 'E_GGG-HHH', 'III-ÆØÅ': 'C_III-ÆØÅ'}
-    resulting_translated_acline_names = resulting_dd20_dataframe.set_index('acline_name_datasource').to_dict()['acline_name_translated']
-    assert resulting_translated_acline_names == expected_translated_acline_names
+    assert resulting_dd20_dataframe.set_index('acline_name_datasource').to_dict()['acline_name_translated'] == expected_translated_acline_names
 
 
 # TEST: map parse
