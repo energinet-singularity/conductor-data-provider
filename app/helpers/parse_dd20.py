@@ -164,7 +164,7 @@ class DD20StationDataframeParser():
         self.__cablelim_1h_col_nm = cablelim_1h_col_nm
         self.__cablelim_40h_col_nm = cablelim_40h_col_nm
 
-        # TODO: add function which checks for need columns
+        # TODO: add function which checks for need columns and hash
 
         # Cleaning dataframe
         self.__df_station_clean = self.__prepare_df_station()
@@ -382,7 +382,7 @@ class DD20LineDataframeParser():
         self.__complim_1h_col_rng = complim_1h_col_rng
         self.__complim_40h_col_rng = complim_40h_col_rng
 
-        # TODO: add function which checks for need columns
+        # TODO: add function which checks for need columns and hash
 
         # Cleaning dataframe
         self.__df_line_clean = self.__prepare_df_line()
@@ -395,23 +395,38 @@ class DD20LineDataframeParser():
         return self.__create_acline_name_to_column_min_value_dict(column_name=self.__kv_col_nm)
 
     def get_acline_lim_continuous_dict(self):
-        """Returns dictionary with mapping from AC-line name to allowed continuous ampere loading of conductor."""
+        """
+        Returns dictionary with mapping from AC-line name to allowed
+        continuous ampere loading of conductor.
+        """
         return self.__create_acline_name_to_column_min_value_dict(column_name=self.__acline_lim_continuous_col_nm)
 
     def get_complim_continuous_dict(self):
-        """Returns dictionary with mapping from AC-line name to allowed continuous ampere loading of components along the AC-line."""
+        """
+        Returns dictionary with mapping from AC-line name to allowed
+        continuous ampere loading of components along the AC-line.
+        """
         return self.__create_acline_name_to_column_range_min_value_dict(column_range=self.__complim_continuous_col_rng)
 
     def get_complim_15m_dict(self):
-        """Returns dictionary with mapping from AC-line name to allowed 15 minutes ampere loading of components along the AC-line."""
+        """
+        Returns dictionary with mapping from AC-line name to
+        allowed 15 minutes ampere loading of components along the AC-line.
+        """
         return self.__create_acline_name_to_column_range_min_value_dict(column_range=self.__complim_15m_col_rng)
 
     def get_complim_1h_dict(self):
-        """Returns dictionary with mapping from AC-line name to allowed 1 hour ampere loading of components along the AC-line."""
+        """
+        Returns dictionary with mapping from AC-line name to allowed
+        1 hour ampere loading of components along the AC-line.
+        """
         return self.__create_acline_name_to_column_range_min_value_dict(column_range=self.__complim_1h_col_rng)
 
     def get_complim_40h_dict(self):
-        """Returns dictionary with mapping from AC-line name to allowed 40 hour ampere loading of components along the AC-line."""
+        """
+        Returns dictionary with mapping from AC-line name to allowed
+        40 hour ampere loading of components along the AC-line.
+        """
         return self.__create_acline_name_to_column_range_min_value_dict(column_range=self.__complim_40h_col_rng)
 
     def __prepare_df_line(self):
@@ -469,7 +484,8 @@ class DD20LineDataframeParser():
 
     def __create_acline_name_to_column_min_value_dict(self, column_name: str):
         """
-        Returns dictionary with mapping from AC-line names in DD20 to minimum values of choosen column for all rows related to AC-line.
+        Returns dictionary with mapping from AC-line names in DD20
+        to minimum values of choosen column for all rows related to AC-line.
 
         Parameters
         ----------
@@ -524,21 +540,24 @@ class DD20LineDataframeParser():
 
 def DD20_to_acline_properties_mapper(data_station: DD20StationDataframeParser, data_line: DD20LineDataframeParser):
     """
-    Data is extracted from sheets "Stationsdata" and "Linjedata - Sommer" are combined into objects.
-    A object for each AC line is added to a combined list of object.
-    list of the objects can be fetched via?
-    All AC line objects are also combinded into a dataframe where the columns represents the atributes of the object.
-    It can be fetched via ??
-    """
-    # Try/except?
-    # dictionarys som input, dictionary for hver attribute på endelig ac onjekrt
-    # sammel data fra de 2 ark
-    # tjek at samme aclines og kv kombi er i begge sheets (error hvis den mangler i den anden og omvendt)
-    # lav en liste med names hvis de er ens
-    # lav dict med translated names
-    # init object og returner dem i liste
-    # Først tjekke der er enighed om navne fra begge kilder, Derefter kombiner dicts til liste af acline objekter
+    DD20 station and line data is extracted from parsed objects.
+    The data is combined per AC-line present in the objects and returned as a list of objects with one object per AC-line.
 
+    Parameters
+    ----------
+    data_station : class
+        Object containing station data from DD20.
+        Must be instantiated with D20StationDataframeParser.
+    data_line : class
+        Object containing line data from DD20.
+        Must be instantiated with D20LineDataframeParser.
+
+    Returns
+    -------
+    acline_objects : list
+        List of objects containing combined data from stataion and line.
+        One object will exist per AC-line.
+    """
     try:
         # Create lists with AC-Line names present in object from station and line
         station_acline_names = data_station.acline_name_list
@@ -575,31 +594,32 @@ def DD20_to_acline_properties_mapper(data_station: DD20StationDataframeParser, d
 
         # TODO: make with regex instead and doc (see example from GIS)
         acline_name_to_translated_name = {acline_dd20name:
-                                           f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}_{acline_dd20name.strip()[:len(acline_dd20name.strip())-3]}{acline_dd20name.strip()[-3:].replace('-','_')}"
-                                           for acline_dd20name in station_acline_names}
+                                          f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}_{acline_dd20name.strip()[:len(acline_dd20name.strip())-3]}{acline_dd20name.strip()[-3:].replace('-','_')}"
+                                          for acline_dd20name in station_acline_names}
 
         # Map station and line data to list with objects of the type "ACLineProperties" dataclass.
-        obj_list = [ACLineProperties(acline_name_translated=acline_name_to_translated_name[acline_dd20_name],
-                                     acline_name_datasource=acline_dd20_name,
-                                     datasource="DD20",
-                                     conductor_type=acline_name_to_conductor_type[acline_dd20_name],
-                                     conductor_count=acline_name_to_conductor_count[acline_dd20_name],
-                                     system_count=acline_name_to_system_count[acline_dd20_name],
-                                     max_temperature=acline_name_to_conductor_max_temp[acline_dd20_name],
-                                     restrict_cable_lim_continuous=acline_name_to_cablelim_continuous[acline_dd20_name],
-                                     restrict_cable_lim_15m=acline_name_to_cablelim_15m[acline_dd20_name],
-                                     restrict_cable_lim_1h=acline_name_to_cablelim_1h[acline_dd20_name],
-                                     restrict_cable_lim_40h=acline_name_to_cablelim_40h[acline_dd20_name],
-                                     restrict_conductor_lim_continuous=acline_name_to_lim_continuous[acline_dd20_name],
-                                     restrict_component_lim_continuous=acline_name_to_complim_continuous[acline_dd20_name],
-                                     restrict_component_lim_15m=acline_name_to_complim_15m[acline_dd20_name],
-                                     restrict_component_lim_1h=acline_name_to_complim_1h[acline_dd20_name],
-                                     restrict_component_lim_40h=acline_name_to_complim_40h[acline_dd20_name])
-                    for acline_dd20_name in station_acline_names]
-        return obj_list
+        acline_objects = [ACLineProperties(
+                          acline_name_translated=acline_name_to_translated_name[acline_dd20_name],
+                          acline_name_datasource=acline_dd20_name,
+                          datasource="DD20",
+                          conductor_type=acline_name_to_conductor_type[acline_dd20_name],
+                          conductor_count=acline_name_to_conductor_count[acline_dd20_name],
+                          system_count=acline_name_to_system_count[acline_dd20_name],
+                          max_temperature=acline_name_to_conductor_max_temp[acline_dd20_name],
+                          restrict_cable_lim_continuous=acline_name_to_cablelim_continuous[acline_dd20_name],
+                          restrict_cable_lim_15m=acline_name_to_cablelim_15m[acline_dd20_name],
+                          restrict_cable_lim_1h=acline_name_to_cablelim_1h[acline_dd20_name],
+                          restrict_cable_lim_40h=acline_name_to_cablelim_40h[acline_dd20_name],
+                          restrict_conductor_lim_continuous=acline_name_to_lim_continuous[acline_dd20_name],
+                          restrict_component_lim_continuous=acline_name_to_complim_continuous[acline_dd20_name],
+                          restrict_component_lim_15m=acline_name_to_complim_15m[acline_dd20_name],
+                          restrict_component_lim_1h=acline_name_to_complim_1h[acline_dd20_name],
+                          restrict_component_lim_40h=acline_name_to_complim_40h[acline_dd20_name])
+                          for acline_dd20_name in station_acline_names]
+        return acline_objects
 
     except Exception as e:
-        log.exception(f"Mapping DD20 data from station and line to common object failed with message: '{e}'.")
+        log.exception(f"Mapping DD20 data from station and line data to common object failed with message: '{e}'.")
         raise e
 
 
@@ -608,35 +628,40 @@ def parse_dd20_excelsheets_to_dataframe(file_path: str,
                                         sheetname_linedata: str = "Linjedata - Sommer",
                                         sheetname_stationsdata: str = "Stationsdata") -> pd.DataFrame:
     """
-    Wrapper function
-
     Extract conductor data from DD20 excel-sheets and return it to one combined dataframe.
     The source data is DD20, which has a non-standard format, why customized cleaning and extraction from it is needed.
 
-    Arguments
+    Parameters
     ----------
-    describe em all
-
+    file_path : str
+        Path of DD20 excel-file.
+    header_index : int
+        (optional) Index header of DD20 excel sheets.
+        Default = 1
+    sheetname_linedata : str
+        (optional) Name of excel sheet in DD20 containing line data.
+        Default = "Linjedata - Sommer"
+    sheetname_stationdata : str
+        (optional) Name of excel sheet in DD20 containing station data.
+        Default = "Stationsdata"
     Returns
     -------
-    dataframe : pd.Dataframe
-        the thing
-
+    pd.Dataframe
+        Dataframe containg selected data from DD20, where each row represents i AC-line.
     """
-    # TODO: doc and prettyfi
-    # TODO: try, except og fang log på det hele her?
-
-    # parsing data from DD20 to dataframe dictionary
+    # Parsing data from DD20 to dataframe dictionary, with mapping from sheet to dataframe
     dd20_dataframe_dict = pd.read_excel(io=file_path,
                                         sheet_name=[sheetname_linedata, sheetname_stationsdata],
                                         header=header_index)
 
-    # TODO: use hash function on both dataframes (here or in the parser?)
+    # Instation of objects for parsing data from station and line sheets of DD20
     data_station = DD20StationDataframeParser(df_station=dd20_dataframe_dict[sheetname_stationsdata])
     data_line = DD20LineDataframeParser(df_line=dd20_dataframe_dict[sheetname_linedata])
 
-    obj = DD20_to_acline_properties_mapper(data_station=data_station, data_line=data_line)
+    # Combining station and line data into a list of objects, where each object is represents a AC-line
+    acline_objects = DD20_to_acline_properties_mapper(data_station=data_station, data_line=data_line)
 
-    dd20_dataframe = pd.DataFrame(data=[o.__dict__ for o in obj])
+    # Creating dataframe from list of objects
+    dd20_dataframe = pd.DataFrame(data=[acline.__dict__ for acline in acline_objects])
 
     return dd20_dataframe
