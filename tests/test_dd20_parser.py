@@ -250,6 +250,9 @@ def test_parse_aclineseg_scada_csvdata_to_dataframe():
 
 
 # TEST final merge
+# test first columns match, then test each property
+
+
 expected_dlr_dataframe_dict = {'ACLINESEGMENT_MRID': ['66b4596e-asfv-tyuy-5478-bd208f26a446',
                                                       '66b4596e-asfv-tyuy-5478-bd208f26a447',
                                                       '66b4596e-asfv-tyuy-5478-bd208f26a451',

@@ -8,7 +8,7 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 
-def create_conductor_dataframe(conductor_data: pd.DataFrame,
+def create_aclinesegment_dataframe(conductor_data: pd.DataFrame,
                                dd20_to_scada_name: pd.DataFrame,
                                scada_mapping: pd.DataFrame) -> pd.DataFrame:
     """

@@ -12,7 +12,7 @@ import pandas as pd
 from helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
 from helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dataframe
 from helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
-from helpers.join_data import create_conductor_dataframe
+from helpers.combine_data import create_aclinesegment_dataframe
 
 # Initialize log
 log = logging.getLogger(__name__)
@@ -120,9 +120,9 @@ class ACLineSegmentProperties():
         try:
             if data_change:
                 log.info("Files has changed, refreshing data for API.")
-                self.dataframe = create_conductor_dataframe(conductor_data=self.__DD20.dataframe,
-                                                            dd20_to_scada_name=self.__DD20_MAP.dataframe,
-                                                            scada_mapping=self.__MRID_MAP.dataframe)
+                self.dataframe = create_aclinesegment_dataframe(conductor_data=self.__DD20.dataframe,
+                                                                dd20_to_scada_name=self.__DD20_MAP.dataframe,
+                                                                scada_mapping=self.__MRID_MAP.dataframe)
             else:
                 log.info("Files has not changed, refresh of data for API not needed.")
         except Exception as e:
