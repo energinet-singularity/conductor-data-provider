@@ -4,29 +4,30 @@ import os
 import pytest
 
 # App modules
-from app.helpers.parse_dd20 import DD20StationDataframeParser, DD20LineDataframeParser
+from app.helpers.parse_dd20 import DD20StationDataframeParser, DD20LineDataframeParser, parse_dd20_excelsheets_to_dataframe
 from app.helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
 from app.helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dataframe
+from app.helpers.combine_data import create_aclinesegment_dataframe
 
 # Global parameters
 DD20_HEADER_INDEX = 1
 DD20_SHEETNAME_STATIONSDATA = "Stationsdata"
 DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
+DD20_FILE_PATH = (f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM")
 
 # fixtures for DD20
 @pytest.fixture
-def dd20_data_frame_dict():
-    dd20_file_path = (f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM")
-    return pd.read_excel(io=dd20_file_path, sheet_name=[DD20_SHEETNAME_STATIONSDATA, DD20_SHEETNAME_LINJEDATA], header=DD20_HEADER_INDEX)
+def dd20_data():
+    return pd.read_excel(io=DD20_FILE_PATH, sheet_name=[DD20_SHEETNAME_STATIONSDATA, DD20_SHEETNAME_LINJEDATA], header=DD20_HEADER_INDEX)
 
 
-def test_DD20StationDataframeParser(dd20_data_frame_dict):
+def test_DD20StationDataframeParser(dd20_data):
     """
     This test verfies that all DD20 "station data" can be parsed correctly.
     """
 
     # arrange data needed for tests
-    df_stationdata = dd20_data_frame_dict[DD20_SHEETNAME_STATIONSDATA]
+    df_stationdata = dd20_data[DD20_SHEETNAME_STATIONSDATA]
     data_parse_result = DD20StationDataframeParser(df_station=df_stationdata)
 
     # Test dataframe has expected amount of datarows
@@ -124,13 +125,13 @@ def test_DD20StationDataframeParser(dd20_data_frame_dict):
     assert data_parse_result.get_cablelim_40h_dict() == cablelim_40h_dict_expected
 
 
-def test_DD20LineDataframeParser(dd20_data_frame_dict):
+def test_DD20LineDataframeParser(dd20_data):
     """
     This test verfies that all DD20 "line" can be parsed correctly.
     """
 
     # arrange data needed for tests
-    df_linedata = dd20_data_frame_dict[DD20_SHEETNAME_LINJEDATA]
+    df_linedata = dd20_data[DD20_SHEETNAME_LINJEDATA]
     data_parse_result = DD20LineDataframeParser(df_line=df_linedata)
 
     # Test dataframe has expected amount of datarows
@@ -200,7 +201,33 @@ def test_DD20LineDataframeParser(dd20_data_frame_dict):
                                  'III-ÆØÅ': 2400}
     assert data_parse_result.get_complim_40h_dict() == complim_40h_dict_expected
 
-# test combined DD20 dataframe eller blot objekter hver for sig, eller begge?
+# test combined DD20 dataframe
+def test_parse_dd20_excelsheets_to_dataframe(dd20_data):
+    """
+    TODO: doc
+    """
+    # arrange
+    expected_dd20_dataframe_columns = ['acline_name_translated', 'acline_name_datasource', 'datasource',
+                                       'conductor_type', 'conductor_count', 'system_count', 'max_temperature',
+                                       'restrict_conductor_lim_continuous',
+                                       'restrict_component_lim_continuous', 'restrict_component_lim_15m',
+                                       'restrict_component_lim_1h', 'restrict_component_lim_40h',
+                                       'restrict_cable_lim_continuous', 'restrict_cable_lim_15m',
+                                       'restrict_cable_lim_1h', 'restrict_cable_lim_40h']
+
+    # act
+    resulting_dd20_dataframe = parse_dd20_excelsheets_to_dataframe(file_path=DD20_FILE_PATH)
+    resulting_dd20_dataframe_columns = resulting_dd20_dataframe.columns.to_list()
+
+    # Test if expect amount of columns are present
+    assert len(resulting_dd20_dataframe_columns) == len(expected_dd20_dataframe_columns)
+    # Test if expected column names are present
+    assert sorted(resulting_dd20_dataframe_columns) == sorted(expected_dd20_dataframe_columns)
+
+    # Test if names are mapped correctly
+    expected_translated_acline_names = {'AAA-BBB': 'E_AAA-BBB', 'CCC-DDD': 'D_CCC-DDD', 'EEE-FFF-1': 'E_EEE-FFF_1', 'EEE-FFF-2': 'E_EEE-FFF_2', 'GGG-HHH': 'E_GGG-HHH', 'III-ÆØÅ': 'C_III-ÆØÅ'}
+    resulting_translated_acline_names = resulting_dd20_dataframe.set_index('acline_name_datasource').to_dict()['acline_name_translated']
+    assert resulting_translated_acline_names == expected_translated_acline_names
 
 
 # TEST: map parse
@@ -251,6 +278,13 @@ def test_parse_aclineseg_scada_csvdata_to_dataframe():
 
 # TEST final merge
 # test first columns match, then test each property
+def test_create_aclinesegment_dataframe():
+    """
+    This test verifies creation of aclinesegment dataframe
+    parse_dd20_excelsheets_to_dataframe, parse_acline_namemap_excelsheet_to_dataframe, parse_aclineseg_scada_csvdata_to_dataframe
+    """
+
+    pass
 
 
 expected_dlr_dataframe_dict = {'ACLINESEGMENT_MRID': ['66b4596e-asfv-tyuy-5478-bd208f26a446',

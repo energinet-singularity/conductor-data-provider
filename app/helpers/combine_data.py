@@ -9,10 +9,10 @@ log = logging.getLogger(__name__)
 
 
 def create_aclinesegment_dataframe(conductor_data: pd.DataFrame,
-                               dd20_to_scada_name: pd.DataFrame,
-                               scada_mapping: pd.DataFrame) -> pd.DataFrame:
+                                   dd20_to_scada_name: pd.DataFrame,
+                                   scada_mapping: pd.DataFrame) -> pd.DataFrame:
     """
-    TODO: doc me
+    TODO: doc me, maybe move to main?
     """
 
     # constant (ud som inputs til funcion)
@@ -74,3 +74,5 @@ def create_aclinesegment_dataframe(conductor_data: pd.DataFrame,
     dlr_dataframe.columns = dlr_dataframe.columns.str.upper()
 
     return dlr_dataframe
+
+
