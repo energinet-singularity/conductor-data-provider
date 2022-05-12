@@ -9,10 +9,12 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 
-def parse_acline_namemap_excelsheet_to_dataframe(file_path: str,
-                                                 excel_sheet_name: str = "DD20Mapping",
-                                                 dd20_name_col_nm: str = "DD20 Name",
-                                                 scada_name_col_nm: str = "ETS Name") -> pd.DataFrame:
+def parse_acline_namemap_excelsheet_to_dataframe(
+    file_path: str,
+    excel_sheet_name: str = "DD20Mapping",
+    dd20_name_col_nm: str = "DD20 Name",
+    scada_name_col_nm: str = "ETS Name",
+) -> pd.DataFrame:
     """
     Extract manual name mapping from excel-sheet and return it to dataframe.
     The name mapping is from "AC-line name in DD20" to "AC-line name in SCADA"
@@ -42,16 +44,22 @@ def parse_acline_namemap_excelsheet_to_dataframe(file_path: str,
     try:
         # parse data from excel to dataframe
         acline_namemap_dataframe = pd.read_excel(file_path, sheet_name=excel_sheet_name)
-        log.debug(f"Data from excel-file {file_path} is: {acline_namemap_dataframe.to_string()}")
+        log.debug(
+            f"Data from excel-file {file_path} is: {acline_namemap_dataframe.to_string()}"
+        )
 
         # verify that expected columns are present
-        dataframe_columns(dataframe=acline_namemap_dataframe,
-                          expected_columns=[dd20_name_col_nm, scada_name_col_nm],
-                          allow_extra_columns=True)
+        dataframe_columns(
+            dataframe=acline_namemap_dataframe,
+            expected_columns=[dd20_name_col_nm, scada_name_col_nm],
+            allow_extra_columns=True,
+        )
 
         return acline_namemap_dataframe
 
     except Exception as e:
-        log.exception(f"Parsing AC-line name mapping in sheet: '{excel_sheet_name}' of file '{file_path}' " +
-                      f"failed with message: '{e}'.")
+        log.exception(
+            f"Parsing AC-line name mapping in sheet: '{excel_sheet_name}' of file '{file_path}' "
+            + f"failed with message: '{e}'."
+        )
         raise e

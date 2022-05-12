@@ -23,8 +23,8 @@ class ACLineSegmentProperties:
     Class for managing AC-line conductor properties.
 
     The purpose of the class is to collect data from the input-files, transform it into dataframes and join
-    them all into a single property-set in order to provide conductor data for Dynamic Line Rating calculations
-    to be utilized in a SCADA system.
+    them all into a single dataframe containing ACLineSegment properties.
+    It is done in order to provide conductor data for Dynamic Line Rating calculations to be utilized in a SCADA system.
 
     The conductor properties are gathered from a non-standard format called "DD20"(excel-file) and combined with mapping data
     from non-standard datasources from a SCADA system (excel and csv-file).
@@ -112,6 +112,7 @@ class ACLineSegmentProperties:
         log.info("Checking if files has updated and data refreh is needed.")
         data_change = False
 
+        # checking if files has updated, and calling functions to reload data if needed
         for input in [self.__DD20, self.__DD20_MAP, self.__MRID_MAP]:
             try:
                 file_update_time = os.path.getmtime(input.path)
@@ -145,19 +146,8 @@ class ACLineSegmentProperties:
         return self.dataframe
 
 
-if __name__ == "__main__":
-
-    time_begin = time()
-
-    # default values for filepaths
-    DD20_FILEPATH_DEFAULT = "/input/DD20.XLSM"
-    DD20_MAPPING_FILEPATH_DEFAULT = "/input/Limits_other.xlsx"
-    MRID_MAPPING_FILEPATH_DEFAULT = "/input/seg_line_mrid_PROD.csv"
-
-    # refresh rate for checking if new data is avalialbe from files
-    REFRESH_RATE_API_INPUT = 60
-
-    # Set up logging
+def setup_logging():
+    """Fucntion which sets up properties for logging."""
     if os.environ.get("DEBUG", "FALSE").upper() == "FALSE":
         # __main__ will output INFO-level, everything else stays at WARNING
         logging.basicConfig(format="%(levelname)s:%(asctime)s:%(name)s - %(message)s")
@@ -174,9 +164,24 @@ if __name__ == "__main__":
             f"'DEBUG' env. variable is '{os.environ['DEBUG']}', but must be either 'TRUE', 'FALSE' or unset."
         )
 
-    log.info("Loading environment variables.")
+
+if __name__ == "__main__":
+
+    time_begin = time()
+    setup_logging()
+
+    log.info("Starting conductor data provider API.")
+
+    # default values for filepaths
+    DD20_FILEPATH_DEFAULT = "/input/DD20.XLSM"
+    DD20_MAPPING_FILEPATH_DEFAULT = "/input/Limits_other.xlsx"
+    MRID_MAPPING_FILEPATH_DEFAULT = "/input/seg_line_mrid_PROD.csv"
+
+    # refresh rate for checking if new data is avalialbe from files
+    REFRESH_RATE_API_INPUT = 60
 
     # Load file paths from env vars - or use defaults
+    log.info("Loading environment variables.")
     try:
         dd20_filepath = os.environ.get("DD20FILEPATH", DD20_FILEPATH_DEFAULT)
         dd20_mapping_filepath = os.environ.get(
@@ -193,7 +198,6 @@ if __name__ == "__main__":
         pass
     elif os.environ["USE_MOCK_DATA"].upper() == "TRUE":
         # Mock-data will overrule file paths
-        # TODO: will only work in container, is it ok?
         dd20_filepath = "/test-data/DD20.XLSM"
         dd20_mapping_filepath = "/test-data/Limits_other.xlsx"
         mrid_mapping_filepath = "/test-data/seg_line_mrid_PROD.csv"
@@ -210,7 +214,7 @@ if __name__ == "__main__":
     except Exception:
         raise ValueError(f"Invalid API config (PORT and/or DBNAME)")
 
-    log.info("Collecting conductor data and exposing via API.")
+    log.info("Collecting conductor data and exposing it via API.")
 
     # collect data
     conductor_data = ACLineSegmentProperties(

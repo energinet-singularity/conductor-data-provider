@@ -9,10 +9,12 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 
-def parse_aclineseg_scada_csvdata_to_dataframe(file_path: str,
-                                               aclinesegment_mrid_col_nm: str = "ACLINESEGMENT_MRID",
-                                               acline_name_col_nm: str = "LINE_EMSNAME",
-                                               dlr_enabled_col_nm: str = "DLR_ENABLED") -> pd.DataFrame:
+def parse_aclineseg_scada_csvdata_to_dataframe(
+    file_path: str,
+    aclinesegment_mrid_col_nm: str = "ACLINESEGMENT_MRID",
+    acline_name_col_nm: str = "LINE_EMSNAME",
+    dlr_enabled_col_nm: str = "DLR_ENABLED",
+) -> pd.DataFrame:
     """
     Parse data from non-standard CSV-file format to dataframe.
 
@@ -40,29 +42,49 @@ def parse_aclineseg_scada_csvdata_to_dataframe(file_path: str,
     # process data from csv file til dataframe
     try:
         # read data from CSV to dataframe and drop row with index 1 as it contains only hyphnens
-        aclineseg_scada_dataframe = pd.read_csv(file_path, delimiter=',', on_bad_lines='skip', encoding='cp1252')
-        aclineseg_scada_dataframe.drop(aclineseg_scada_dataframe.head(1).index, inplace=True)
+        aclineseg_scada_dataframe = pd.read_csv(
+            file_path, delimiter=",", on_bad_lines="skip", encoding="cp1252"
+        )
+        aclineseg_scada_dataframe.drop(
+            aclineseg_scada_dataframe.head(1).index, inplace=True
+        )
 
         # restting index to start from 0
         aclineseg_scada_dataframe.reset_index(drop=True, inplace=True)
 
         # replace yes/no with true/false
-        aclineseg_scada_dataframe.loc[aclineseg_scada_dataframe[dlr_enabled_col_nm] == "YES", dlr_enabled_col_nm] = True
-        aclineseg_scada_dataframe.loc[aclineseg_scada_dataframe[dlr_enabled_col_nm] == "NO", dlr_enabled_col_nm] = False
+        aclineseg_scada_dataframe.loc[
+            aclineseg_scada_dataframe[dlr_enabled_col_nm] == "YES", dlr_enabled_col_nm
+        ] = True
+        aclineseg_scada_dataframe.loc[
+            aclineseg_scada_dataframe[dlr_enabled_col_nm] == "NO", dlr_enabled_col_nm
+        ] = False
 
         # set type on 'DLR_enabled' column to boolean datatype
-        aclineseg_scada_dataframe = aclineseg_scada_dataframe.astype({dlr_enabled_col_nm: bool})
+        aclineseg_scada_dataframe = aclineseg_scada_dataframe.astype(
+            {dlr_enabled_col_nm: bool}
+        )
 
         # verify that expected columns are present
-        dataframe_columns(dataframe=aclineseg_scada_dataframe,
-                          expected_columns=[aclinesegment_mrid_col_nm, acline_name_col_nm, dlr_enabled_col_nm],
-                          allow_extra_columns=True)
+        dataframe_columns(
+            dataframe=aclineseg_scada_dataframe,
+            expected_columns=[
+                aclinesegment_mrid_col_nm,
+                acline_name_col_nm,
+                dlr_enabled_col_nm,
+            ],
+            allow_extra_columns=True,
+        )
 
         log.info(f'AC-linsegment csv-data from "{file_path}" was parsed to dataframe.')
-        log.debug(f"Data from csv-file {file_path} is: {aclineseg_scada_dataframe.to_string()}")
+        log.debug(
+            f"Data from csv-file {file_path} is: {aclineseg_scada_dataframe.to_string()}"
+        )
 
         return aclineseg_scada_dataframe
 
     except Exception as e:
-        log.exception(f'Parsing AC-linsegment csv-data from: "{file_path}" failed with message: {e}.')
+        log.exception(
+            f'Parsing AC-linsegment csv-data from: "{file_path}" failed with message: {e}.'
+        )
         raise e

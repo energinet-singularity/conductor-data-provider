@@ -52,10 +52,6 @@ class ACLineProperties:
     restrict_cable_lim_40h: float
          Allowed 15 minutes ampere loading of cabling along the AC-line, if any.
     """
-    # TODO: type and value verify
-    # TODO: regler for (int værdier skal være mellem 0 og ?, temp mellem 0 og 100, ampere mellem 0 og 9999)
-    # TODO: valider hvilke værdier der skal være sat og hvilke der er optional/NaN
-    # TODO: fange manglende DD20 data her?
     acline_name_translated: str
     acline_name_datasource: str
     datasource: str
@@ -74,7 +70,7 @@ class ACLineProperties:
     restrict_cable_lim_40h: float
 
 
-class DD20StationDataframeParser():
+class DD20StationDataframeParser:
     """
     Class for parsing "station data" from DD20.
     The dataframe containing "station data" must be parsed as parameter "df_station" upon instantiation.
@@ -113,18 +109,21 @@ class DD20StationDataframeParser():
     get_cablelim_40h_dict()
         Returns dictionary with mapping from AC-line name to allowed 40 hour ampere loading of cabling along the AC-line.
     """
-    def __init__(self,
-                 df_station: pd.DataFrame,
-                 acline_name_col_nm: str = 'Linjenavn',
-                 kv_col_nm: str = 'Spændingsniveau',
-                 conductor_count_col_nm: str = 'Antal fasetråde',
-                 system_count_col_nm: str = 'Antal systemer',
-                 conductor_type_col_nm: str = 'Ledningstype',
-                 conductor_max_temp_col_nm: str = 'Temperatur',
-                 cablelim_continuous_col_nm: str = 'Kontinuer',
-                 cablelim_15m_col_nm: str = '15 min',
-                 cablelim_1h_col_nm: str = '1 time',
-                 cablelim_40h_col_nm: str = '40 timer'):
+
+    def __init__(
+        self,
+        df_station: pd.DataFrame,
+        acline_name_col_nm: str = "Linjenavn",
+        kv_col_nm: str = "Spændingsniveau",
+        conductor_count_col_nm: str = "Antal fasetråde",
+        system_count_col_nm: str = "Antal systemer",
+        conductor_type_col_nm: str = "Ledningstype",
+        conductor_max_temp_col_nm: str = "Temperatur",
+        cablelim_continuous_col_nm: str = "Kontinuer",
+        cablelim_15m_col_nm: str = "15 min",
+        cablelim_1h_col_nm: str = "1 time",
+        cablelim_40h_col_nm: str = "40 timer",
+    ):
         """
         Parameters
         ----------
@@ -174,40 +173,76 @@ class DD20StationDataframeParser():
         self.acline_name_list = self.__get_acline_name_list()
 
     def get_conductor_kv_level_dict(self) -> dict:
-        """Returns dictionary with mapping from AC-line name to voltagelevel in kV."""
-        return self.__create_acline_name_to_column_single_value_dict(column_name=self.__kv_col_nm)
+        """
+        Returns dictionary with mapping from AC-line name to voltagelevel in kV.
+        """
+        return self.__create_acline_name_to_column_single_value_dict(
+            column_name=self.__kv_col_nm
+        )
 
     def get_conductor_count_dict(self) -> dict:
-        """Returns dictionary with mapping from AC-line name to amount of conductors."""
-        return self.__create_acline_name_to_column_single_value_dict(column_name=self.__conductor_count_col_nm)
+        """
+        Returns dictionary with mapping from AC-line name to amount of conductors.
+        """
+        return self.__create_acline_name_to_column_single_value_dict(
+            column_name=self.__conductor_count_col_nm
+        )
 
     def get_system_count_dict(self) -> dict:
-        """Returns dictionary with mapping from AC-line name to amount of parallel systems."""
-        return self.__create_acline_name_to_column_single_value_dict(column_name=self.__system_count_col_nm)
+        """
+        Returns dictionary with mapping from AC-line name to amount of parallel systems.
+        """
+        return self.__create_acline_name_to_column_single_value_dict(
+            column_name=self.__system_count_col_nm
+        )
 
     def get_conductor_type_dict(self) -> dict:
-        """Returns dictionary with mapping from AC-line name to conductor type."""
-        return self.__create_acline_name_to_column_single_value_dict(column_name=self.__conductor_type_col_nm)
+        """
+        Returns dictionary with mapping from AC-line name to conductor type.
+        """
+        return self.__create_acline_name_to_column_single_value_dict(
+            column_name=self.__conductor_type_col_nm
+        )
 
     def get_conductor_max_temp_dict(self) -> dict:
-        """Returns dictionary with mapping from AC-line name to max temperature."""
-        return self.__create_acline_name_to_column_single_value_dict(column_name=self.__conductor_max_temp_col_nm)
+        """
+        Returns dictionary with mapping from AC-line name to max temperature.
+        """
+        return self.__create_acline_name_to_column_single_value_dict(
+            column_name=self.__conductor_max_temp_col_nm
+        )
 
     def get_cablelim_continuous_dict(self) -> dict:
-        """Returns dictionary with mapping from AC-line name to allowed continuous ampere loading of cabling along the AC-line."""
-        return self.__create_acline_name_to_column_single_value_dict(column_name=self.__cablelim_continuous_col_nm)
+        """
+        Returns dictionary with mapping from AC-line name to allowed continuous ampere loading of cabling along the AC-line.
+        """
+        return self.__create_acline_name_to_column_single_value_dict(
+            column_name=self.__cablelim_continuous_col_nm
+        )
 
     def get_cablelim_15m_dict(self) -> dict:
-        """Returns dictionary with mapping from AC-line name to allowed 15 minutes ampere loading of cabling along the AC-line."""
-        return self.__create_acline_name_to_column_single_value_dict(column_name=self.__cablelim_15m_col_nm)
+        """
+        Returns dictionary with mapping from AC-line name to allowed 15 minutes ampere loading of cabling along the AC-line.
+        """
+        return self.__create_acline_name_to_column_single_value_dict(
+            column_name=self.__cablelim_15m_col_nm
+        )
 
     def get_cablelim_1h_dict(self) -> dict:
-        """Returns dictionary with mapping from AC-line name to allowed 1 hour ampere loading of cabling along the AC-line."""
-        return self.__create_acline_name_to_column_single_value_dict(column_name=self.__cablelim_1h_col_nm)
+        """
+        Returns dictionary with mapping from AC-line name to allowed 1 hour ampere loading of cabling along the AC-line.
+        """
+        return self.__create_acline_name_to_column_single_value_dict(
+            column_name=self.__cablelim_1h_col_nm
+        )
 
     def get_cablelim_40h_dict(self) -> dict:
-        """Returns dictionary with mapping from AC-line name to allowed 40 hour ampere loading of cabling along the AC-line."""
-        return self.__create_acline_name_to_column_single_value_dict(column_name=self.__cablelim_40h_col_nm)
+        """
+        Returns dictionary with mapping from AC-line name to allowed 40 hour ampere loading of cabling along the AC-line.
+        """
+        return self.__create_acline_name_to_column_single_value_dict(
+            column_name=self.__cablelim_40h_col_nm
+        )
 
     def __prepare_df_station(self):
         """
@@ -220,38 +255,59 @@ class DD20StationDataframeParser():
             Cleaned dataframe.
         """
         try:
-            # 1. Filter dataframe to only contain AC-lines which have a parallel representation by:
-            # - Removing rows with no AC-line name
-            # - Excluding rows withpot a hyphen in AC-line name, as all AC-line names has one.
-            # - Excluding rows without "(N)" in the name, as lines which are not parallel does not contain it.
-            df_parallel_lines = self.__df_station_source[(self.__df_station_source[self.__acline_name_col_nm].notna()) &
-                                                         (self.__df_station_source[self.__acline_name_col_nm].str.contains("-")) &
-                                                         (self.__df_station_source[self.__acline_name_col_nm].str.contains(r'\(N\)'))][self.__acline_name_col_nm]
+            """
+            1. Filter dataframe to only contain AC-lines which have a parallel representation by:
+            - Removing rows with no AC-line name
+            - Excluding rows withpot a hyphen in AC-line name, as all AC-line names has one.
+            - Excluding rows without "(N)" in the name, as lines which are not parallel does not contain it.
+            """
+            df_parallel_lines = self.__df_station_source[
+                (self.__df_station_source[self.__acline_name_col_nm].notna())
+                & (self.__df_station_source[self.__acline_name_col_nm].str.contains("-"))
+                & (self.__df_station_source[self.__acline_name_col_nm].str.contains(r"\(N\)"))
+            ][self.__acline_name_col_nm]
 
-            # 2. Create list og parallel AC-line names where "(N)" is removed.
-            # The "(N)" string are in DD20 to identify them as parallel. The actual name of the AC-Line does not have "(N)" in it.
-            # Ie. a parallel line is represented by 2 single parts with name is "GGH-VVV" and one with "GGH-VVV (N)" for the parallel combination.
-            # Only the parallel representation is needed.
-            acline_parallel_dd20_names = [x.replace('(N)', '').strip() for x in df_parallel_lines.values.tolist()]
+            """
+            2. Create list og parallel AC-line names where "(N)" is removed:
+            - The "(N)" string are in DD20 to identify them as parallel. Actual name of the AC-Line does not have "(N)" in it.
+            - I.e. a parallel line is represented by 2 single parts with names
+            "GGH-VVV" and one with "GGH-VVV (N)" for the parallel combination.
+            - Only the parallel representation is needed.
+            """
+            acline_parallel_dd20_names = [
+                x.replace("(N)", "").strip() for x in df_parallel_lines.values.tolist()
+            ]
 
-            # 3. Return filtered frame by:
-            # - Removing rows with no AC-line name
-            # - Excluding rows withpot a hyphen in AC-line name, as all AC-line names has one.
-            # - Excluding single part representation of AC-lines where a paralle part is present
-            df_station_filtered = self.__df_station_source[(self.__df_station_source[self.__acline_name_col_nm].notna()) &
-                                                           (self.__df_station_source[self.__acline_name_col_nm].str.contains("-")) &
-                                                           ~self.__df_station_source[self.__acline_name_col_nm].isin(acline_parallel_dd20_names)]
-            # 4. cleaning frame by:
-            # - Removing (N) from values in AC-line name column
-            # - Removing spaces from values in AC-line name column
-            # TODO: generates warning, fix it
-            # https://www.dataquest.io/blog/settingwithcopywarning/
-            df_station_filtered.loc[:, self.__acline_name_col_nm] = df_station_filtered[self.__acline_name_col_nm].replace(r"\(N\)", "", regex=True).replace(" ", "", regex=True)
+            """
+            3. Return filtered frame by:
+            - Removing rows with no AC-line name
+            - Excluding rows withpot a hyphen in AC-line name, as all AC-line names has one.
+            - Excluding single part representation of AC-lines where a paralle part is present
+            """
+            df_station_filtered = self.__df_station_source[
+                (self.__df_station_source[self.__acline_name_col_nm].notna())
+                & (self.__df_station_source[self.__acline_name_col_nm].str.contains("-"))
+                & ~self.__df_station_source[self.__acline_name_col_nm].isin(acline_parallel_dd20_names)
+            ]
+            """
+            4. cleaning frame by:
+            - Removing (N) from values in AC-line name column
+            - Removing spaces from values in AC-line name column
+            TODO: generates warning, fix it
+            https://www.dataquest.io/blog/settingwithcopywarning/
+            """
+            df_station_filtered.loc[:, self.__acline_name_col_nm] = (
+                df_station_filtered[self.__acline_name_col_nm]
+                .replace(r"\(N\)", "", regex=True)
+                .replace(" ", "", regex=True)
+            )
 
             return df_station_filtered
 
         except Exception as e:
-            log.exception(f"Preparing DD20 dataframe from Station-data sheet failed with message: '{e}'.")
+            log.exception(
+                f"Preparing DD20 dataframe from Station-data sheet failed with message: '{e}'."
+            )
             raise e
 
     def __get_acline_name_list(self):
@@ -264,20 +320,30 @@ class DD20StationDataframeParser():
             Sorted list of unique AC-line names.
         """
         try:
-            # Filtering dataframe on 'linename' column to get only unique line names by:
-            # - Removing rows with null
-            # - Removing rows not containing '-', since line names always contain this character
-            # - Removing rows with '(N)', since it is a parallel line representation in DD20 format
-            df_filtered = self.__df_station_source[(self.__df_station_source[self.__acline_name_col_nm].notna()) &
-                                                   (self.__df_station_source[self.__acline_name_col_nm].str.contains("-"))]
-            df_filtered = df_filtered[~(df_filtered[self.__acline_name_col_nm].str.contains(r'\(N\)'))]
+            """
+            Filtering dataframe on 'linename' column to get only unique line names by:
+            - Removing rows with null
+            - Removing rows not containing '-', since line names always contain this character
+            - Removing rows with '(N)', since it is a parallel line representation in DD20 format
+            """
+            df_filtered = self.__df_station_source[
+                (self.__df_station_source[self.__acline_name_col_nm].notna())
+                & (self.__df_station_source[self.__acline_name_col_nm].str.contains("-"))
+            ]
+            df_filtered = df_filtered[
+                ~(df_filtered[self.__acline_name_col_nm].str.contains(r"\(N\)"))
+            ]
 
             # Return sorted list of unique DD20 names
-            acline_names = sorted(list(set(df_filtered[self.__acline_name_col_nm].values.tolist())))
+            acline_names = sorted(
+                list(set(df_filtered[self.__acline_name_col_nm].values.tolist()))
+            )
 
             return acline_names
         except Exception as e:
-            log.exception(f"Getting list of line names present in DD20 station sheet failed with message: '{e}'.")
+            log.exception(
+                f"Getting list of line names present in DD20 station sheet failed with message: '{e}'."
+            )
             raise e
 
     def __create_acline_name_to_column_single_value_dict(self, column_name: str):
@@ -295,18 +361,27 @@ class DD20StationDataframeParser():
             Mapping from each AC-line name to value in choosen column.
         """
         try:
-            # for each AC line in DD20:
-            # - filter dataframe to only rows which has the AC-lin ename
-            # - pick only value for column
-            dict = {acline_dd20name: self.__df_station_clean[self.__df_station_clean[self.__acline_name_col_nm] == acline_dd20name][column_name].values[0]
-                    for acline_dd20name in self.acline_name_list}
+            """
+            For each AC line in DD20:
+            - filter dataframe to only rows which has the AC-lin ename
+            - pick only value for column
+            """
+            dict = {
+                acline_dd20name: self.__df_station_clean[
+                    self.__df_station_clean[self.__acline_name_col_nm]
+                    == acline_dd20name
+                ][column_name].values[0]
+                for acline_dd20name in self.acline_name_list
+            }
             return dict
         except Exception as e:
-            log.exception(f"Getting data column: {column_name} in Station-data sheet failed with message: '{e}'.")
+            log.exception(
+                f"Getting data column: {column_name} in Station-data sheet failed with message: '{e}'."
+            )
             raise e
 
 
-class DD20LineDataframeParser():
+class DD20LineDataframeParser:
     """
     Class for parsing "line data" from DD20.
     The dataframe containing "line data" must be parsed as parameter "df_line" upon instantiation.
@@ -339,16 +414,19 @@ class DD20LineDataframeParser():
     complim_40h_dict()
         Returns dictionary with mapping from AC-line name to allowed 40 hour ampere loading of components along the AC-line.
     """
-    def __init__(self,
-                 df_line: pd.DataFrame,
-                 acline_name_col_nm: str = 'System',
-                 kv_col_nm: str = 'Spændingsniveau',
-                 acline_lim_continuous_col_nm: str = 'I-kontinuert',
-                 system_count_col_nm: str = 'Antal sys.',
-                 complim_continuous_col_rng: range = range(41, 55),
-                 complim_15m_col_rng: range = range(55, 69),
-                 complim_1h_col_rng: range = range(69, 83),
-                 complim_40h_col_rng: range = range(83, 97)):
+
+    def __init__(
+        self,
+        df_line: pd.DataFrame,
+        acline_name_col_nm: str = "System",
+        kv_col_nm: str = "Spændingsniveau",
+        acline_lim_continuous_col_nm: str = "I-kontinuert",
+        system_count_col_nm: str = "Antal sys.",
+        complim_continuous_col_rng: range = range(41, 55),
+        complim_15m_col_rng: range = range(55, 69),
+        complim_1h_col_rng: range = range(69, 83),
+        complim_40h_col_rng: range = range(83, 97),
+    ):
         """
         Parameters
         ----------
@@ -383,7 +461,7 @@ class DD20LineDataframeParser():
         self.__complim_1h_col_rng = complim_1h_col_rng
         self.__complim_40h_col_rng = complim_40h_col_rng
 
-        # TODO: add function which checks for need columns and hash
+        # TODO: add function which checks for need columns and hash here?
 
         # Cleaning dataframe
         self.__df_line_clean = self.__prepare_df_line()
@@ -392,43 +470,57 @@ class DD20LineDataframeParser():
         self.acline_name_list = self.__get_acline_name_list()
 
     def get_conductor_kv_level_dict(self):
-        """Returns dictionary with mapping from AC-line name to voltagelevel in kV."""
-        return self.__create_acline_name_to_column_min_value_dict(column_name=self.__kv_col_nm)
+        """
+        Returns dictionary with mapping from AC-line name to voltagelevel in kV.
+        """
+        return self.__create_acline_name_to_column_min_value_dict(
+            column_name=self.__kv_col_nm
+        )
 
     def get_acline_lim_continuous_dict(self):
         """
         Returns dictionary with mapping from AC-line name to allowed
         continuous ampere loading of conductor.
         """
-        return self.__create_acline_name_to_column_min_value_dict(column_name=self.__acline_lim_continuous_col_nm)
+        return self.__create_acline_name_to_column_min_value_dict(
+            column_name=self.__acline_lim_continuous_col_nm
+        )
 
     def get_complim_continuous_dict(self):
         """
         Returns dictionary with mapping from AC-line name to allowed
         continuous ampere loading of components along the AC-line.
         """
-        return self.__create_acline_name_to_column_range_min_value_dict(column_range=self.__complim_continuous_col_rng)
+        return self.__create_acline_name_to_column_range_min_value_dict(
+            column_range=self.__complim_continuous_col_rng
+        )
 
     def get_complim_15m_dict(self):
         """
         Returns dictionary with mapping from AC-line name to
         allowed 15 minutes ampere loading of components along the AC-line.
         """
-        return self.__create_acline_name_to_column_range_min_value_dict(column_range=self.__complim_15m_col_rng)
+        return self.__create_acline_name_to_column_range_min_value_dict(
+            column_range=self.__complim_15m_col_rng
+        )
 
     def get_complim_1h_dict(self):
         """
         Returns dictionary with mapping from AC-line name to allowed
         1 hour ampere loading of components along the AC-line.
         """
-        return self.__create_acline_name_to_column_range_min_value_dict(column_range=self.__complim_1h_col_rng)
+        return self.__create_acline_name_to_column_range_min_value_dict(
+            column_range=self.__complim_1h_col_rng
+        )
 
     def get_complim_40h_dict(self):
         """
         Returns dictionary with mapping from AC-line name to allowed
         40 hour ampere loading of components along the AC-line.
         """
-        return self.__create_acline_name_to_column_range_min_value_dict(column_range=self.__complim_40h_col_rng)
+        return self.__create_acline_name_to_column_range_min_value_dict(
+            column_range=self.__complim_40h_col_rng
+        )
 
     def __prepare_df_line(self):
         """
@@ -441,23 +533,35 @@ class DD20LineDataframeParser():
             Cleaned dataframe.
         """
         try:
-            # Filtering dataframe on 'linename' column to get only unique line names by:
-            # - Removing rows with null
-            # - Removing rows not containing '-', since line names always contain this character
-            # - Remove single part of parallel line representation from sheet (lines with . in antal sys)
-            df_line_filtered = self.__df_line_soruce[(self.__df_line_soruce[self.__acline_name_col_nm].notna()) &
-                                                     (self.__df_line_soruce[self.__acline_name_col_nm].str.contains("-")) &
-                                                     ~(self.__df_line_soruce[self.__system_count_col_nm].str.contains(".", na=False))]
-            # cleaning frame by:
-            # - Removing (N) from values in AC-line name column
-            # - Removing spaces from values in AC-line name column
-            # TODO: generates warning, fix it
-            df_line_filtered[self.__acline_name_col_nm] = df_line_filtered[self.__acline_name_col_nm].replace(r"\(N\)", "", regex=True).replace(" ", "", regex=True)
+            """
+            Filtering dataframe on 'linename' column to get only unique line names by:
+            - Removing rows with null
+            - Removing rows not containing '-', since line names always contain this character
+            - Remove single part of parallel line representation from sheet (lines with . in antal sys)
+            """
+            df_line_filtered = self.__df_line_soruce[
+                (self.__df_line_soruce[self.__acline_name_col_nm].notna())
+                & (self.__df_line_soruce[self.__acline_name_col_nm].str.contains("-"))
+                & ~(self.__df_line_soruce[self.__system_count_col_nm].str.contains(".", na=False))
+            ]
+            """
+            Cleaning frame by:
+            - Removing (N) from values in AC-line name column
+            - Removing spaces from values in AC-line name column
+            TODO: generates warning, fix it
+            """
+            df_line_filtered[self.__acline_name_col_nm] = (
+                df_line_filtered[self.__acline_name_col_nm]
+                .replace(r"\(N\)", "", regex=True)
+                .replace(" ", "", regex=True)
+            )
 
             return df_line_filtered
 
         except Exception as e:
-            log.exception(f"Preparing DD20 dataframe from Line-data sheet failed with message: '{e}'.")
+            log.exception(
+                f"Preparing DD20 dataframe from Line-data sheet failed with message: '{e}'."
+            )
             raise e
 
     def __get_acline_name_list(self):
@@ -471,16 +575,20 @@ class DD20LineDataframeParser():
         """
         try:
             # extract line names from dataframe
-            acline_names = self.__df_line_clean[self.__acline_name_col_nm].values.tolist()
+            acline_names = self.__df_line_clean[
+                self.__acline_name_col_nm
+            ].values.tolist()
 
             # remove string identifying them as parallel to have only the name
-            acline_names_cleaned = [x.replace('(N)', '').strip() for x in acline_names]
+            acline_names_cleaned = [x.replace("(N)", "").strip() for x in acline_names]
 
             # Return sorted list of unique DD20 names
             acline_names_list = sorted(list(set(acline_names_cleaned)))
             return acline_names_list
         except Exception as e:
-            log.exception(f"Getting list of line names present in DD20 line sheet failed with message: '{e}'.")
+            log.exception(
+                f"Getting list of line names present in DD20 line sheet failed with message: '{e}'."
+            )
             raise e
 
     def __create_acline_name_to_column_min_value_dict(self, column_name: str):
@@ -499,15 +607,22 @@ class DD20LineDataframeParser():
             Mapping from each AC-line name to minimum value of choosen column.
         """
         try:
-            # for each AC-line in DD20:
-            # - filter dataframe to only rows which has the AC-linename
-            # - pick only minimum value for column value in all rows related to AC-linename
-            dict = {acline_dd20name: self.__df_line_clean[self.__df_line_clean[self.__acline_name_col_nm] == acline_dd20name]
-                    [column_name].min(skipna=True)
-                    for acline_dd20name in self.acline_name_list}
+            """
+            For each AC-line in DD20:
+            - filter dataframe to only rows which has the AC-linename
+            - pick only minimum value for column value in all rows related to AC-linename
+            """
+            dict = {
+                acline_dd20name: self.__df_line_clean[
+                    self.__df_line_clean[self.__acline_name_col_nm] == acline_dd20name
+                ][column_name].min(skipna=True)
+                for acline_dd20name in self.acline_name_list
+            }
             return dict
         except Exception as e:
-            log.exception(f"Getting minimum value of column: {column_name} in line-data sheet failed with message: '{e}'.")
+            log.exception(
+                f"Getting minimum value of column: {column_name} in line-data sheet failed with message: '{e}'."
+            )
             raise e
 
     def __create_acline_name_to_column_range_min_value_dict(self, column_range: range):
@@ -526,20 +641,32 @@ class DD20LineDataframeParser():
             Mapping from each AC-line name to minimum value of choosen column range.
         """
         try:
-            # for each AC-line in DD20:
-            # - filter dataframe to only rows which has the AC-linename
-            # - filter dataframe to only contain column in range
-            # - pick minimum value for all columns and rows
-            dict = {acline_dd20name: self.__df_line_clean[self.__df_line_clean[self.__acline_name_col_nm] == acline_dd20name]
-                    .iloc[:, column_range].min(skipna=True).min(skipna=True)
-                    for acline_dd20name in self.acline_name_list}
+            """
+            For each AC-line in DD20:
+            - filter dataframe to only rows which has the AC-linename
+            - filter dataframe to only contain column in range
+            - pick minimum value for all columns and rows
+            """
+            dict = {
+                acline_dd20name: self.__df_line_clean[
+                    self.__df_line_clean[self.__acline_name_col_nm] == acline_dd20name
+                ]
+                .iloc[:, column_range]
+                .min(skipna=True)
+                .min(skipna=True)
+                for acline_dd20name in self.acline_name_list
+            }
             return dict
         except Exception as e:
-            log.exception(f"Getting minimum value of column_range: {column_range} in line sheet failed with message: '{e}'.")
+            log.exception(
+                f"Getting minimum value of column_range: {column_range} in line sheet failed with message: '{e}'."
+            )
             raise e
 
 
-def DD20_to_acline_properties_mapper(data_station: DD20StationDataframeParser, data_line: DD20LineDataframeParser):
+def DD20_to_acline_properties_mapper(
+    data_station: DD20StationDataframeParser, data_line: DD20LineDataframeParser
+):
     """
     DD20 station and line data is extracted from parsed objects.
     The data is combined per AC-line present in the objects and returned as a list of objects with one object per AC-line.
@@ -565,15 +692,23 @@ def DD20_to_acline_properties_mapper(data_station: DD20StationDataframeParser, d
         line_acline_names = data_line.acline_name_list
 
         # Verfify that the same names are present in both station and line data, since else DD20 format has an error.
-        names_in_station_but_not_line = list(set(station_acline_names).difference(line_acline_names))
+        names_in_station_but_not_line = list(
+            set(station_acline_names).difference(line_acline_names)
+        )
         if names_in_station_but_not_line:
-            raise ValueError(f"The following AC-line names are present in station " +
-                             "but not line sheet of DD20: {names_in_station_but_not_line}.")
+            raise ValueError(
+                f"The following AC-line names are present in station "
+                + "but not line sheet of DD20: {names_in_station_but_not_line}."
+            )
 
-        names_in_line_but_not_station = list(set(line_acline_names).difference(station_acline_names))
+        names_in_line_but_not_station = list(
+            set(line_acline_names).difference(station_acline_names)
+        )
         if names_in_line_but_not_station:
-            raise ValueError(f"The following AC-line names are present in line " +
-                             "but not station sheet of DD20: {names_in_line_but_not_station}.")
+            raise ValueError(
+                f"The following AC-line names are present in line "
+                + "but not station sheet of DD20: {names_in_line_but_not_station}."
+            )
 
         # Init AC-Line properties mapping dictionarys via methods on objects
         acline_name_to_conductor_count = data_station.get_conductor_count_dict()
@@ -591,19 +726,22 @@ def DD20_to_acline_properties_mapper(data_station: DD20StationDataframeParser, d
         acline_name_to_complim_40h = data_line.get_complim_40h_dict()
 
         # Init kv mapping dict (only use from station since we just checked on agrement on line names)
-        st_acline_name_to_conductor_kv_level = data_station.get_conductor_kv_level_dict()
+        st_acline_name_to_conductor_kv_level = (
+            data_station.get_conductor_kv_level_dict()
+        )
 
-        '''
-        Translation of AC-line names from DD20 datasource to desired format.
+        """
+        Translation of AC-line names from DD20 datasource to desired format using Regex.
         I.e 132 kV line with data source name "EEE-FFF-2" is translated to "E_EEE-FFF_2"
+
         Regex expression does the following:
         (?P<STN1>\\w{3,4}?) makes a group 'STN1' and input a word between 3-4 chars
         (?P<STN2>\\w{3,4}?) makes a group 'STN2' and input should be a word between 3-4 chars
         (?P<id>\\d)? makes a group 'id' and if there is a digit it the end of the name it stores it
-        '''
+        """
         acline_name_to_translated_name = {}
         none_translated_acline_name = []
-        REGEX = r'^(?P<STN1>\w{3,4}?)-(?P<STN2>\w{3,4}?)-?(?P<id>\d)?$'
+        REGEX = r"^(?P<STN1>\w{3,4}?)-(?P<STN2>\w{3,4}?)-?(?P<id>\d)?$"
 
         for acline_dd20name in station_acline_names:
             match = re.match(REGEX, acline_dd20name)
@@ -612,51 +750,70 @@ def DD20_to_acline_properties_mapper(data_station: DD20StationDataframeParser, d
                 volt_letter = f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}"
 
                 # Restructering name to match the syntax of the desired name
-                translated_ac_line_name = f"{volt_letter}_{match.group('STN1')}-{match.group('STN2')}"
+                translated_ac_line_name = (
+                    f"{volt_letter}_{match.group('STN1')}-{match.group('STN2')}"
+                )
 
                 # Add index of line to name, if it is present
-                if match.group('id') is not None:
+                if match.group("id") is not None:
                     translated_ac_line_name += f"_{match.group('id')}"
-                acline_name_to_translated_name[acline_dd20name] = translated_ac_line_name
+                acline_name_to_translated_name[
+                    acline_dd20name
+                ] = translated_ac_line_name
             else:
                 none_translated_acline_name.append(acline_dd20name)
 
         # Throw an error if there is any names not translated name, since it means there is a format error
         if none_translated_acline_name:
-            raise ValueError(f'The following AC-line names could not be translated due to unepxected format:{none_translated_acline_name}')
+            raise ValueError(
+                f"The following AC-line names could not be translated due to unepxected format:{none_translated_acline_name}"
+            )
         else:
-            log.info('All names from the acline_dd20name column have been translated.')
+            log.info("All names from the acline_dd20name column have been translated.")
 
         # Map station and line data to list with objects of the type "ACLineProperties" dataclass.
-        acline_objects = [ACLineProperties(
-                          acline_name_translated=acline_name_to_translated_name[acline_dd20name],
-                          acline_name_datasource=acline_dd20name,
-                          datasource="DD20",
-                          conductor_type=acline_name_to_conductor_type[acline_dd20name],
-                          conductor_count=acline_name_to_conductor_count[acline_dd20name],
-                          system_count=acline_name_to_system_count[acline_dd20name],
-                          max_temperature=acline_name_to_conductor_max_temp[acline_dd20name],
-                          restrict_cable_lim_continuous=acline_name_to_cablelim_continuous[acline_dd20name],
-                          restrict_cable_lim_15m=acline_name_to_cablelim_15m[acline_dd20name],
-                          restrict_cable_lim_1h=acline_name_to_cablelim_1h[acline_dd20name],
-                          restrict_cable_lim_40h=acline_name_to_cablelim_40h[acline_dd20name],
-                          restrict_conductor_lim_continuous=acline_name_to_lim_continuous[acline_dd20name],
-                          restrict_component_lim_continuous=acline_name_to_complim_continuous[acline_dd20name],
-                          restrict_component_lim_15m=acline_name_to_complim_15m[acline_dd20name],
-                          restrict_component_lim_1h=acline_name_to_complim_1h[acline_dd20name],
-                          restrict_component_lim_40h=acline_name_to_complim_40h[acline_dd20name])
-                          for acline_dd20name in station_acline_names]
+        acline_objects = [
+            ACLineProperties(
+                acline_name_translated=acline_name_to_translated_name[acline_dd20name],
+                acline_name_datasource=acline_dd20name,
+                datasource="DD20",
+                conductor_type=acline_name_to_conductor_type[acline_dd20name],
+                conductor_count=acline_name_to_conductor_count[acline_dd20name],
+                system_count=acline_name_to_system_count[acline_dd20name],
+                max_temperature=acline_name_to_conductor_max_temp[acline_dd20name],
+                restrict_cable_lim_continuous=acline_name_to_cablelim_continuous[
+                    acline_dd20name
+                ],
+                restrict_cable_lim_15m=acline_name_to_cablelim_15m[acline_dd20name],
+                restrict_cable_lim_1h=acline_name_to_cablelim_1h[acline_dd20name],
+                restrict_cable_lim_40h=acline_name_to_cablelim_40h[acline_dd20name],
+                restrict_conductor_lim_continuous=acline_name_to_lim_continuous[
+                    acline_dd20name
+                ],
+                restrict_component_lim_continuous=acline_name_to_complim_continuous[
+                    acline_dd20name
+                ],
+                restrict_component_lim_15m=acline_name_to_complim_15m[acline_dd20name],
+                restrict_component_lim_1h=acline_name_to_complim_1h[acline_dd20name],
+                restrict_component_lim_40h=acline_name_to_complim_40h[acline_dd20name],
+            )
+            for acline_dd20name in station_acline_names
+        ]
         return acline_objects
 
     except Exception as e:
-        log.exception(f"Mapping DD20 data from station and line data to common object failed with message: '{e}'.")
+        log.exception(
+            f"Mapping DD20 data from station and line data to common object failed with message: '{e}'."
+        )
         raise e
 
 
-def parse_dd20_excelsheets_to_dataframe(file_path: str,
-                                        header_index: int = 1,
-                                        sheetname_linedata: str = "Linjedata - Sommer",
-                                        sheetname_stationsdata: str = "Stationsdata") -> pd.DataFrame:
+def parse_dd20_excelsheets_to_dataframe(
+    file_path: str,
+    header_index: int = 1,
+    sheetname_linedata: str = "Linjedata - Sommer",
+    sheetname_stationsdata: str = "Stationsdata",
+) -> pd.DataFrame:
     """
     Extract conductor data from DD20 excel-sheets and return it to one combined dataframe.
     The source data is DD20, which has a non-standard format, why customized cleaning and extraction from it is needed.
@@ -680,16 +837,22 @@ def parse_dd20_excelsheets_to_dataframe(file_path: str,
         Dataframe containg selected data from DD20, where each row represents an AC-line.
     """
     # Parsing data from DD20 to dataframe dictionary, with mapping from sheet to dataframe
-    dd20_dataframe_dict = pd.read_excel(io=file_path,
-                                        sheet_name=[sheetname_linedata, sheetname_stationsdata],
-                                        header=header_index)
+    dd20_dataframe_dict = pd.read_excel(
+        io=file_path,
+        sheet_name=[sheetname_linedata, sheetname_stationsdata],
+        header=header_index,
+    )
 
     # Instation of objects for parsing data from station and line sheets of DD20
-    data_station = DD20StationDataframeParser(df_station=dd20_dataframe_dict[sheetname_stationsdata])
+    data_station = DD20StationDataframeParser(
+        df_station=dd20_dataframe_dict[sheetname_stationsdata]
+    )
     data_line = DD20LineDataframeParser(df_line=dd20_dataframe_dict[sheetname_linedata])
 
     # Combining station and line data into a list of objects, where each object is represents a AC-line
-    acline_objects = DD20_to_acline_properties_mapper(data_station=data_station, data_line=data_line)
+    acline_objects = DD20_to_acline_properties_mapper(
+        data_station=data_station, data_line=data_line
+    )
 
     # Creating dataframe from list of objects
     dd20_dataframe = pd.DataFrame(data=[acline.__dict__ for acline in acline_objects])

@@ -85,11 +85,6 @@ def create_aclinesegment_dataframe(
             scada_aclinesegment_map[dlr_enabled_col_nm], scada_line_name_col_nm
         ].to_list()
 
-        # TODO: remove lines which are below 132 as DLR will not be enabled for them?
-        # TODO: list(set(self.topics_consumed_list) - set(self.topics_produced_list)) or differnence instead of comprehensions?
-        # TODO: names_not_in_gis = list(set(mrid_list).difference(translated_names))
-        # TODO: found_lines = list(set(mrid_list).intersection(translated_names))
-
         # Log line names which are in DD20, but not SCADA as info
         lines_only_in_dd20_data = sorted(
             [
@@ -142,6 +137,5 @@ def create_aclinesegment_dataframe(
         return dlr_dataframe
 
     except Exception as e:
-        # TODO: msg
         log.exception(f"Combining data to ACLinesegment dataframe failed with message: {e}.")
         raise e
