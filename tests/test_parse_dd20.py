@@ -1,5 +1,6 @@
 import pandas as pd
 from numpy import nan
+from deepdiff import DeepDiff
 import os
 import pytest
 
@@ -19,7 +20,7 @@ DD20_FILE_PATH = (
     f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM"
 )
 
-# fixtures for DD20
+# fixture for DD20
 @pytest.fixture
 def dd20_data():
     return pd.read_excel(
@@ -30,7 +31,6 @@ def dd20_data():
 
 
 # expected DD20 values as list and dictionarys
-# TODO: make via lazy fixture or just cap them as constants?
 expected_acline_datasource_names = [
     "AAA-BBB",
     "CCC-DDD",
@@ -152,30 +152,32 @@ expected_complim_40h = {
     "III-ÆØÅ": 2400,
 }
 expected_datasource = {
-    "AAA-BBB": 'DD20',
-    "CCC-DDD": 'DD20',
-    "EEE-FFF-1": 'DD20',
-    "EEE-FFF-2": 'DD20',
-    "GGG-HHH": 'DD20',
-    "III-ÆØÅ": 'DD20',
+    "AAA-BBB": "DD20",
+    "CCC-DDD": "DD20",
+    "EEE-FFF-1": "DD20",
+    "EEE-FFF-2": "DD20",
+    "GGG-HHH": "DD20",
+    "III-ÆØÅ": "DD20",
 }
 expected_translated_acline_names = {
     "AAA-BBB": "E_AAA-BBB",
-    "CCC-DDD": 'D_CCC-DDD',
-    "EEE-FFF-1": 'E_EEE-FFF_1',
-    "EEE-FFF-2": 'E_EEE-FFF_2',
-    "GGG-HHH": 'E_GGG-HHH',
-    "III-ÆØÅ": 'C_III-ÆØÅ',
+    "CCC-DDD": "D_CCC-DDD",
+    "EEE-FFF-1": "E_EEE-FFF_1",
+    "EEE-FFF-2": "E_EEE-FFF_2",
+    "GGG-HHH": "E_GGG-HHH",
+    "III-ÆØÅ": "C_III-ÆØÅ",
 }
 
 
 def test_DD20StationDataframeParser(dd20_data):
     """
-    This test verfies that all DD20 "station data" can be parsed correctly.
+    Verfies that all DD20 "station" data are parsed correctly.
     """
 
-    # arrange data needed for tests
+    # arrange dd20 dataframe needed for tests
     df_stationdata = dd20_data[DD20_SHEETNAME_STATIONSDATA]
+
+    # act by parsing dataframe
     data_parse_result = DD20StationDataframeParser(df_station=df_stationdata)
 
     # Test dataframe has expected amount of datarows
@@ -219,11 +221,13 @@ def test_DD20StationDataframeParser(dd20_data):
 
 def test_DD20LineDataframeParser(dd20_data):
     """
-    This test verfies that all DD20 "line" can be parsed correctly.
+    Verfies that all DD20 "line" data are parsed correctly.
     """
 
-    # arrange data needed for tests
+    # arrange dd20 dataframe needed for tests
     df_linedata = dd20_data[DD20_SHEETNAME_LINJEDATA]
+
+    # act by parsing dataframe
     data_parse_result = DD20LineDataframeParser(df_line=df_linedata)
 
     # Test dataframe has expected amount of datarows
@@ -235,8 +239,7 @@ def test_DD20LineDataframeParser(dd20_data):
 
     # Test mapping from AC-line name to voltagelevel in kV.
     assert (
-        data_parse_result.get_conductor_kv_level_dict()
-        == expected_conductor_kv_level
+        data_parse_result.get_conductor_kv_level_dict() == expected_conductor_kv_level
     )
 
     # Test mapping from AC-line name to allowed continuous ampere loading of conductor.
@@ -247,8 +250,7 @@ def test_DD20LineDataframeParser(dd20_data):
 
     # Test mapping from AC-line name to allowed continuous ampere loading of components along the AC-line.
     assert (
-        data_parse_result.get_complim_continuous_dict()
-        == expected_complim_continuous
+        data_parse_result.get_complim_continuous_dict() == expected_complim_continuous
     )
 
     # Test mapping from AC-line name to allowed 15 minutes ampere loading of components along the AC-line.
@@ -264,7 +266,7 @@ def test_DD20LineDataframeParser(dd20_data):
 # test combined DD20 dataframe
 def test_parse_dd20_excelsheets_to_dataframe(dd20_data):
     """
-    Test that verifies DD20 dataframe contains expected data
+    Verifies DD20 dataframe contains expected data
     """
     # Constans for holding expected column names of dataframe
     ACLINE_NAME_TRANSLATED_COL_NM = "acline_name_translated"
@@ -321,6 +323,10 @@ def test_parse_dd20_excelsheets_to_dataframe(dd20_data):
         expected_dd20_dataframe_columns
     )
 
+    # Test dataframe has expected amount of datarows
+    df_row_count_expected = 6
+    assert len(resulting_dd20_dataframe.index) == df_row_count_expected
+
     # Test if expected AC-line names are in dataframe
     assert sorted(resulting_acline_name_datasource) == sorted(
         expected_acline_datasource_names
@@ -339,17 +345,93 @@ def test_parse_dd20_excelsheets_to_dataframe(dd20_data):
         ]
         == expected_datasource
     )
-    assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[CONDUCTOR_TYPE_COL_NM]== expected_conductor_type)
-    assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[CONDUCTOR_COUNT_COL_NM]== expected_conductor_count)
-    assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[SYSTEM_COUNT_COL_NM]== expected_system_count)
-    assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[MAX_TEMPERATUR_COL_NM]== expected_max_temperature)
-    assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[RESTRICT_CONDUCTOR_LIM_CONTINIOUS]== expected_acline_lim_continuous)
-    assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[RESTRICT_COMPONENT_LIM_CONTINIOUS]== expected_complim_continuous)
-    assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[RESTRICT_COMPONENT_LIM_15M]== expected_complim_15m)
-    assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[RESTRICT_COMPONENT_LIM_1H]== expected_complim_1h)
-    assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[RESTRICT_COMPONENT_LIM_40H]== expected_complim_40h)
-    # TODO: fix test som kan accepteret nana
-    # assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[RESTRICT_CABLE_LIM_CONTINUOUS]== expected_cablelim_continuous)
-    # assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[RESTRICT_CABLE_LIM_15M]== expected_cablelim_15m)
-    # assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[RESTRICT_CABLE_LIM_1H]== expected_cablelim_1h)
-    # assert (resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[RESTRICT_CABLE_LIM_40H]== expected_cablelim_40h)
+    assert (
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            CONDUCTOR_TYPE_COL_NM
+        ]
+        == expected_conductor_type
+    )
+    assert (
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            CONDUCTOR_COUNT_COL_NM
+        ]
+        == expected_conductor_count
+    )
+    assert (
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            SYSTEM_COUNT_COL_NM
+        ]
+        == expected_system_count
+    )
+    assert (
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            MAX_TEMPERATUR_COL_NM
+        ]
+        == expected_max_temperature
+    )
+    assert (
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            RESTRICT_CONDUCTOR_LIM_CONTINIOUS
+        ]
+        == expected_acline_lim_continuous
+    )
+    assert (
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            RESTRICT_COMPONENT_LIM_CONTINIOUS
+        ]
+        == expected_complim_continuous
+    )
+    assert (
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            RESTRICT_COMPONENT_LIM_15M
+        ]
+        == expected_complim_15m
+    )
+    assert (
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            RESTRICT_COMPONENT_LIM_1H
+        ]
+        == expected_complim_1h
+    )
+    assert (
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            RESTRICT_COMPONENT_LIM_40H
+        ]
+        == expected_complim_40h
+    )
+
+    assert not DeepDiff(
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            RESTRICT_CABLE_LIM_CONTINUOUS
+        ],
+        expected_cablelim_continuous,
+        ignore_nan_inequality=True,
+        ignore_numeric_type_changes=True
+    )
+
+    assert not DeepDiff(
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            RESTRICT_CABLE_LIM_15M
+        ],
+        expected_cablelim_15m,
+        ignore_nan_inequality=True,
+        ignore_numeric_type_changes=True
+    )
+
+    assert not DeepDiff(
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            RESTRICT_CABLE_LIM_1H
+        ],
+        expected_cablelim_1h,
+        ignore_nan_inequality=True,
+        ignore_numeric_type_changes=True
+    )
+
+    assert not DeepDiff(
+        resulting_dd20_dataframe.set_index(ACLINE_NAME_DATASOURCE_COL_NM).to_dict()[
+            RESTRICT_CABLE_LIM_40H
+        ],
+        expected_cablelim_40h,
+        ignore_nan_inequality=True,
+        ignore_numeric_type_changes=True
+    )

@@ -3,11 +3,12 @@ import os
 
 from app.helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
 
+
 def test_parse_aclineseg_scada_csvdata_to_dataframe():
     """
-    This test verfies that CSV file with aclineseg mapping is parsed correcrtly
+    Verfies that CSV-file with aclineseg mapping is parsed correcrtly
     """
-    # expected dataframe
+    # arrange expected dataframe
     expected_lineseg_to_mrid_dict = {
         "ACLINESEGMENT_MRID": [
             "66b4596e-asfv-tyuy-5478-bd208f26a446",
@@ -33,13 +34,16 @@ def test_parse_aclineseg_scada_csvdata_to_dataframe():
         expected_lineseg_to_mrid_dict
     )
 
-    # resulting dataframe from valid testfile
+    # act by creating resulting dataframe from valid testfile
     mrid_mapping_filepath = f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/seg_line_mrid_PROD.csv"
     resulting_lineseg_to_mrid_dataframe = parse_aclineseg_scada_csvdata_to_dataframe(
         file_path=mrid_mapping_filepath
     )
 
     # assert
-    assert resulting_lineseg_to_mrid_dataframe.equals(
-        expected_lineseg_to_mrid_dataframe
+    assert (
+        pd.testing.assert_frame_equal(
+            expected_lineseg_to_mrid_dataframe, resulting_lineseg_to_mrid_dataframe
+        )
+        is None
     )

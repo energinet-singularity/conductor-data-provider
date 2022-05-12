@@ -120,9 +120,9 @@ class ACLineSegmentProperties():
         try:
             if data_change:
                 log.info("Files has changed, refreshing data for API.")
-                self.dataframe = create_aclinesegment_dataframe(conductor_data=self.__DD20.dataframe,
-                                                                dd20_to_scada_name=self.__DD20_MAP.dataframe,
-                                                                scada_mapping=self.__MRID_MAP.dataframe)
+                self.dataframe = create_aclinesegment_dataframe(dd20_data=self.__DD20.dataframe,
+                                                                dd20_to_scada_name_map=self.__DD20_MAP.dataframe,
+                                                                scada_aclinesegment_map=self.__MRID_MAP.dataframe)
             else:
                 log.info("Files has not changed, refresh of data for API not needed.")
         except Exception as e:

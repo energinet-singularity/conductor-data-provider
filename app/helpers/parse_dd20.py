@@ -677,7 +677,7 @@ def parse_dd20_excelsheets_to_dataframe(file_path: str,
     Returns
     -------
     pd.Dataframe
-        Dataframe containg selected data from DD20, where each row represents i AC-line.
+        Dataframe containg selected data from DD20, where each row represents an AC-line.
     """
     # Parsing data from DD20 to dataframe dictionary, with mapping from sheet to dataframe
     dd20_dataframe_dict = pd.read_excel(io=file_path,
