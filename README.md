@@ -79,19 +79,19 @@ docker volume create conductor-data-files
 
 3. Start the container in docker
 ````bash
-docker run -v conductor-data-files:/conductor-data-files -it --rm conductor-data-provider:latest
+docker run -v conductor-data-files:/input -it --rm conductor-data-provider:latest
 ````
 The container will now be running interactively and you will be able to see the log output. The container will need the input files availiable in the volume, since else it will crash.
-The file will have to be delivered to the volume somehow. This can be done by another container mapped to the same volume, or manually from another bash-client
-
-To use mock output datan, use the flag USE_MOCK_DATA:
-````bash
-docker run -v conductor-data-files:/conductor-data-files -e DEBUG=TRUE -it --rm forecast-parser:latest
-````
+The files have to be delivered to the volume somehow. This can be done by another container mapped to the same volume, or manually from another bash-client
 
 Manual file-move to the volume (please verify volume-path is correct before trying this):
 ````bash
 sudo cp conductor-data-provider/tests/valid-testdata/* /var/lib/docker/volumes/conductor-data-files/_data/
+````
+
+To use mock output data, use the flag USE_MOCK_DATA:
+````bash
+docker run -e USE_MOCK_DATA=TRUE -it --rm conductor-data-provider:latest
 ````
 
 ## Help

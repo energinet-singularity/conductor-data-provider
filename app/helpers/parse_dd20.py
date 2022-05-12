@@ -737,11 +737,11 @@ def DD20_to_acline_properties_mapper(
         Regex expression does the following:
         (?P<STN1>\\w{3,4}?) makes a group 'STN1' and input a word between 3-4 chars
         (?P<STN2>\\w{3,4}?) makes a group 'STN2' and input should be a word between 3-4 chars
-        (?P<id>\\d)? makes a group 'id' and if there is a digit it the end of the name it stores it
+        (?P<id>\\w)? makes a group 'id' and if there is a digit it the end of the name it stores it
         """
         acline_name_to_translated_name = {}
         none_translated_acline_name = []
-        REGEX = r"^(?P<STN1>\w{3,4}?)-(?P<STN2>\w{3,4}?)-?(?P<id>\d)?$"
+        REGEX = r"^(?P<STN1>\w{3,4}?)-(?P<STN2>\w{3,4}?)-?(?P<id>\w)?$"
 
         for acline_dd20name in station_acline_names:
             match = re.match(REGEX, acline_dd20name)
