@@ -26,21 +26,21 @@ The script is intended to be run as a container, so a Dockerfile is provided as 
 | Name | Default value | Description |
 |--|--|--|
 |DEBUG|(not set)|Set to 'TRUE' to enable very verbose debugging log|
-|USE_MOCK_DATA|(not set)|Set to 'TRUE' to enable creating mock forecast files|
 |DD20FILEPATH|/input/DD20.XLSM|Filepath for "DD20" excel-file|
 |DD20MAPPINGFILEPATH|/input/Limits_other.xlsx|Filepath for "DD20 name to SCADA AC-line name mapping" excel-file.|
 |MRIDMAPPINGFILEPATH|/input/seg_line_mrid_PROD.csv|Filepath for "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.|
 |PORT|5000|Port for exposing REST API|
 |DBNAME|CONDUCTOR_DATA|Name of database exposed via REST API|
+|USE_MOCK_DATA|(not set)|Set to 'TRUE' to enable creating mock forecast files|
 
 ### File handling / Input
 
 Every 60 seconds data from files are parsed, if files has changed since last parsed.
-The files must fit the agreed structure (examples can be found in the '/tests/valid-testdata/' subfolder), otherwise it will most likely break execution and not be able to recover.
+The files must fit the agreed structure (examples can be found in the '/tests/valid-testdata/' subfolder), otherwise it will break execution and not be able to recover.
 
 #### Using MOCK data
 
-The container has an option to generate mock-data. This is done by taking the test-data files and changing their timestamps and dumping them into the input directory. This can be used if real forecast files are not available. Be aware that all forecast data will be identical and thereby not dynamic/changing.
+The container has an option to generate mock-data. This is done by taking the test-data files and dumping them into the input directory. This can be used if real forecast files are not available. Be aware that all data will be identical and thereby not dynamic/changing. Only inted for illustration of functionality.
 
 ## Getting Started
 
@@ -58,7 +58,7 @@ The python script can probably run on any python 3.9+ version, but your best opt
 
 #### Docker
 
-Built and tested on version 20.10.7.
+Built and tested on version 20.10.14.
 
 #### HELM (only relevant if using HELM for deployment)
 
@@ -100,7 +100,7 @@ Please submit an issue or ask the authors.
 
 ## Version History
 
-* 0.0.?:
+* 1.0.0:
     * First production-ready version
     <!---* See [commit change]() or See [release history]()--->
 
