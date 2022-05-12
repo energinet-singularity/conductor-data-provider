@@ -24,3 +24,4 @@ EXPOSE 5000
 # Run the application
 CMD ["python3", "-u", "/app/main.py"]
 # docker build . -t conduck:latest --rm
+# docker run -e USE_MOCK_DATA=TRUE --rm conduck:latest

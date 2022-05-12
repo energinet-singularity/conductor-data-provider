@@ -18,7 +18,7 @@ from helpers.combine_data import create_aclinesegment_dataframe
 log = logging.getLogger(__name__)
 
 
-class ACLineSegmentProperties():
+class ACLineSegmentProperties:
     """
     Class for managing AC-line conductor properties.
 
@@ -43,20 +43,19 @@ class ACLineSegmentProperties():
 
     @dataclass
     class __Metadata:
-        """
-        TODO: doc it
-        Attributes
-        ----------
-        name : str
-            xxx
-        """
         name: str
         path: str
         func: callable
         dataframe: pd.DataFrame = None
         mtime: float = None
 
-    def __init__(self, dd20_filepath: str, dd20_mapping_filepath: str, mrid_mapping_filepath: str, refresh_data: bool = True):
+    def __init__(
+        self,
+        dd20_filepath: str,
+        dd20_mapping_filepath: str,
+        mrid_mapping_filepath: str,
+        refresh_data: bool = True,
+    ):
         """
         Create new ACLineSegmentProperties instance.
 
@@ -71,9 +70,19 @@ class ACLineSegmentProperties():
         refresh_data : bool, default: True
             If True data will automatically be loaded at instantiation
         """
-        self.__DD20 = self.__Metadata('DD20', dd20_filepath, parse_dd20_excelsheets_to_dataframe)
-        self.__DD20_MAP = self.__Metadata('DD20 name mapping', dd20_mapping_filepath, parse_acline_namemap_excelsheet_to_dataframe)
-        self.__MRID_MAP = self.__Metadata('MRID mapping', mrid_mapping_filepath, parse_aclineseg_scada_csvdata_to_dataframe)
+        self.__DD20 = self.__Metadata(
+            "DD20", dd20_filepath, parse_dd20_excelsheets_to_dataframe
+        )
+        self.__DD20_MAP = self.__Metadata(
+            "DD20 name mapping",
+            dd20_mapping_filepath,
+            parse_acline_namemap_excelsheet_to_dataframe,
+        )
+        self.__MRID_MAP = self.__Metadata(
+            "MRID mapping",
+            mrid_mapping_filepath,
+            parse_aclineseg_scada_csvdata_to_dataframe,
+        )
         self.dataframe = None
 
         if refresh_data:
@@ -120,13 +129,17 @@ class ACLineSegmentProperties():
         try:
             if data_change:
                 log.info("Files has changed, refreshing data for API.")
-                self.dataframe = create_aclinesegment_dataframe(dd20_data=self.__DD20.dataframe,
-                                                                dd20_to_scada_name_map=self.__DD20_MAP.dataframe,
-                                                                scada_aclinesegment_map=self.__MRID_MAP.dataframe)
+                self.dataframe = create_aclinesegment_dataframe(
+                    dd20_data=self.__DD20.dataframe,
+                    dd20_to_scada_name_map=self.__DD20_MAP.dataframe,
+                    scada_aclinesegment_map=self.__MRID_MAP.dataframe,
+                )
             else:
                 log.info("Files has not changed, refresh of data for API not needed.")
         except Exception as e:
-            log.exception(f"Creating dataframe with AC-linesegment properties failed with message: '{e}'")
+            log.exception(
+                f"Creating dataframe with AC-linesegment properties failed with message: '{e}'"
+            )
             raise e
 
         return self.dataframe
@@ -134,74 +147,88 @@ class ACLineSegmentProperties():
 
 if __name__ == "__main__":
 
-    """
-    TODO: doc
-    """
-
     time_begin = time()
 
     # default values for filepaths
-    DD20_FILEPATH_DEFAULT = '/input/DD20.XLSM'
-    DD20_MAPPING_FILEPATH_DEFAULT = '/input/Limits_other.xlsx'
-    MRID_MAPPING_FILEPATH_DEFAULT = '/input/seg_line_mrid_PROD.csv'
-    # TEMP: test data
-    DD20_FILEPATH_DEFAULT = f'{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/DD20.XLSM'
-    DD20_MAPPING_FILEPATH_DEFAULT = f'{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/Limits_other.xlsx'
-    MRID_MAPPING_FILEPATH_DEFAULT = f'{os.path.dirname(os.path.realpath(__file__))}/../tests/valid-testdata/seg_line_mrid_PROD.csv'
+    DD20_FILEPATH_DEFAULT = "/input/DD20.XLSM"
+    DD20_MAPPING_FILEPATH_DEFAULT = "/input/Limits_other.xlsx"
+    MRID_MAPPING_FILEPATH_DEFAULT = "/input/seg_line_mrid_PROD.csv"
 
     # refresh rate for checking if new data is avalialbe from files
     REFRESH_RATE_API_INPUT = 60
 
     # Set up logging
-    if os.environ.get('DEBUG', 'FALSE').upper() == 'FALSE':
+    if os.environ.get("DEBUG", "FALSE").upper() == "FALSE":
         # __main__ will output INFO-level, everything else stays at WARNING
         logging.basicConfig(format="%(levelname)s:%(asctime)s:%(name)s - %(message)s")
         logging.getLogger(__name__).setLevel(logging.INFO)
-    elif os.environ['DEBUG'].upper() == 'TRUE':
+    elif os.environ["DEBUG"].upper() == "TRUE":
         # Set EVERYTHING to DEBUG level
-        logging.basicConfig(format="%(levelname)s:%(asctime)s:%(name)s - %(message)s", level=logging.DEBUG)
-        log.debug('Setting all logs to debug-level')
+        logging.basicConfig(
+            format="%(levelname)s:%(asctime)s:%(name)s - %(message)s",
+            level=logging.DEBUG,
+        )
+        log.debug("Setting all logs to debug-level")
     else:
-        raise ValueError(f"'DEBUG' env. variable is '{os.environ['DEBUG']}', but must be either 'TRUE', 'FALSE' or unset.")
+        raise ValueError(
+            f"'DEBUG' env. variable is '{os.environ['DEBUG']}', but must be either 'TRUE', 'FALSE' or unset."
+        )
 
     log.info("Loading environment variables.")
 
     # Load file paths from env vars - or use defaults
     try:
         dd20_filepath = os.environ.get("DD20FILEPATH", DD20_FILEPATH_DEFAULT)
-        dd20_mapping_filepath = os.environ.get("DD20MAPPINGFILEPATH", DD20_MAPPING_FILEPATH_DEFAULT)
-        mrid_mapping_filepath = os.environ.get("MRIDMAPPINGFILEPATH", MRID_MAPPING_FILEPATH_DEFAULT)
+        dd20_mapping_filepath = os.environ.get(
+            "DD20MAPPINGFILEPATH", DD20_MAPPING_FILEPATH_DEFAULT
+        )
+        mrid_mapping_filepath = os.environ.get(
+            "MRIDMAPPINGFILEPATH", MRID_MAPPING_FILEPATH_DEFAULT
+        )
     except Exception:
         raise ValueError(f"Error while loading one or more file paths.")
 
-    # Set up mocking of data
-    if os.environ.get('USE_MOCK_DATA', 'FALSE').upper() == 'FALSE':
+    # Set up mocking of data by using test files for input, if mock flag is set true
+    if os.environ.get("USE_MOCK_DATA", "FALSE").upper() == "FALSE":
         pass
-    elif os.environ['USE_MOCK_DATA'].upper() == 'TRUE':
+    elif os.environ["USE_MOCK_DATA"].upper() == "TRUE":
         # Mock-data will overrule file paths
         # TODO: will only work in container, is it ok?
-        dd20_filepath = '/test-data/DD20.XLSM'
-        dd20_mapping_filepath = '/test-data/Limits_other.xlsx'
-        mrid_mapping_filepath = '/test-data/seg_line_mrid_PROD.csv'
+        dd20_filepath = "/test-data/DD20.XLSM"
+        dd20_mapping_filepath = "/test-data/Limits_other.xlsx"
+        mrid_mapping_filepath = "/test-data/seg_line_mrid_PROD.csv"
     else:
-        raise ValueError(f"'USE_MOCK_DATA' env. variable is '{os.environ['USE_MOCK_DATA']}',"
-                         " but must be either 'TRUE', 'FALSE' or unset.")
+        raise ValueError(
+            f"'USE_MOCK_DATA' env. variable is '{os.environ['USE_MOCK_DATA']}',"
+            " but must be either 'TRUE', 'FALSE' or unset."
+        )
 
     # Load environment variables for API
     try:
-        api_port = int(os.environ.get('PORT', '5000'))
-        api_dbname = os.environ.get('DBNAME', 'CONDUCTOR_DATA').upper()
+        api_port = int(os.environ.get("PORT", "5000"))
+        api_dbname = os.environ.get("DBNAME", "CONDUCTOR_DATA").upper()
     except Exception:
         raise ValueError(f"Invalid API config (PORT and/or DBNAME)")
 
     log.info("Collecting conductor data and exposing via API.")
 
-    conductor_data = ACLineSegmentProperties(dd20_filepath=dd20_filepath, dd20_mapping_filepath=dd20_mapping_filepath,
-                                             mrid_mapping_filepath=mrid_mapping_filepath)
-    conductor_api = singuapi.DataFrameAPI(conductor_data.dataframe, dbname=api_dbname, port=api_port)
-    log.info(f"API initialized on port '{conductor_api.web.port}' with dbname '{api_dbname}'.")
+    # collect data
+    conductor_data = ACLineSegmentProperties(
+        dd20_filepath=dd20_filepath,
+        dd20_mapping_filepath=dd20_mapping_filepath,
+        mrid_mapping_filepath=mrid_mapping_filepath,
+    )
+
+    # expose data via API
+    conductor_api = singuapi.DataFrameAPI(
+        conductor_data.dataframe, dbname=api_dbname, port=api_port
+    )
+    log.info(
+        f"API initialized on port '{conductor_api.web.port}' with dbname '{api_dbname}'."
+    )
     log.info(f"Started up in {round(time()-time_begin,3)} seconds")
 
+    # refresh data, if files change
     while True:
         sleep(REFRESH_RATE_API_INPUT)
         conductor_api[api_dbname] = conductor_data.refresh_data()
