@@ -2,7 +2,7 @@
 
 A container that parses AC-line conductor properties from various datasoruces and expose it via a REST API.
 The datasources are costum in-house Energinet specific files, examples of them can be found under:
-https://github.com/energinet-singularity/conduck/tree/feature/dd20_format_change/tests/valid-testdata
+https://github.com/energinet-singularity/conductor-data-provider/tree/main/tests/valid-testdata
 
 The purpose is to link AC-line conductor properties from a datasource named DD20, to AC-line conductor database records in a SCADA (supervisory control and data acquisition) system.
 The linked information is exposed via a REST API, because it is used by a Dynamic Line Rating application running at Energinet.
@@ -28,23 +28,19 @@ The script is intended to be run as a container, so a Dockerfile is provided as 
 |DEBUG|(not set)|Set to 'TRUE' to enable very verbose debugging log|
 |USE_MOCK_DATA|(not set)|Set to 'TRUE' to enable creating mock forecast files|
 |DD20FILEPATH|/input/DD20.XLSM|Filepath for "DD20" excel-file|
-|DD20MAPPINGFILEPATH|/input/Limits_other.xlsx|"DD20 name to SCADA AC-line name mapping" excel-file.|
-|MRIDMAPPINGFILEPATH|/input/seg_line_mrid_PROD.csv|"AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.|
+|DD20MAPPINGFILEPATH|/input/Limits_other.xlsx|Filepath for "DD20 name to SCADA AC-line name mapping" excel-file.|
+|MRIDMAPPINGFILEPATH|/input/seg_line_mrid_PROD.csv|Filepath for "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.|
 |PORT|5000|Port for exposing REST API|
 |DBNAME|CONDUCTOR_DATA|Name of database exposed via REST API|
 
 ### File handling / Input
 
-Every 60 seconds the files are 
-
-
-s. Files that fit the name-filter will be parsed one by one and then deleted (other files will be ignored). The files must fit the agreed structure (examples can be found in the '/tests/valid-testdata/' subfolder) and naming, otherwise it will most likely break execution and not be able to recover (an issue has been rasied for this).
+Every 60 seconds data from files are parsed, if files has changed since last parsed.
+The files must fit the agreed structure (examples can be found in the '/tests/valid-testdata/' subfolder), otherwise it will most likely break execution and not be able to recover.
 
 #### Using MOCK data
 
 The container has an option to generate mock-data. This is done by taking the test-data files and changing their timestamps and dumping them into the input directory. This can be used if real forecast files are not available. Be aware that all forecast data will be identical and thereby not dynamic/changing.
-
-
 
 ## Getting Started
 
@@ -54,7 +50,7 @@ Feel free to either import the python-file as a lib or run it directly - or use 
 
 ### Dependencies
 
-To run the script a kafka broker must be available (use the 'KAFKA_HOST' environment variable). Furthermore a kSQL server should be available (use the 'KSQL_HOST' environment variable) - if unavaliable, the application will still run but error-messages will be logged periodically.
+Files must be supplied at the location specified via environment variables, if not using MOCK data.
 
 #### Python (if not run as part of the container)
 
@@ -72,40 +68,39 @@ Built and tested on version 3.7.0.
 
 1. Clone the repo to a suitable place
 ````bash
-git clone https://github.com/energinet-singularity/forecast-parser.git
+git clone https://github.com/energinet-singularity/conductor-data-provider.git
 ````
 
 2. Build the container and create a volume
 ````bash
-docker build forecast-parser/ -t forecast-parser:latest
-docker volume create forecast-files
+docker build conductor-data-provider/ -t conductor-data-provider:latest
+docker volume create conductor-data-files
 ````
 
-3. Start the container in docker (change hosts to fit your environment - KSQL_HOST is not required as stated above)
+3. Start the container in docker
 ````bash
-docker run -v forecast-files:/forecast-files -e KAFKA_HOST=127.0.0.1:9092 -e KSQL_HOST=127.0.0.1:8088 -it --rm forecast-parser:latest
+docker run -v conductor-data-files:/conductor-data-files -it --rm conductor-data-provider:latest
 ````
-The container will now be running interactively and you will be able to see the log output. To parse a forecast, it will have to be delivered to the volume somehow. This can be done by another container mapped to the same volume, or manually from another bash-client
+The container will now be running interactively and you will be able to see the log output. The container will need the input files availiable in the volume, since else it will crash.
+The file will have to be delivered to the volume somehow. This can be done by another container mapped to the same volume, or manually from another bash-client
 
-To mock output data and show debugging information, use the two flags USE_MOCK_DATA and DEBUG:
+To use mock output datan, use the flag USE_MOCK_DATA:
 ````bash
-docker run -v forecast-files:/forecast-files -e DEBUG=TRUE -e USE_MOCK_DATA=TRUE -e KAFKA_HOST=127.0.0.1:9092 -e KSQL_HOST=127.0.0.1:8088 -it --rm forecast-parser:latest
+docker run -v conductor-data-files:/conductor-data-files -e DEBUG=TRUE -it --rm forecast-parser:latest
 ````
 
 Manual file-move to the volume (please verify volume-path is correct before trying this):
 ````bash
-sudo cp forecast-parser/tests/valid-testdata/EnetEcm_2010010100.txt /var/lib/docker/volumes/forecast-files/_data/
+sudo cp conductor-data-provider/tests/valid-testdata/* /var/lib/docker/volumes/conductor-data-files/_data/
 ````
 
 ## Help
 
-* Be aware: There are at least two kafka-python-brokers available - make sure to use the correct one (see app/requirements.txt file).
-
-For anything else, please submit an issue or ask the authors.
+Please submit an issue or ask the authors.
 
 ## Version History
 
-* 1.1.3:
+* 0.0.?:
     * First production-ready version
     <!---* See [commit change]() or See [release history]()--->
 
