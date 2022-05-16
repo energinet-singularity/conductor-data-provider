@@ -98,7 +98,7 @@ def create_aclinesegment_dataframe(
                 f"Line(s) with name(s): '{lines_only_in_dd20_data}' exists in conductor data but not in SCADA data."
             )
 
-        # Log line names which are in SCADA, but not DD20 as warning
+        # Log line names which are in SCADA, but not DD20 as info
         lines_only_in_scada_data = sorted(
             [
                 acline_name
@@ -107,7 +107,7 @@ def create_aclinesegment_dataframe(
             ]
         )
         if lines_only_in_scada_data:
-            log.warning(
+            log.info(
                 f"Line(s) with name(s): '{lines_only_in_scada_data}' exists in SCADA data but not in conductor data."
             )
 
