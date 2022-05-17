@@ -1,7 +1,7 @@
 apiVersion: v2
-name: noname-script
+name: conductor-data-provider
 description: A freshly created template-script
-version: 0.0.5
+version: 0.0.6
 
 dependencies:
   - name: file-mover

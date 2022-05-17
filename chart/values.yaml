@@ -4,9 +4,9 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/energinet-singularity/conduck/energinet-singularity/conduck
+  repository: ghcr.io/energinet-singularity/conductor-data-provider
   pullPolicy: IfNotPresent
-  tag: "0.0.5"
+  tag: "0.0.6"
 
 # Setup PVC
 conductorInputVolume: 
