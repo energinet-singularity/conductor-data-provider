@@ -6,10 +6,10 @@ from app.helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_datafram
 
 def test_parse_aclineseg_scada_csvdata_to_dataframe():
     """
-    Verifies that CSV-file with aclineseg mapping is parsed correctly
+    Verifies that CSV-file with ACLineSegment mapping is parsed correctly
     """
     # arrange expected dataframe
-    expected_lineseg_to_mrid_dict = {
+    expected_aclinesegment_to_mrid_dict = {
         "ACLINESEGMENT_MRID": [
             "66b4596e-asfv-tyuy-5478-bd208f26a446",
             "66b4596e-asfv-tyuy-5478-bd208f26a447",
@@ -30,20 +30,20 @@ def test_parse_aclineseg_scada_csvdata_to_dataframe():
         ],
         "DLR_ENABLED": [True, True, False, False, True, True, True],
     }
-    expected_lineseg_to_mrid_dataframe = pd.DataFrame.from_dict(
-        expected_lineseg_to_mrid_dict
+    expected_aclinesegment_to_mrid_dataframe = pd.DataFrame.from_dict(
+        expected_aclinesegment_to_mrid_dict
     )
 
     # Creating resulting dataframe from valid testfile
     mrid_mapping_filepath = f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/seg_line_mrid_PROD.csv"
-    resulting_lineseg_to_mrid_dataframe = parse_aclineseg_scada_csvdata_to_dataframe(
+    resulting_aclinesegment_to_mrid_dataframe = parse_aclineseg_scada_csvdata_to_dataframe(
         file_path=mrid_mapping_filepath
     )
 
     # assert
     assert (
         pd.testing.assert_frame_equal(
-            expected_lineseg_to_mrid_dataframe, resulting_lineseg_to_mrid_dataframe
+            expected_aclinesegment_to_mrid_dataframe, resulting_aclinesegment_to_mrid_dataframe
         )
         is None
     )

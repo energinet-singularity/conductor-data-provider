@@ -3,6 +3,7 @@ import os
 import logging
 from time import sleep, time
 from dataclasses import dataclass
+from typing import Union
 
 # Modules
 from singupy import api as singuapi
@@ -54,7 +55,8 @@ class ACLineSegmentProperties:
         dd20_filepath: str,
         dd20_mapping_filepath: str,
         mrid_mapping_filepath: str,
-        refresh_data: bool = True):
+        refresh_data: bool = True,
+    ):
         """
         Create new ACLineSegmentProperties instance.
 
@@ -145,13 +147,13 @@ class ACLineSegmentProperties:
         return self.dataframe
 
 
-def setup_logging(debug: union[str, bool] = False):
+def setup_logging(debug: Union[str, bool] = False):
     """Function which sets up properties for logging."""
-    if debug == "FALSE" or debug == False:
+    if debug == "FALSE" or debug is False:
         # __main__ will output INFO-level, everything else stays at WARNING
         logging.basicConfig(format="%(levelname)s:%(asctime)s:%(name)s - %(message)s")
         logging.getLogger(__name__).setLevel(logging.INFO)
-    elif debug == "TRUE" or debug == True:
+    elif debug == "TRUE" or debug is True:
         # Set EVERYTHING to DEBUG level
         logging.basicConfig(
             format="%(levelname)s:%(asctime)s:%(name)s - %(message)s",
@@ -159,7 +161,9 @@ def setup_logging(debug: union[str, bool] = False):
         )
         log.debug("Setting all logs to debug-level")
     else:
-        raise ValueError(f"'Debug is set to '{debug}', but must be either 'TRUE' or 'FALSE'.")
+        raise ValueError(
+            f"'Debug is set to '{debug}', but must be either 'TRUE' or 'FALSE'."
+        )
 
 
 if __name__ == "__main__":

@@ -58,7 +58,7 @@ def parse_aclineseg_scada_csvdata_to_dataframe(
         aclineseg_scada_dataframe = aclineseg_scada_dataframe.astype({dlr_enabled_col_nm: bool})
 
         # verify that expected columns are present
-        dataframe_columns(
+        verify_df_columns(
             dataframe=aclineseg_scada_dataframe,
             expected_columns=[
                 aclinesegment_mrid_col_nm,
