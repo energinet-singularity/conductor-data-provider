@@ -74,7 +74,7 @@ def test_create_aclinesegment_dataframe():
         expected_aclinesegment_dataframe_dict
     )
 
-    # act by creating needed dataframes and parsing them to function
+    # Creating needed dataframes and parsing them to function
     dd20_file_path = (
         f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM"
     )

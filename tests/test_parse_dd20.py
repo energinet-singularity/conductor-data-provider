@@ -177,7 +177,7 @@ def test_DD20StationDataframeParser(dd20_data):
     # arrange dd20 dataframe needed for tests
     df_stationdata = dd20_data[DD20_SHEETNAME_STATIONSDATA]
 
-    # act by parsing dataframe
+    # Parsing dataframe
     data_parse_result = DD20StationDataframeParser(df_station=df_stationdata)
 
     # Test dataframe has expected amount of datarows
@@ -227,7 +227,7 @@ def test_DD20LineDataframeParser(dd20_data):
     # arrange dd20 dataframe needed for tests
     df_linedata = dd20_data[DD20_SHEETNAME_LINJEDATA]
 
-    # act by parsing dataframe
+    # Parsing dataframe
     data_parse_result = DD20LineDataframeParser(df_line=df_linedata)
 
     # Test dataframe has expected amount of datarows

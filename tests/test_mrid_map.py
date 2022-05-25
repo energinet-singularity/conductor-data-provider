@@ -34,7 +34,7 @@ def test_parse_aclineseg_scada_csvdata_to_dataframe():
         expected_lineseg_to_mrid_dict
     )
 
-    # act by creating resulting dataframe from valid testfile
+    # Creating resulting dataframe from valid testfile
     mrid_mapping_filepath = f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/seg_line_mrid_PROD.csv"
     resulting_lineseg_to_mrid_dataframe = parse_aclineseg_scada_csvdata_to_dataframe(
         file_path=mrid_mapping_filepath

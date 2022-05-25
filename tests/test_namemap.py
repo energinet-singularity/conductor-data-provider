@@ -19,7 +19,7 @@ def test_parse_acline_namemap_excelsheet_to_dataframe():
         expected_acline_namemap_dict
     )
 
-    # act by creating resulting dataframe from valid testfile
+    # Creating resulting dataframe from valid testfile
     name_mapping_filepath = f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/Limits_other.xlsx"
     resulting_acline_namemap_dataframe = parse_acline_namemap_excelsheet_to_dataframe(
         file_path=name_mapping_filepath
