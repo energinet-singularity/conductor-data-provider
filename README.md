@@ -34,7 +34,7 @@ The script is intended to be run as a container, so a Dockerfile is provided as 
 
 ### File handling / Input
 
-Every 60 seconds data from files are parsed, if files has changed since last parsed.
+Every 60 seconds data from files are parsed, if files has changed since last read.
 The files must fit the agreed structure (examples can be found in the '/tests/valid-testdata/' subfolder), otherwise it will break execution and not be able to recover.
 
 #### Using MOCK data
