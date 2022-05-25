@@ -54,8 +54,7 @@ class ACLineSegmentProperties:
         dd20_filepath: str,
         dd20_mapping_filepath: str,
         mrid_mapping_filepath: str,
-        refresh_data: bool = True,
-    ):
+        refresh_data: bool = True):
         """
         Create new ACLineSegmentProperties instance.
 
@@ -112,7 +111,7 @@ class ACLineSegmentProperties:
         log.info("Checking if files has updated and data refreh is needed.")
         data_change = False
 
-        # checking if files has updated, and calling functions to reload data if needed
+        # Checking for updates to the files, and calling functions to reload data as needed
         for input in [self.__DD20, self.__DD20_MAP, self.__MRID_MAP]:
             try:
                 file_update_time = os.path.getmtime(input.path)
@@ -129,14 +128,14 @@ class ACLineSegmentProperties:
         # Combine data into common dataframe
         try:
             if data_change:
-                log.info("Files has changed, refreshing data for API.")
+                log.info("One or more files have changed, refreshing data for API.")
                 self.dataframe = create_aclinesegment_dataframe(
                     dd20_data=self.__DD20.dataframe,
                     dd20_to_scada_name_map=self.__DD20_MAP.dataframe,
                     scada_aclinesegment_map=self.__MRID_MAP.dataframe,
                 )
             else:
-                log.info("Files has not changed, refresh of data for API not needed.")
+                log.info("Files haven't changed, refresh of data for API not needed.")
         except Exception as e:
             log.exception(
                 f"Creating dataframe with AC-linesegment properties failed with message: '{e}'"
@@ -146,13 +145,13 @@ class ACLineSegmentProperties:
         return self.dataframe
 
 
-def setup_logging():
-    """Fucntion which sets up properties for logging."""
-    if os.environ.get("DEBUG", "FALSE").upper() == "FALSE":
+def setup_logging(debug: union[str, bool] = False):
+    """Function which sets up properties for logging."""
+    if debug == "FALSE" or debug == False:
         # __main__ will output INFO-level, everything else stays at WARNING
         logging.basicConfig(format="%(levelname)s:%(asctime)s:%(name)s - %(message)s")
         logging.getLogger(__name__).setLevel(logging.INFO)
-    elif os.environ["DEBUG"].upper() == "TRUE":
+    elif debug == "TRUE" or debug == True:
         # Set EVERYTHING to DEBUG level
         logging.basicConfig(
             format="%(levelname)s:%(asctime)s:%(name)s - %(message)s",
@@ -160,24 +159,22 @@ def setup_logging():
         )
         log.debug("Setting all logs to debug-level")
     else:
-        raise ValueError(
-            f"'DEBUG' env. variable is '{os.environ['DEBUG']}', but must be either 'TRUE', 'FALSE' or unset."
-        )
+        raise ValueError(f"'Debug is set to '{debug}', but must be either 'TRUE' or 'FALSE'.")
 
 
 if __name__ == "__main__":
 
     time_begin = time()
-    setup_logging()
+    setup_logging(os.environ.get("DEBUG", "FALSE").upper())
 
     log.info("Starting conductor data provider API.")
 
-    # default values for filepaths
+    # Default values for file paths
     DD20_FILEPATH_DEFAULT = "/input/DD20.XLSM"
     DD20_MAPPING_FILEPATH_DEFAULT = "/input/Limits_other.xlsx"
     MRID_MAPPING_FILEPATH_DEFAULT = "/input/seg_line_mrid_PROD.csv"
 
-    # refresh rate for checking if new data is avalialbe from files
+    # Refresh rate for checking if new data is available from files
     REFRESH_RATE_API_INPUT = 60
 
     # Load file paths from env vars - or use defaults
@@ -216,14 +213,14 @@ if __name__ == "__main__":
 
     log.info("Collecting conductor data and exposing it via API.")
 
-    # collect data
+    # Collect data
     conductor_data = ACLineSegmentProperties(
         dd20_filepath=dd20_filepath,
         dd20_mapping_filepath=dd20_mapping_filepath,
         mrid_mapping_filepath=mrid_mapping_filepath,
     )
 
-    # expose data via API
+    # Expose data via API
     conductor_api = singuapi.DataFrameAPI(
         conductor_data.dataframe, dbname=api_dbname, port=api_port
     )
@@ -232,7 +229,7 @@ if __name__ == "__main__":
     )
     log.info(f"Started up in {round(time()-time_begin,3)} seconds")
 
-    # refresh data, if files change
+    # Loop eternally and refresh data if files change
     while True:
         sleep(REFRESH_RATE_API_INPUT)
         conductor_api[api_dbname] = conductor_data.refresh_data()
