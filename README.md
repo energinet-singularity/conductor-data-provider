@@ -13,7 +13,7 @@ Contains various conductor properties for AC-lines.
 - "DD20 name to SCADA AC-line name mapping" excel-file.
 Contains mapping from DD20 AC-line name to AC-line name used in SCADA system. This is necessary since some AC-line names differ between SCADA and DD20.
 - "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.
-Contains mapping from AC-line name used in SCADA system to AC-linesegment MRID in SCADA system are parsed to a dataframe.
+Contains mapping from AC-line name used in SCADA system to AC-linesegment MRID in SCADA system.
 The AC-linesegment MRID is a unique identifier, which all conductor data must be linked to.
 
 The shared id used to link the datasoruces are the name of the AC-line.
