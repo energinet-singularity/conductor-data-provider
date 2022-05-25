@@ -39,7 +39,7 @@ The files must fit the agreed structure (examples can be found in the '/tests/va
 
 #### Using MOCK data
 
-The container has an option to generate mock-data. This is done by taking the test-data files and dumping them into the input directory. This can be used if real forecast files are not available. Be aware that all data will be identical and thereby not dynamic/changing. Only inted for illustration of functionality.
+The container has an option to generate mock-data. This is done by taking the test-data files and dumping them into the input directory. This can be used if real forecast files are not available. Be aware that all data will be identical and thereby not dynamic/changing. Only intended for illustration of functionality.
 
 ## Getting Started
 
