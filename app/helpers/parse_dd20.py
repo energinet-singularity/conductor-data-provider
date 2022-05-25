@@ -73,25 +73,25 @@ class ACLineProperties:
 class DD20StationDataframeParser:
     """
     Class for parsing "station data" from DD20.
-    The dataframe containing "station data" must be parsed as parameter "df_station" upon instantiation.
+    The dataframe containing "station data" must be passed as parameter "df_station" upon instantiation.
 
-    After instantiaton a list af AC-line name are availiable as attribute.
-    Dictionarys with mapping from each AC-line name to miscellaneous properties can be fetched via methods.
+    After instantiation a list af AC-line names are available as attribute.
+    Dictionaries containing properties for the AC-lines can be fetched via methods.
 
     The "station data" is the data presented in sheet "Stationsdata" of DD20 excel file.
     DD20 is a non-standard format containing data for high voltage AC transmission lines.
-    Each AC-line is represented by a name alongside with limits for transmission capacity and other parameters.
+    Each AC-line is represented by a name alongside limits for transmission capacity and other parameters.
     A mock example of it can be found in 'tests/valid-testdata/DD20.XLSM'.
 
     Attributes
     ----------
     acline_name_list : list
-        Sorted list of unique names for AC-lines present in dataframe.
+        Sorted list of unique names for AC-lines present in the dataframe.
 
     Methods:
     ----------
     get_conductor_kv_level_dict()
-        Returns dictionary with mapping from AC-line name to voltagelevel in kV.
+        Returns a dictionary with mapping from AC-line name to voltage level in kV.
     get_conductor_count_dict()
         Returns dictionary with mapping from AC-line name to amount of conductors.
     system_count_dict()
@@ -258,7 +258,7 @@ class DD20StationDataframeParser:
             """
             1. Filter dataframe to only contain AC-lines which have a parallel representation by:
             - Removing rows with no AC-line name
-            - Excluding rows withpot a hyphen in AC-line name, as all AC-line names has one.
+            - Excluding rows without a hyphen in AC-line name, as all valid AC-line names has one.
             - Excluding rows without "(N)" in the name, as lines which are not parallel does not contain it.
             """
             df_parallel_lines = self.__df_station_source[
@@ -268,8 +268,8 @@ class DD20StationDataframeParser:
             ][self.__acline_name_col_nm]
 
             """
-            2. Create list og parallel AC-line names where "(N)" is removed:
-            - The "(N)" string are in DD20 to identify them as parallel. Actual name of the AC-Line does not have "(N)" in it.
+            2. Create list of parallel AC-line names where "(N)" is removed:
+            - The "(N)" in DD20 identifies a line as parallel. Actual name of the AC-Line does not have "(N)" in it.
             - I.e. a parallel line is represented by 2 single parts with names
             "GGH-VVV" and one with "GGH-VVV (N)" for the parallel combination.
             - Only the parallel representation is needed.
@@ -281,8 +281,8 @@ class DD20StationDataframeParser:
             """
             3. Return filtered frame by:
             - Removing rows with no AC-line name
-            - Excluding rows withpot a hyphen in AC-line name, as all AC-line names has one.
-            - Excluding single part representation of AC-lines where a paralle part is present
+            - Excluding rows without a hyphen in AC-line name, as all valid AC-line names have one.
+            - Excluding single part representation of AC-lines where a parallel part is present
             """
             df_station_filtered = self.__df_station_source[
                 (self.__df_station_source[self.__acline_name_col_nm].notna())
@@ -312,7 +312,7 @@ class DD20StationDataframeParser:
 
     def __get_acline_name_list(self):
         """
-        Create sorted list of unique AC-line names which exist in dataframe.
+        Create sorted list of unique AC-line names which exist in the included dataframe.
 
         Returns
         -------
@@ -335,11 +335,9 @@ class DD20StationDataframeParser:
             ]
 
             # Return sorted list of unique DD20 names
-            acline_names = sorted(
+            return sorted(
                 list(set(df_filtered[self.__acline_name_col_nm].values.tolist()))
             )
-
-            return acline_names
         except Exception as e:
             log.exception(
                 f"Getting list of line names present in DD20 station sheet failed with message: '{e}'."
@@ -363,7 +361,7 @@ class DD20StationDataframeParser:
         try:
             """
             For each AC line in DD20:
-            - filter dataframe to only rows which has the AC-lin ename
+            - filter dataframe so it only contains rows which have the AC-line name
             - pick only value for column
             """
             dict = {
@@ -384,7 +382,7 @@ class DD20StationDataframeParser:
 class DD20LineDataframeParser:
     """
     Class for parsing "line data" from DD20.
-    The dataframe containing "line data" must be parsed as parameter "df_line" upon instantiation.
+    The dataframe containing "line data" must be passed as parameter "df_line" upon instantiation.
 
     After instantiaton a list af AC-line name are availiable as attribute.
     Dictionarys with mapping from each AC-line name to miscellaneous properties can be fetched via methods.
@@ -683,7 +681,7 @@ def DD20_to_acline_properties_mapper(
     Returns
     -------
     acline_objects : list
-        List of objects containing combined data from stataion and line.
+        List of objects containing combined data from station and line.
         One object will exist per AC-line.
     """
     try:
@@ -691,7 +689,7 @@ def DD20_to_acline_properties_mapper(
         station_acline_names = data_station.acline_name_list
         line_acline_names = data_line.acline_name_list
 
-        # Verfify that the same names are present in both station and line data, since else DD20 format has an error.
+        # Verify that the same names are present in both station and line data, since else DD20 format has an error.
         names_in_station_but_not_line = list(
             set(station_acline_names).difference(line_acline_names)
         )
@@ -710,7 +708,7 @@ def DD20_to_acline_properties_mapper(
                 + "but not station sheet of DD20: {names_in_line_but_not_station}."
             )
 
-        # Init AC-Line properties mapping dictionarys via methods on objects
+        # Initialize AC-Line properties mapping dictionaries via methods on objects
         acline_name_to_conductor_count = data_station.get_conductor_count_dict()
         acline_name_to_system_count = data_station.get_system_count_dict()
         acline_name_to_conductor_type = data_station.get_conductor_type_dict()
