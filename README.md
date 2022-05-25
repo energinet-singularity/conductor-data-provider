@@ -92,7 +92,10 @@ To use mock output data, use the flag USE_MOCK_DATA:
 ````bash
 docker run -e USE_MOCK_DATA=TRUE -it --rm conductor-data-provider:latest
 ````
-
+####SQL command
+When the container is running in your local environment you can use the following bash command to query data from it. The example below assumes you are using Mock data with default settings, please change "localhost" with the IP that your API is running on.
+````bash
+curl -d '{"sql-query": "SELECT * FROM CONDUCTOR_DATA;"}' -H 'Content-Type: application/json' -X POST http://localhost:5000/
 ## Help
 
 Please submit an issue or ask the authors.
