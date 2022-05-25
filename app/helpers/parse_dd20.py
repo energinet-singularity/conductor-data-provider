@@ -5,7 +5,7 @@ from dataclasses import dataclass
 # Modules
 import re
 import pandas as pd
-from singupy.conversion import kv_to_letter
+from singupy.conversion import kv_to_letter as convert_kv_to_letter
 
 # Initialize log
 log = logging.getLogger(__name__)
