@@ -49,7 +49,7 @@ def parse_aclineseg_scada_csvdata_to_dataframe(
             aclineseg_scada_dataframe.head(1).index, inplace=True
         )
 
-        # restting index to start from 0
+        # Resetting index to start from 0
         aclineseg_scada_dataframe.reset_index(drop=True, inplace=True)
 
         # Replace yes/no with True/False and set datatype to boolean
@@ -68,7 +68,7 @@ def parse_aclineseg_scada_csvdata_to_dataframe(
             allow_extra_columns=True,
         )
 
-        log.info(f'AC-linsegment csv-data from "{file_path}" was parsed to dataframe.')
+        log.info(f'ACLineSegment csv-data from "{file_path}" was parsed to dataframe.')
         log.debug(
             f"Data from csv-file {file_path} is: {aclineseg_scada_dataframe.to_string()}"
         )
@@ -77,6 +77,6 @@ def parse_aclineseg_scada_csvdata_to_dataframe(
 
     except Exception as e:
         log.exception(
-            f'Parsing AC-linsegment csv-data from: "{file_path}" failed with message: {e}.'
+            f'Parsing ACLineSegment csv-data from: "{file_path}" failed with message: {e}.'
         )
         raise e
