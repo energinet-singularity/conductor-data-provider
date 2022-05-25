@@ -94,7 +94,7 @@ class DD20StationDataframeParser:
         Returns a dictionary with mapping from AC-line name to voltage level in kV.
     get_conductor_count_dict()
         Returns dictionary with mapping from AC-line name to amount of conductors.
-    system_count_dict()
+    get_system_count_dict()
         Returns dictionary with mapping from AC-line name to amount of parallel systems.
     get_conductor_type_dict()
         Returns dictionary with mapping from AC-line name to conductor type.
@@ -172,7 +172,7 @@ class DD20StationDataframeParser:
         # Get unique list of acline names present in dataframe
         self.acline_name_list = self.__get_acline_name_list()
 
-    def get_conductor_kv_level_dict(self) -> dict:
+    def get_conductor_kv_level_dict(self) -> dict[str, str]:
         """
         Returns dictionary with mapping from AC-line name to voltagelevel in kV.
         """
@@ -244,7 +244,7 @@ class DD20StationDataframeParser:
             column_name=self.__cablelim_40h_col_nm
         )
 
-    def __prepare_df_station(self):
+    def __prepare_df_station(self) -> pd.DataFrame:
         """
         Cleans the dataframe of unneeded data.
         Result is a dataframe containing only one row of data for each AC-line.
@@ -259,7 +259,7 @@ class DD20StationDataframeParser:
             1. Filter dataframe to only contain AC-lines which have a parallel representation by:
             - Removing rows with no AC-line name
             - Excluding rows without a hyphen in AC-line name, as all valid AC-line names has one.
-            - Excluding rows without "(N)" in the name, as lines which are not parallel does not contain it.
+            - Excluding rows without "(N)" in the name, as parallel lines contain this.
             """
             df_parallel_lines = self.__df_station_source[
                 (self.__df_station_source[self.__acline_name_col_nm].notna())
@@ -310,7 +310,7 @@ class DD20StationDataframeParser:
             )
             raise e
 
-    def __get_acline_name_list(self):
+    def __get_acline_name_list(self) -> list(str):
         """
         Create sorted list of unique AC-line names which exist in the included dataframe.
 
@@ -344,7 +344,7 @@ class DD20StationDataframeParser:
             )
             raise e
 
-    def __create_acline_name_to_column_single_value_dict(self, column_name: str):
+    def __create_acline_name_to_column_single_value_dict(self, column_name: str) -> dict[str, union(str, float)]:
         """
         Returns dictionary with mapping from AC-line names in DD20 to corresponding value from column name.
 
@@ -355,7 +355,7 @@ class DD20StationDataframeParser:
 
         Returns
         -------
-        dict
+        dict[str, union(str, float)]
             Mapping from each AC-line name to value in choosen column.
         """
         try:
@@ -364,14 +364,13 @@ class DD20StationDataframeParser:
             - filter dataframe so it only contains rows which have the AC-line name
             - pick only value for column
             """
-            dict = {
+            return {
                 acline_dd20name: self.__df_station_clean[
                     self.__df_station_clean[self.__acline_name_col_nm]
                     == acline_dd20name
                 ][column_name].values[0]
                 for acline_dd20name in self.acline_name_list
             }
-            return dict
         except Exception as e:
             log.exception(
                 f"Getting data column: {column_name} in Station-data sheet failed with message: '{e}'."
@@ -723,7 +722,7 @@ def DD20_to_acline_properties_mapper(
         acline_name_to_complim_1h = data_line.get_complim_1h_dict()
         acline_name_to_complim_40h = data_line.get_complim_40h_dict()
 
-        # Init kv mapping dict (only use from station since we just checked on agrement on line names)
+        # Init kV mapping dict (name list verified identical, so okay to just use one of them)
         st_acline_name_to_conductor_kv_level = (
             data_station.get_conductor_kv_level_dict()
         )
@@ -738,7 +737,7 @@ def DD20_to_acline_properties_mapper(
         (?P<id>\\w)? makes a group 'id' and if there is a word in the end of the name it stores it
         """
         acline_name_to_translated_name = {}
-        none_translated_acline_name = []
+        untranslated_acline_names = []
         REGEX = r"^(?P<STN1>\w{3,4})-(?P<STN2>\w{3,4})-?(?P<id>\w)?$"
 
         for acline_dd20name in station_acline_names:
@@ -747,7 +746,7 @@ def DD20_to_acline_properties_mapper(
                 # Converting the extracted voltage to a letter
                 volt_letter = f"{kv_to_letter(st_acline_name_to_conductor_kv_level[acline_dd20name])}"
 
-                # Restructering name to match the syntax of the desired name
+                # Restructuring name to agreed upon standard
                 translated_ac_line_name = (
                     f"{volt_letter}_{match.group('STN1')}-{match.group('STN2')}"
                 )
@@ -761,7 +760,7 @@ def DD20_to_acline_properties_mapper(
             else:
                 none_translated_acline_name.append(acline_dd20name)
 
-        # Throw an error if there is any names not translated name, since it means there is a format error
+        # Throw an error if there are untranslated names, as it indicates a format error
         if none_translated_acline_name:
             raise ValueError(
                 f"The following AC-line names could not be translated due to unepxected format:{none_translated_acline_name}"
@@ -814,7 +813,7 @@ def parse_dd20_excelsheets_to_dataframe(
 ) -> pd.DataFrame:
     """
     Extract conductor data from DD20 excel-sheets and return it to one combined dataframe.
-    The source data is DD20, which has a non-standard format, why customized cleaning and extraction from it is needed.
+    The source data is DD20, which has a non-standard format so customized cleaning and extraction from it is needed.
 
     Parameters
     ----------
@@ -829,6 +828,7 @@ def parse_dd20_excelsheets_to_dataframe(
     sheetname_stationdata : str
         (optional) Name of excel sheet in DD20 containing station data.
         Default = "Stationsdata"
+
     Returns
     -------
     pd.Dataframe
@@ -841,13 +841,13 @@ def parse_dd20_excelsheets_to_dataframe(
         header=header_index,
     )
 
-    # Instation of objects for parsing data from station and line sheets of DD20
+    # Instantiation of objects for parsing data from station and line sheets of DD20
     data_station = DD20StationDataframeParser(
         df_station=dd20_dataframe_dict[sheetname_stationsdata]
     )
     data_line = DD20LineDataframeParser(df_line=dd20_dataframe_dict[sheetname_linedata])
 
-    # Combining station and line data into a list of objects, where each object is represents a AC-line
+    # Combining station and line data into a list of objects, where each object represents an AC-line
     acline_objects = DD20_to_acline_properties_mapper(
         data_station=data_station, data_line=data_line
     )
