@@ -1,8 +1,7 @@
 # Conductor data provider
 
-A container that parses AC-line conductor properties from various datasoruces and expose it via a REST API.
-The datasources are costum in-house Energinet specific files, examples of them can be found under:
-https://github.com/energinet-singularity/conductor-data-provider/tree/main/tests/valid-testdata
+A container that parses AC-line conductor properties from various data sources and exposes them via a REST API.
+The data sources are custom in-house Energinet specific files, examples of them can be found in the tests/valid-testdata subfolder of this repo.
 
 The purpose is to link AC-line conductor properties from a datasource named DD20, to AC-line conductor database records in a SCADA (supervisory control and data acquisition) system.
 The linked information is exposed via a REST API, because it is used by a Dynamic Line Rating application running at Energinet.
