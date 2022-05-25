@@ -85,43 +85,16 @@ def create_aclinesegment_dataframe(
         ].to_list()
 
         # Log line names which are in DD20, but not SCADA as warning
-        lines_only_in_dd20_data = sorted(
-            [
-                acline_name
-                for acline_name in lines_in_dd20_data
-                if acline_name not in lines_in_scada_data
-            ]
-        )
-        if lines_only_in_dd20_data:
-            log.warning(
-                f"Line(s) with name(s): '{lines_only_in_dd20_data}' exists in conductor data but not in SCADA data."
-            )
+        for line in [acline_name for acline_name in lines_in_dd20_data if acline_name not in lines_in_scada_data]:
+            log.warning(f"Line with name '{line}' was found in conductor data but not in SCADA data."
 
         # Log line names which are in SCADA, but not DD20 as info
-        lines_only_in_scada_data = sorted(
-            [
-                acline_name
-                for acline_name in lines_in_scada_data
-                if acline_name not in lines_in_dd20_data
-            ]
-        )
-        if lines_only_in_scada_data:
-            log.info(
-                f"Line(s) with name(s): '{lines_only_in_scada_data}' exists in SCADA data but not in conductor data."
-            )
+        for line in [acline_name for acline_name in lines_in_scada_data if acline_name not in lines_in_dd20_data]:
+            log.info(f"Line with name '{line}' exists in SCADA data but not in conductor data.")
 
         # Log lines for which DLR enabled flag is set but data is not availiable in DD20, as errors
-        lines_dlr_enabled_data_missing = sorted(
-            [
-                acline_name
-                for acline_name in lines_dlr_enabled
-                if acline_name not in lines_in_dd20_data
-            ]
-        )
-        if lines_dlr_enabled_data_missing:
-            log.error(
-                f"Line(s) with name(s): '{lines_dlr_enabled_data_missing}', are enabled for DLR but has no conductor data."
-            )
+        for line in [acline_name for acline_name in lines_dlr_enabled if acline_name not in lines_in_dd20_data]:
+            log.error(f"Line with name '{line}' is enabled for DLR but has no conductor data.")
 
         # Join two dataframes where AC-line name is the common key.
         dlr_dataframe = scada_aclinesegment_map.join(
