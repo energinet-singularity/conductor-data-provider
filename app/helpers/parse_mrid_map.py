@@ -2,7 +2,7 @@
 import logging
 
 # Modules
-from singupy.verification import dataframe_columns
+from singupy.verification import dataframe_columns as verify_df_columns
 import pandas as pd
 
 # Initialize log
@@ -18,8 +18,8 @@ def parse_aclineseg_scada_csvdata_to_dataframe(
     """
     Parse data from non-standard CSV-file format to dataframe.
 
-    An example of the file can be seen in test-data file:
-    "conduck/tests/valid-testdata/seg_line_mrid.csv"
+    An example of the file can be seen in the repo subfolder:
+    "/tests/valid-testdata/seg_line_mrid.csv"
 
     Parameters
     ----------
@@ -34,14 +34,14 @@ def parse_aclineseg_scada_csvdata_to_dataframe(
     dlr_enabled_col_nm : str
         (optional) Name of column which contains DLR enabled flag.
         Default = "DLR_ENABLED"
+
     Returns
     -------
     pd.Dataframe
         Dataframe containg data from CSV-file.
     """
-    # process data from csv file til dataframe
     try:
-        # read data from CSV to dataframe and drop row with index 1 as it contains only hyphnens
+        # Read data from CSV to dataframe and drop row with index 1 as it contains only hyphens
         aclineseg_scada_dataframe = pd.read_csv(
             file_path, delimiter=",", on_bad_lines="skip", encoding="cp1252"
         )
@@ -52,18 +52,10 @@ def parse_aclineseg_scada_csvdata_to_dataframe(
         # restting index to start from 0
         aclineseg_scada_dataframe.reset_index(drop=True, inplace=True)
 
-        # replace yes/no with true/false
-        aclineseg_scada_dataframe.loc[
-            aclineseg_scada_dataframe[dlr_enabled_col_nm] == "YES", dlr_enabled_col_nm
-        ] = True
-        aclineseg_scada_dataframe.loc[
-            aclineseg_scada_dataframe[dlr_enabled_col_nm] == "NO", dlr_enabled_col_nm
-        ] = False
-
-        # set type on 'DLR_enabled' column to boolean datatype
-        aclineseg_scada_dataframe = aclineseg_scada_dataframe.astype(
-            {dlr_enabled_col_nm: bool}
-        )
+        # Replace yes/no with True/False and set datatype to boolean
+        aclineseg_scada_dataframe.loc[aclineseg_scada_dataframe[dlr_enabled_col_nm] == "YES", dlr_enabled_col_nm] = True
+        aclineseg_scada_dataframe.loc[aclineseg_scada_dataframe[dlr_enabled_col_nm] == "NO", dlr_enabled_col_nm] = False
+        aclineseg_scada_dataframe = aclineseg_scada_dataframe.astype({dlr_enabled_col_nm: bool})
 
         # verify that expected columns are present
         dataframe_columns(
