@@ -6,7 +6,7 @@ from app.helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_datafram
 
 def test_parse_aclineseg_scada_csvdata_to_dataframe():
     """
-    Verfies that CSV-file with aclineseg mapping is parsed correcrtly
+    Verifies that CSV-file with aclineseg mapping is parsed correctly
     """
     # arrange expected dataframe
     expected_lineseg_to_mrid_dict = {

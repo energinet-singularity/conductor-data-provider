@@ -6,7 +6,7 @@ from app.helpers.parse_namemap import parse_acline_namemap_excelsheet_to_datafra
 
 def test_parse_acline_namemap_excelsheet_to_dataframe():
     """
-    Verfies that Excel file with AC-line name mapping is parsed correcrtly
+    Verifies that Excel file with AC-line name mapping is parsed correctly
     """
     # arrange expected dataframe
     expected_acline_namemap_dict = {
