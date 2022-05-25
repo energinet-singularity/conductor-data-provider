@@ -28,15 +28,15 @@ def create_aclinesegment_dataframe(
 
     Parameters
     ----------
-    dd20_data : pd.Dataframe
-        Dataframe containg data from DD20, where each row represents an AC-line.
-    dd20_to_scada_name_map : pd.Dataframe
+    dd20_data : pd.DataFrame
+        Dataframe containing data from DD20, where each row represents an AC-line.
+    dd20_to_scada_name_map : pd.DataFrame
         Dataframe with mapping from AC-line name in DD20 to AC-line name in SCADA.
-        Manualt mapping is used when a translation from DD20 to SCADA AC-line name can not be done automatically.
+        Manual mapping is used when a translation from DD20 to SCADA AC-line name can not be done automatically.
     scada_aclinesegment_map : pd.Dataframe
         Dataframe with:
         - Mapping from ACLinesegment MRID to ACLine name
-        - Flag indicating if Dynamic Line Rating is enabled on the ACLinesegment in SCADA system.
+        - Flag indicating if Dynamic Line Rating is enabled on the ACLineSegment in SCADA system.
     dlr_enabled_col_nm : str
         (optional) Name of column which contains DLR Enabled flag in SCADA aclinesegment mapping dataframe
         Default = "DLR_ENABLED"
@@ -45,7 +45,7 @@ def create_aclinesegment_dataframe(
         The column will be created in combined dataframe and contain either translated name from DD20, or mapped name.
         Default = "LINE_EMSNAME"
     translated_name_col_nm: str
-        (optional) Name of column which contains translated in DD20 dataframe.
+        (optional) Name of column which contains translated name in DD20 dataframe.
         Default = "acline_name_translated"
     dd20_name_col_nm: str
         (optional) Name of column which contains DD20 name in name mapping dataframe.
@@ -53,6 +53,7 @@ def create_aclinesegment_dataframe(
     scada_name_col_nm: str
         (optional) Name of column which contains SCADA name in name mapping dataframe.
         Default = "ETS Name"
+
     Returns
     -------
     pd.Dataframe
@@ -60,9 +61,7 @@ def create_aclinesegment_dataframe(
     """
     try:
         # Dictionary which maps from dd20 to SCADA name, if mapping is specified.
-        acline_namemap_dict = dd20_to_scada_name_map.set_index(
-            dd20_name_col_nm
-        ).to_dict()[scada_name_col_nm]
+        acline_namemap_dict = dd20_to_scada_name_map.set_index(dd20_name_col_nm)[scada_name_col_nm].to_dict()
 
         # List which contains either translated name from DD20 or mapped name if existing in mapping dictionary
         mapped_name_list = [
@@ -70,11 +69,11 @@ def create_aclinesegment_dataframe(
             for x in dd20_data[translated_name_col_nm]
         ]
 
-        # Creating new column in DD20 data with mapped names and dropping column with translated names
+        # Create new column in DD20 data with mapped names and drop column with translated names
         dd20_data[scada_line_name_col_nm] = mapped_name_list
-        dd20_data = dd20_data.drop(columns=[translated_name_col_nm])
+        dd20_data.drop(columns=[translated_name_col_nm], inplace=True)
 
-        # extract lists of unique line names from conductor and scada dataframe
+        # Extract lists of unique line names from conductor and SCADA dataframe
         lines_in_dd20_data = set(dd20_data[scada_line_name_col_nm].to_list())
         lines_in_scada_data = set(
             scada_aclinesegment_map[scada_line_name_col_nm].to_list()
@@ -131,11 +130,11 @@ def create_aclinesegment_dataframe(
             how="inner",
         )
 
-        # force uppercase on all columns
+        # Force uppercase on all column names
         dlr_dataframe.columns = dlr_dataframe.columns.str.upper()
 
         return dlr_dataframe
 
     except Exception as e:
-        log.exception(f"Combining data to ACLinesegment dataframe failed with message: {e}.")
+        log.exception(f"Combining data to ACLineSegment dataframe failed with message: {e}.")
         raise e
