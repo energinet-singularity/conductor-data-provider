@@ -22,15 +22,15 @@ class ACLineProperties:
     acline_name_translated : str
         Translated name of the AC-line, can be used as alternative to the data source name.
     acline_name_datasource: str
-        Name of the AC-line in datasource which are used to set attributes.
+        Name of the AC-line in data source which is used to set attributes.
     datasource: str
-        Datasoruce for parameteres and restrictions on a AC-line.
+        Data source for parameters and restrictions for the AC-line.
     conductor_type: str
         Type name of the conductor used on the AC-line
     conductor_count: int
         Amount of conductors used for the AC-line.
     system_count: int
-        Anount of systems in parallel for the AC-line.
+        Amount of systems in parallel for the AC-line.
     max_temperature: float
         Maximum allowed temperature in celsius degrees for the conductor.
     restrict_conductor_lim_continuous: float
