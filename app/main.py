@@ -209,8 +209,8 @@ if __name__ == "__main__":
 
     # Load environment variables for API
     try:
-        api_port = int(os.environ.get("PORT", "5000"))
-        api_dbname = os.environ.get("DBNAME", "CONDUCTOR_DATA").upper()
+        api_port = int(os.environ.get("API_PORT", "5000"))
+        api_dbname = os.environ.get("API_DBNAME", "CONDUCTOR_DATA").upper()
     except Exception:
         raise ValueError(f"Invalid API config (PORT and/or DBNAME)")
 

@@ -16,7 +16,8 @@ Contains mapping from DD20 AC-line name to AC-line name used in SCADA system. Th
 Contains mapping from AC-line name used in SCADA system to AC-linesegment MRID in SCADA system.
 The AC-linesegment MRID is a unique identifier, which all conductor data must be linked to.
 
-The shared id used to link the datasoruces are the name of the AC-line.
+The shared id used to link the datasoruces are the name of the AC-line. The AC-line nameing in DD20 is converted to match the style of the naming in SCADA system.
+When name git sconversion is not sufficient, due to discrepancies in naming, the "DD20 name to SCADA AC-line name mapping" is used to manually link AC-lines.
             
 The script is intended to be run as a container, so a Dockerfile is provided as well, as is a set of helm charts with a default configuration.
 
@@ -28,8 +29,8 @@ The script is intended to be run as a container, so a Dockerfile is provided as 
 |DD20FILEPATH|/input/DD20.XLSM|Filepath for "DD20" excel-file|
 |DD20MAPPINGFILEPATH|/input/Limits_other.xlsx|Filepath for "DD20 name to SCADA AC-line name mapping" excel-file.|
 |MRIDMAPPINGFILEPATH|/input/seg_line_mrid_PROD.csv|Filepath for "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.|
-|PORT|5000|Port for exposing REST API|
-|DBNAME|CONDUCTOR_DATA|Name of database exposed via REST API|
+|API_PORT|5000|Port for exposing REST API|
+|API_DBNAME|CONDUCTOR_DATA|Name of database exposed via REST API|
 |USE_MOCK_DATA|(not set)|Set to 'TRUE' to enable creating mock forecast files|
 
 ### File handling / Input
