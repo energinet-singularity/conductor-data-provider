@@ -15,7 +15,7 @@ conductorInputVolume:
 
 conductorDataVolume:
   accessMode: ReadWriteOnce
-  size: 1G
+  size: 100M
   storageClass: standard
 
 # Setup file-mover
@@ -64,15 +64,14 @@ affinity:
         topologyKey: "kubernetes.io/hostname"
 
 # Environment variables
-#api:
-#  port: 5999
-#  dbname: "othername"
-#debug: "TRUE"
-#mock_data: "TRUE"
-#filepath:
-#  dd20: "/other/place/file.xlsm"
-#  dd20_mapping: "/this/place/file.xlsx"
-#  mrid_mapping: "/new/place/file.csv"
+EnvVars:
+  #PORT: 5000
+  #DBNAME: "API_DB_NAME"
+  #DEBUG: "TRUE"
+  #USE_MOCK_DATA: "TRUE"
+  #DD20FILEPATH: "/other/place/file.xlsm"
+  #DD20MAPPINGFILEPATH: "/this/place/file.xlsx"
+  #MRIDMAPPINGFILEPATH: "/new/place/file.csv"
 
 #Default settings not used in this setup
 imagePullSecrets: []

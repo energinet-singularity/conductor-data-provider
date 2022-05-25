@@ -33,38 +33,10 @@ spec:
             - mountPath: /input/
               name: conductor-input
           env:
-              {{- if .Values.api }}
-              {{- if .Values.api.port }}
-            - name: PORT
-              value: {{ .Values.api.port | quote }}
-              {{- end }}
-              {{- if .Values.api.dbname }}
-            - name: DBNAME
-              value: {{ .Values.api.dbname | quote }}
-              {{- end }}
-              {{- end }}
-              {{- if .Values.debug }}
-            - name: DEBUG
-              value: {{ .Values.debug | quote }}
-              {{- end }}
-              {{- if .Values.mock_data }}
-            - name: USE_MOCK_DATA
-              value: {{ .Values.mock_data | quote }}
-              {{- end }}
-              {{- if .Values.filepath }}
-              {{- if .Values.filepath.dd20 }}
-            - name: DD20FILEPATH
-              value: {{ .Values.filepath.dd20 | quote }}
-              {{- end }}
-              {{- if .Values.filepath.dd20_mapping }}
-            - name: DD20MAPPINGFILEPATH
-              value: {{ .Values.filepath.dd20_mapping | quote }}
-              {{- end }}
-              {{- if .Values.filepath.mrid_mapping }}
-            - name: MRIDMAPPINGFILEPATH
-              value: {{ .Values.filepath.mrid_mapping | quote }}
-              {{- end }}
-              {{- end }}
+          {{- range $name, $value := .Values.EnvVars }}
+            - name: {{ $name }}
+              value: {{ $value | quote}}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
