@@ -20,7 +20,7 @@ class ACLineProperties:
     Attributes
     ----------
     acline_name_translated : str
-        Translated name of the AC-line, can be used to alternative naming that the one in datasource.
+        Translated name of the AC-line, can be used as alternative to the data source name.
     acline_name_datasource: str
         Name of the AC-line in datasource which are used to set attributes.
     datasource: str
