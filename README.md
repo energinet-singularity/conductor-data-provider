@@ -26,9 +26,9 @@ The script is intended to be run as a container, so a Dockerfile is provided as 
 | Name | Default value | Description |
 |--|--|--|
 |DEBUG|(not set)|Set to 'TRUE' to enable very verbose debugging log|
-|DD20FILEPATH|/input/DD20.XLSM|Filepath for "DD20" excel-file|
-|DD20MAPPINGFILEPATH|/input/Limits_other.xlsx|Filepath for "DD20 name to SCADA AC-line name mapping" excel-file.|
-|MRIDMAPPINGFILEPATH|/input/seg_line_mrid_PROD.csv|Filepath for "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.|
+|DD20_FILEPATH|/input/DD20.XLSM|Filepath for "DD20" excel-file|
+|DD20_MAPPING_FILEPATH|/input/Limits_other.xlsx|Filepath for "DD20 name to SCADA AC-line name mapping" excel-file.|
+|MRID_MAPPING_FILEPATH|/input/seg_line_mrid_PROD.csv|Filepath for "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.|
 |API_PORT|5000|Port for exposing REST API|
 |API_DBNAME|CONDUCTOR_DATA|Name of database exposed via REST API|
 |USE_MOCK_DATA|(not set)|Set to 'TRUE' to enable creating mock forecast files|
@@ -40,7 +40,7 @@ The files must fit the agreed structure (examples can be found in the '/tests/va
 
 #### Using MOCK data
 
-The container has an option to generate mock-data. This is done by taking the test-data files and dumping them into the input directory. This can be used if real forecast files are not available. Be aware that all data will be identical and thereby not dynamic/changing. Only intended for illustration of functionality.
+The container has an option to generate mock-data. This is done by taking the test-data files and dumping them into the input directory. This can be used if input files are not available. Be aware that it is dummy data and only intended for illustration of functionality.
 
 ## Getting Started
 
@@ -93,7 +93,8 @@ To use mock output data, use the flag USE_MOCK_DATA:
 ````bash
 docker run -e USE_MOCK_DATA=TRUE -it --rm conductor-data-provider:latest
 ````
-####SQL command
+### SQL command
+
 When the container is running in your local environment you can use the following bash command to query data from it. The example below assumes you are using Mock data with default settings, please change "localhost" with the IP that your API is running on.
 ````bash
 curl -d '{"sql-query": "SELECT * FROM CONDUCTOR_DATA;"}' -H 'Content-Type: application/json' -X POST http://localhost:5000/

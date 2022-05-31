@@ -184,12 +184,12 @@ if __name__ == "__main__":
     # Load file paths from env vars - or use defaults
     log.info("Loading environment variables.")
     try:
-        dd20_filepath = os.environ.get("DD20FILEPATH", DD20_FILEPATH_DEFAULT)
+        dd20_filepath = os.environ.get("DD20_FILEPATH", DD20_FILEPATH_DEFAULT)
         dd20_mapping_filepath = os.environ.get(
-            "DD20MAPPINGFILEPATH", DD20_MAPPING_FILEPATH_DEFAULT
+            "DD20_MAPPING_FILEPATH", DD20_MAPPING_FILEPATH_DEFAULT
         )
         mrid_mapping_filepath = os.environ.get(
-            "MRIDMAPPINGFILEPATH", MRID_MAPPING_FILEPATH_DEFAULT
+            "MRID_MAPPING_FILEPATH", MRID_MAPPING_FILEPATH_DEFAULT
         )
     except Exception:
         raise ValueError(f"Error while loading one or more file paths.")
