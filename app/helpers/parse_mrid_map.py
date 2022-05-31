@@ -25,15 +25,12 @@ def parse_aclineseg_scada_csvdata_to_dataframe(
     ----------
     file_path : str
         Path of CSV-file.
-    aclinesegment_mrid_col_nm : str
+    aclinesegment_mrid_col_nm : str, Default = "ACLINESEGMENT_MRID"
         (optional) Name of column which contains ACLineSegment MRID.
-        Default = "ACLINESEGMENT_MRID"
-    acline_name_col_nm: str
+    acline_name_col_nm: str, Default = "LINE_EMSNAME"
         (optional) Name of column which contains Line Name.
-        Default = "LINE_EMSNAME"
-    dlr_enabled_col_nm : str
+    dlr_enabled_col_nm : str, Default = "DLR_ENABLED"
         (optional) Name of column which contains DLR enabled flag.
-        Default = "DLR_ENABLED"
 
     Returns
     -------

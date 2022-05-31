@@ -37,22 +37,17 @@ def create_aclinesegment_dataframe(
         Dataframe with:
         - Mapping from ACLineSegment MRID to ACLine name
         - Flag indicating if Dynamic Line Rating is enabled on the ACLineSegment in SCADA system.
-    dlr_enabled_col_nm : str
+    dlr_enabled_col_nm : str, Default = "DLR_ENABLED"
         (optional) Name of column which contains DLR Enabled flag in SCADA ACLineSegment mapping dataframe
-        Default = "DLR_ENABLED"
-    scada_acline_name_col_nm : str
+    scada_acline_name_col_nm : str, Default = "LINE_EMSNAME"
         (optional) Naming of column for holding SCADA AC-line name.
         The column will be created in combined dataframe and contain either translated name from DD20, or mapped name.
-        Default = "LINE_EMSNAME"
-    translated_name_col_nm: str
+    translated_name_col_nm: str, Default = "acline_name_translated"
         (optional) Name of column which contains translated name in DD20 dataframe.
-        Default = "acline_name_translated"
-    dd20_name_col_nm: str
+    dd20_name_col_nm: str, Default = "DD20 Name"
         (optional) Name of column which contains DD20 name in name mapping dataframe.
-        Default = "DD20 Name"
-    scada_name_col_nm: str
+    scada_name_col_nm: str, Default = "ETS Name"
         (optional) Name of column which contains SCADA name in name mapping dataframe.
-        Default = "ETS Name"
 
     Returns
     -------

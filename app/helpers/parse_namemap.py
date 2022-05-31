@@ -27,15 +27,13 @@ def parse_acline_namemap_excelsheet_to_dataframe(
     ----------
     file_path : str
         Path of CSV-file.
-    excel_sheet_name : str
+    excel_sheet_name : str, Default = "DD20Mapping"
         (optional) Name of sheet in excel-file which containes mapping.
-        Default = "DD20Mapping"
-    dd20_name_col_nm : str
+    dd20_name_col_nm : str, Default = "DD20 Name"
         (optional) Name of column which contains DD20 name.
-        Default = "DD20 Name"
-    scada_name_col_nm : str
+    scada_name_col_nm : str, Default = "ETS Name"
         (optional) Name of column which contains SCADA name.
-        Default = "ETS Name"
+
     Returns
     -------
     Dataframe

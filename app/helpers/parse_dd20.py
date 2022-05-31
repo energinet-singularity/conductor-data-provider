@@ -166,8 +166,6 @@ class DD20StationDataframeParser:
         self.__cablelim_1h_col_nm = cablelim_1h_col_nm
         self.__cablelim_40h_col_nm = cablelim_40h_col_nm
 
-        # TODO: add function which checks for need columns and hash
-
         # Cleaning dataframe
         self.__df_station_clean = self.__prepare_df_station()
 
@@ -309,8 +307,6 @@ class DD20StationDataframeParser:
             4. cleaning frame by:
             - Removing (N) from values in AC-line name column
             - Removing spaces from values in AC-line name column
-            TODO: generates warning, fix it
-            https://www.dataquest.io/blog/settingwithcopywarning/
             """
             df_station_filtered.loc[:, self.__acline_name_col_nm] = (
                 df_station_filtered[self.__acline_name_col_nm]
@@ -480,8 +476,6 @@ class DD20LineDataframeParser:
         self.__complim_1h_col_rng = complim_1h_col_rng
         self.__complim_40h_col_rng = complim_40h_col_rng
 
-        # TODO: add function which checks for need columns and hash here?
-
         # Cleaning dataframe
         self.__df_line_clean = self.__prepare_df_line()
 
@@ -571,7 +565,6 @@ class DD20LineDataframeParser:
             Cleaning frame by:
             - Removing (N) from values in AC-line name column
             - Removing spaces from values in AC-line name column
-            TODO: generates warning, fix it
             """
             df_line_filtered[self.__acline_name_col_nm] = (
                 df_line_filtered[self.__acline_name_col_nm]
@@ -845,15 +838,12 @@ def parse_dd20_excelsheets_to_dataframe(
     ----------
     file_path : str
         Path of DD20 excel-file.
-    header_index : int
+    header_index : int, Default = 1
         (optional) Index header of DD20 excel sheets.
-        Default = 1
-    sheetname_linedata : str
+    sheetname_linedata : str, Default = "Linjedata - Sommer"
         (optional) Name of excel sheet in DD20 containing line data.
-        Default = "Linjedata - Sommer"
-    sheetname_stationdata : str
+    sheetname_stationdata : str, Default = "Stationsdata"
         (optional) Name of excel sheet in DD20 containing station data.
-        Default = "Stationsdata"
 
     Returns
     -------
