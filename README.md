@@ -81,7 +81,7 @@ docker volume create conductor-data-files
 ````bash
 docker run -v conductor-data-files:/input -it --rm conductor-data-provider:latest
 ````
-The container will now be running interactively and you will be able to see the log output. The container will need the input files availiable in the volume, since else it will crash.
+The container will now be running interactively and you will be able to see the log output. The container will need the input files available in the volume, otherwise it will not calculate.
 The files have to be delivered to the volume somehow. This can be done by another container mapped to the same volume, or manually from another bash-client
 
 Manual file-move to the volume (please verify volume-path is correct before trying this):
