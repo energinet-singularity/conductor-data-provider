@@ -17,7 +17,7 @@ Contains mapping from AC-line name used in SCADA system to AC-linesegment MRID i
 The AC-linesegment MRID is a unique identifier, which all conductor data must be linked to.
 
 The shared id used to link the datasoruces are the name of the AC-line. The AC-line nameing in DD20 is converted to match the style of the naming in SCADA system.
-When name git sconversion is not sufficient, due to discrepancies in naming, the "DD20 name to SCADA AC-line name mapping" is used to manually link AC-lines.
+When standard name conversion is not sufficient, due to discrepancies in naming, the "DD20 name to SCADA AC-line name mapping" is used to manually link AC-lines.
             
 The script is intended to be run as a container, so a Dockerfile is provided as well, as is a set of helm charts with a default configuration.
 
