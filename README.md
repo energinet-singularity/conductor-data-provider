@@ -1,53 +1,47 @@
-# Templated repo <!-- Change to repo name! -->
+# Conductor data provider
 
-<!-- Insert a very short description of what the script/repo is for -->
+A container that parses AC-line conductor properties from various data sources and exposes them via a REST API.
+The data sources are custom in-house Energinet specific files, examples of them can be found in the tests/valid-testdata subfolder of this repo.
 
-<!-- TABLE OF CONTENTS -->
-<!--
-If VERY heavy readme, update and use this TOC
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
--->
+The purpose is to link AC-line conductor properties from a datasource named DD20, to AC-line conductor database records in a SCADA (supervisory control and data acquisition) system.
+The linked information is exposed via a REST API, because it is used by a Dynamic Line Rating application running at Energinet.
 
 ## Description
+This repo contains a python-script that will read/parse following datasources:
+- "DD20" excel-file.
+Contains various conductor properties for AC-lines.
+- "DD20 name to SCADA AC-line name mapping" excel-file.
+Contains mapping from DD20 AC-line name to AC-line name used in SCADA system. This is necessary since some AC-line names differ between SCADA and DD20.
+- "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.
+Contains mapping from AC-line name used in SCADA system to AC-linesegment MRID in SCADA system.
+The AC-linesegment MRID is a unique identifier, which all conductor data must be linked to.
 
-<!--
--- Insert a more detailed description here, and use the below headers where relevant --
+The shared id used to link the datasoruces are the name of the AC-line. The AC-line nameing in DD20 is converted to match the style of the naming in SCADA system.
+When standard name conversion is not sufficient, due to discrepancies in naming, the "DD20 name to SCADA AC-line name mapping" is used to manually link AC-lines.
+            
+The script is intended to be run as a container, so a Dockerfile is provided as well, as is a set of helm charts with a default configuration.
 
-### Exposed environment variables
+### Exposed environment variables:
 
-|Name|Default|Description|
+| Name | Default value | Description |
 |--|--|--|
+|DEBUG|(not set)|Set to 'TRUE' to enable very verbose debugging log|
+|DD20_FILEPATH|/input/DD20.XLSM|Filepath for "DD20" excel-file|
+|DD20_MAPPING_FILEPATH|/input/Limits_other.xlsx|Filepath for "DD20 name to SCADA AC-line name mapping" excel-file.|
+|MRID_MAPPING_FILEPATH|/input/seg_line_mrid_PROD.csv|Filepath for "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.|
+|API_PORT|5000|Port for exposing REST API|
+|API_DBNAME|CONDUCTOR_DATA|Name of database exposed via REST API|
+|USE_MOCK_DATA|(not set)|Set to 'TRUE' to enable creating mock forecast files|
 
-### Input
+### File handling / Input
 
-### Output
+Every 60 seconds data from files are parsed, if files has changed since last read.
+The files must fit the agreed structure (examples can be found in the '/tests/valid-testdata/' subfolder), otherwise it will break execution and not be able to recover.
 
--->
+#### Using MOCK data
 
-<!-- GETTING STARTED -->
+The container has an option to generate mock-data. This is done by taking the test-data files and dumping them into the input directory. This can be used if input files are not available. Be aware that it is dummy data and only intended for illustration of functionality.
+
 ## Getting Started
 
 The quickest way to have something running is through docker (see the section [Running container](#running-container)).
@@ -56,64 +50,64 @@ Feel free to either import the python-file as a lib or run it directly - or use 
 
 ### Dependencies
 
-<!-- Describe general dependencies here - what is neeeded to run the script/container/helm? -->
-  
+Files must be supplied at the location specified via environment variables, if not using MOCK data.
+
 #### Python (if not run as part of the container)
 
 The python script can probably run on any python 3.9+ version, but your best option will be to check the Dockerfile and use the same version as the container. Further requirements (python packages) can be found in the app/requirements.txt file.
 
 #### Docker
 
-<!--
-Describe here what is needed before it can be run in docker - environment variables, volumes etc.
-
-Give an example if relevant:
-
-Example:
-```sh
-docker run my_script -v someVolume:/data -e MYVAR=smith"
-```
- -->
+Built and tested on version 20.10.14.
 
 #### HELM (only relevant if using HELM for deployment)
 
-<!--
-Describe here what is needed before it can be run in docker - environment variables, volumes etc.
-
-You could use this:
-The default helm values/properties are set in a way that allows the helm chart to be installed and run without crashes, but it will not be useful. To spin up the environment with helm, make sure to set (or overwrite) values to something meaningful.
--->
-
+Built and tested on version 3.7.0.
 
 ### Running container
 
-<!-- PLEASE REMEMBER TO UPDATE THIS GUIDE!!! -->
-
 1. Clone the repo to a suitable place
 ````bash
-git clone http://myrepo.git
+git clone https://github.com/energinet-singularity/conductor-data-provider.git
 ````
 
-2. Build the container
+2. Build the container and create a volume
 ````bash
-docker build my_script -t my_script:latest
+docker build conductor-data-provider/ -t conductor-data-provider:latest
+docker volume create conductor-data-files
 ````
 
-3. Start the container in docker (change variables to fit your environment)
+3. Start the container in docker
 ````bash
-docker run -e MYVAR=foo -it --rm my_script:latest
+docker run -v conductor-data-files:/input -it --rm conductor-data-provider:latest
+````
+The container will now be running interactively and you will be able to see the log output. The container will need the input files available in the volume, otherwise it will not calculate.
+The files have to be delivered to the volume somehow. This can be done by another container mapped to the same volume, or manually from another bash-client
+
+Manual file-move to the volume (please verify volume-path is correct before trying this):
+````bash
+sudo cp conductor-data-provider/tests/valid-testdata/* /var/lib/docker/volumes/conductor-data-files/_data/
 ````
 
+To use mock output data, use the flag USE_MOCK_DATA:
+````bash
+docker run -e USE_MOCK_DATA=TRUE -it --rm conductor-data-provider:latest
+````
+### SQL command
+
+When the container is running in your local environment you can use the following bash command to query data from it. The example below assumes you are using Mock data with default settings, please change "localhost" with the IP that your API is running on.
+````bash
+curl -d '{"sql-query": "SELECT * FROM CONDUCTOR_DATA;"}' -H 'Content-Type: application/json' -X POST http://localhost:5000/
+````
 ## Help
-<!-- replace 'open issues' below with link like this: [open issues](https://github.com/energinet-singularity/<repo-name>/issues) -->
-See the open issues for a full list of proposed features (and known issues).
-If you are facing unidentified issues with the application, please submit an issue or ask the authors.
+
+Please submit an issue or ask the authors.
 
 ## Version History
 
-* 0.0.1:
-    * First ever version - nice!
+* 1.0.0:
+    * First production-ready version
 
 ## License
 
-This project is licensed under the Apache-2.0 License - see the LICENSE and NOTICE file for further details.
+This project is licensed under the Apache-2.0 License - see the LICENSE.md file for details

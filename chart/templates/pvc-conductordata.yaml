@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: conductor-data-pvc
+spec:
+  accessModes:
+    - {{ .Values.conductorDataVolume.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.conductorDataVolume.size }}
+  storageClassName: {{ .Values.conductorDataVolume.storageClass}}
