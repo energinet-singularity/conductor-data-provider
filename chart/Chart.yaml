@@ -1,7 +1,7 @@
 apiVersion: v2
 name: conductor-data-provider
 description: A helm chart for energinet-singularity/conductor-data-provider
-version: 0.0.6
+version: 1.0.0
 
 dependencies:
   - name: file-mover
