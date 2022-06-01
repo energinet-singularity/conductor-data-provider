@@ -144,13 +144,13 @@ class DD20StationDataframeParser:
         conductor_max_temp_col_nm : str, default='Temperatur'
             Name of column containing max temperature.
         cablelim_continuous_col_nm : str, default='Kontinuer'
-            Name of column containing allowed continuous ampere loading of cabling along the AC-line, if any.
+            Name of column containing allowed continuous ampere load of cabling along the AC-line, if any.
         cablelim_15m_col_nm : str, default='15 min'
-            Name of column containing allowed 15 minutes ampere loading of cabling along the AC-line, if any.
+            Name of column containing allowed 15 minutes ampere load of cabling along the AC-line, if any.
         cablelim_1h_col_nm : str, default='1 time'
-            Name of column containing allowed 1 hour ampere loading of cabling along the AC-line, if any.
+            Name of column containing allowed 1 hour ampere load of cabling along the AC-line, if any.
         cablelim_40h_col_nm : str, default='40 timer'
-            Name of column containing allowed 40 hour ampere loading of cabling along the AC-line, if any.
+            Name of column containing allowed 40 hour ampere load of cabling along the AC-line, if any.
         """
 
         # Init of parameters
@@ -214,7 +214,7 @@ class DD20StationDataframeParser:
 
     def get_cablelim_continuous_dict(self) -> dict:
         """
-        Returns dictionary with mapping from AC-line name to allowed continuous ampere loading of cabling along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed continuous ampere load of cabling along the AC-line.
         """
         return self.__create_acline_name_to_column_single_value_dict(
             column_name=self.__cablelim_continuous_col_nm
@@ -222,7 +222,7 @@ class DD20StationDataframeParser:
 
     def get_cablelim_15m_dict(self) -> dict:
         """
-        Returns dictionary with mapping from AC-line name to allowed 15 minutes ampere loading of cabling along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed 15 minutes ampere load of cabling along the AC-line.
         """
         return self.__create_acline_name_to_column_single_value_dict(
             column_name=self.__cablelim_15m_col_nm
@@ -230,7 +230,7 @@ class DD20StationDataframeParser:
 
     def get_cablelim_1h_dict(self) -> dict:
         """
-        Returns dictionary with mapping from AC-line name to allowed 1 hour ampere loading of cabling along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed 1 hour ampere load of cabling along the AC-line.
         """
         return self.__create_acline_name_to_column_single_value_dict(
             column_name=self.__cablelim_1h_col_nm
@@ -238,7 +238,7 @@ class DD20StationDataframeParser:
 
     def get_cablelim_40h_dict(self) -> dict:
         """
-        Returns dictionary with mapping from AC-line name to allowed 40 hour ampere loading of cabling along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed 40 hour ampere load of cabling along the AC-line.
         """
         return self.__create_acline_name_to_column_single_value_dict(
             column_name=self.__cablelim_40h_col_nm
@@ -419,15 +419,15 @@ class DD20LineDataframeParser:
     get_conductor_kv_level_dict()
         Returns dictionary with mapping from AC-line name to voltagelevel in kV.
     acline_lim_continuous_dict()
-        Returns dictionary with mapping from AC-line name to allowed continuous ampere loading of conductor.
+        Returns dictionary with mapping from AC-line name to allowed continuous ampere load of conductor.
     complim_continuous_dict()
-        Returns dictionary with mapping from AC-line name to allowed continuous ampere loading of components along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed continuous ampere load of components along the AC-line.
     complim_15m_dict()
-        Returns dictionary with mapping from AC-line name to allowed 15 minutes ampere loading of components along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed 15 minutes ampere load of components along the AC-line.
     complim_1h_dict()
-        Returns dictionary with mapping from AC-line name to allowed 1 hour ampere loading of components along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed 1 hour ampere load of components along the AC-line.
     complim_40h_dict()
-        Returns dictionary with mapping from AC-line name to allowed 40 hour ampere loading of components along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed 40 hour ampere load of components along the AC-line.
     """
 
     def __init__(
@@ -452,17 +452,17 @@ class DD20LineDataframeParser:
         kv_col_nm : str, Default='Spændingsniveau'
             Name of column containing voltagelevel in kV.
         acline_lim_continuous_col_nm : str, Default = 'I-kontinuert'
-            Name of column containing allowed continuous ampere loading of conductor.
+            Name of column containing allowed continuous ampere load of conductor.
         system_count_col_nm : str, Default='Antal sys.'
             Name of columns containing system count.
         complim_continuous_col_rng : range, Default=range(41, 55)
-            Range of columns which contains allowed continuous ampere loading of components along the AC-line.
+            Range of columns which contains allowed continuous ampere load of components along the AC-line.
         complim_15m_col_rng : range, Default=range(55, 69)
-            Range of columns which contains allowed 15 minutes ampere loading of components along the AC-line.
+            Range of columns which contains allowed 15 minutes ampere load of components along the AC-line.
         complim_1h_col_rng : range, Default=range(69, 83)
-            Range of columns which contains allowed 1 hour ampere loading of components along the AC-line.
+            Range of columns which contains allowed 1 hour ampere load of components along the AC-line.
         complim_40h_col_rng : range, Defualt=range(83, 97))
-            Range of columns which contains allowed 40 hour ampere loading of components along the AC-line.
+            Range of columns which contains allowed 40 hour ampere load of components along the AC-line.
         """
 
         # Init of parameters
@@ -502,7 +502,7 @@ class DD20LineDataframeParser:
     def get_complim_continuous_dict(self):
         """
         Returns dictionary with mapping from AC-line name to allowed
-        continuous ampere loading of components along the AC-line.
+        continuous ampere load of components along the AC-line.
         """
         return self.__create_acline_name_to_column_range_min_value_dict(
             column_range=self.__complim_continuous_col_rng
@@ -511,7 +511,7 @@ class DD20LineDataframeParser:
     def get_complim_15m_dict(self):
         """
         Returns dictionary with mapping from AC-line name to
-        allowed 15 minutes ampere loading of components along the AC-line.
+        allowed 15 minutes ampere load of components along the AC-line.
         """
         return self.__create_acline_name_to_column_range_min_value_dict(
             column_range=self.__complim_15m_col_rng
@@ -520,7 +520,7 @@ class DD20LineDataframeParser:
     def get_complim_1h_dict(self):
         """
         Returns dictionary with mapping from AC-line name to allowed
-        1 hour ampere loading of components along the AC-line.
+        1 hour ampere load of components along the AC-line.
         """
         return self.__create_acline_name_to_column_range_min_value_dict(
             column_range=self.__complim_1h_col_rng
@@ -529,7 +529,7 @@ class DD20LineDataframeParser:
     def get_complim_40h_dict(self):
         """
         Returns dictionary with mapping from AC-line name to allowed
-        40 hour ampere loading of components along the AC-line.
+        40 hour ampere load of components along the AC-line.
         """
         return self.__create_acline_name_to_column_range_min_value_dict(
             column_range=self.__complim_40h_col_rng
