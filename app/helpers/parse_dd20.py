@@ -35,23 +35,23 @@ class ACLineProperties:
     max_temperature: float
         Maximum allowed temperature in celsius degrees for the conductor.
     restrict_conductor_lim_continuous: float
-        Allowed continuous ampere loading of conductor.
+        Allowed continuous ampere load of conductor.
     restrict_component_lim_continuous: float
-        Allowed continuous ampere loading of components along the AC-line.
+        Allowed continuous ampere load of components along the AC-line.
     restrict_component_lim_15m: float
-        Allowed 15 minutes ampere loading of components along the AC-line.
+        Allowed 15 minutes ampere load of components along the AC-line.
     restrict_component_lim_1h: float
-        Allowed 1 hour ampere loading of components along the AC-line.
+        Allowed 1 hour ampere load of components along the AC-line.
     restrict_component_lim_40h: float
-        Allowed 40 hour ampere loading of components along the AC-line.
+        Allowed 40 hour ampere load of components along the AC-line.
     restrict_cable_lim_continuous: float
-        Allowed continuous ampere loading of cabling along the AC-line, if any.
+        Allowed continuous ampere load of cabling along the AC-line, if any.
     restrict_cable_lim_15m: float
-        Allowed 15 minutes ampere loading of cabling along the AC-line, if any.
+        Allowed 15 minutes ampere load of cabling along the AC-line, if any.
     restrict_cable_lim_1h: float.
-         Allowed 15 minutes ampere loading of cabling along the AC-line, if any.
+         Allowed 15 minutes ampere load of cabling along the AC-line, if any.
     restrict_cable_lim_40h: float
-         Allowed 15 minutes ampere loading of cabling along the AC-line, if any.
+         Allowed 15 minutes ampere load of cabling along the AC-line, if any.
     """
 
     acline_name_translated: str
@@ -103,13 +103,13 @@ class DD20StationDataframeParser:
     get_conductor_max_temp_dict()
         Returns dictionary with mapping from AC-line name to max temperature.
     get_cablelim_continuous_dict()
-        Returns dictionary with mapping from AC-line name to allowed continuous ampere loading of cabling along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed continuous ampere load of cabling along the AC-line.
     get_cablelim_15m_dict()
-        Returns dictionary with mapping from AC-line name to allowed 15 minutes ampere loading of cabling along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed 15 minutes ampere load of cabling along the AC-line.
     get_cablelim_1h_dict()
-        Returns dictionary with mapping from AC-line name to allowed 1 hour ampere loading of cabling along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed 1 hour ampere load of cabling along the AC-line.
     get_cablelim_40h_dict()
-        Returns dictionary with mapping from AC-line name to allowed 40 hour ampere loading of cabling along the AC-line.
+        Returns dictionary with mapping from AC-line name to allowed 40 hour ampere load of cabling along the AC-line.
     """
 
     def __init__(
