@@ -493,7 +493,7 @@ class DD20LineDataframeParser:
     def get_acline_lim_continuous_dict(self):
         """
         Returns dictionary with mapping from AC-line name to allowed
-        continuous ampere loading of conductor.
+        continuous ampere load of conductor.
         """
         return self.__create_acline_name_to_column_min_value_dict(
             column_name=self.__acline_lim_continuous_col_nm
