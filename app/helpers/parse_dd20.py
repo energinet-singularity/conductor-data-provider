@@ -7,7 +7,7 @@ from typing import Union
 import re
 import pandas as pd
 from singupy.conversion import kv_to_letter as convert_kv_to_letter
-import dd20_format_validation
+import app.helpers.dd20_format_validation  as dd20_format_validation
 
 # Initialize log
 log = logging.getLogger(__name__)
@@ -860,23 +860,25 @@ def parse_dd20_excelsheets_to_dataframe(
         header=header_index,
     )
 
+
+    if not dd20_format_validation.validate_dd20_format(dd20_dataframe_dict[sheetname_stationsdata], station_data_valid_format_hash_value):
+        error_message = f"invalid dd20 file format detected for {sheetname_stationsdata}"
+        log.critical(error_message) # toto improve error message
+        raise dd20_format_validation.DD20FormatError(error_message) 
+
     # Instantiation of objects for parsing data from station and line sheets of DD20
     data_station = DD20StationDataframeParser(
         df_station=dd20_dataframe_dict[sheetname_stationsdata]
     )
 
-    if not dd20_format_validation.validate_dd20_format(data_station, station_data_valid_format_hash_value):
-        error_message = f"invalid dd20 file format detected for {sheetname_stationsdata}"
-        log.critical(error_message) # toto improve error message
-        raise dd20_format_validation.DD20FormatError(error_message) 
-
-
-    data_line = DD20LineDataframeParser(df_line=dd20_dataframe_dict[sheetname_linedata])
-
-    if not dd20_format_validation.validate_dd20_format(data_line, line_data_valid_format_hash_value):
+    if not dd20_format_validation.validate_dd20_format(dd20_dataframe_dict[sheetname_linedata], line_data_valid_format_hash_value):
         error_message = f"invalid dd20 file format detected for {sheetname_linedata}"
         log.critical(error_message) # toto improve error message
         raise dd20_format_validation.DD20FormatError(error_message) 
+
+    data_line = DD20LineDataframeParser(df_line=dd20_dataframe_dict[sheetname_linedata])
+
+   
 
     # Combining station and line data into a list of objects, where each object represents an AC-line
     acline_objects = DD20_to_acline_properties_mapper(
