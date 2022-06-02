@@ -107,6 +107,8 @@ Please submit an issue or ask the authors.
 
 * 1.0.0:
     * First production-ready version
+* 1.0.1
+    * Added dd20 format check, that compares dd20 header hash against current expected hash value  
 
 ## License
 
