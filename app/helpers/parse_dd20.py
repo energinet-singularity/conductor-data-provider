@@ -830,8 +830,8 @@ def parse_dd20_excelsheets_to_dataframe(
     header_index: int = 1,
     sheetname_linedata: str = "Linjedata - Sommer",
     sheetname_stationsdata: str = "Stationsdata",
-    line_data_valid_format_hash_value = "9cf51349b6b13d3c52deb66bf569eb49", # todo refactor and move to env variables
-    station_data_valid_format_hash_value = "f06edffbc927aea71f0a501f520cf583" # todo refactor and move to env variables
+    line_data_valid_format_hash_value: str = "eb087129d0c2413ee9768957c2c847ae", 
+    station_data_valid_format_hash_value: str = "91006da47706518d76724105a97dfb61" 
 ) -> pd.DataFrame:
     """
     Extract conductor data from DD20 excel-sheets and return it to one combined dataframe.
@@ -847,7 +847,10 @@ def parse_dd20_excelsheets_to_dataframe(
         (optional) Name of excel sheet in DD20 containing line data.
     sheetname_stationdata : str, Default = "Stationsdata"
         (optional) Name of excel sheet in DD20 containing station data.
-
+    line_data_valid_format_hash_value : str, Default = "eb087129d0c2413ee9768957c2c847ae" 
+        hash value of the header rows in the dd20 line sheet, used to detect a change in file format.
+    station_data_valid_format_hash_value : str, Default =  "91006da47706518d76724105a97dfb61"     
+        hash value of the header rows in the dd20 station sheet, used to detect a change in file format.
     Returns
     -------
     pd.Dataframe
@@ -857,23 +860,21 @@ def parse_dd20_excelsheets_to_dataframe(
     dd20_dataframe_dict = pd.read_excel(
         io=file_path,
         sheet_name=[sheetname_linedata, sheetname_stationsdata],
-        header=header_index,
+        header=1,
     )
 
 
     if not dd20_format_validation.validate_dd20_format(dd20_dataframe_dict[sheetname_stationsdata], station_data_valid_format_hash_value):
         error_message = f"invalid dd20 file format detected for {sheetname_stationsdata}"
-        log.critical(error_message) # toto improve error message
         raise dd20_format_validation.DD20FormatError(error_message) 
 
     # Instantiation of objects for parsing data from station and line sheets of DD20
     data_station = DD20StationDataframeParser(
-        df_station=dd20_dataframe_dict[sheetname_stationsdata]
+        df_station=dd20_dataframe_dict[sheetname_stationsdata] 
     )
 
     if not dd20_format_validation.validate_dd20_format(dd20_dataframe_dict[sheetname_linedata], line_data_valid_format_hash_value):
         error_message = f"invalid dd20 file format detected for {sheetname_linedata}"
-        log.critical(error_message) # toto improve error message
         raise dd20_format_validation.DD20FormatError(error_message) 
 
     data_line = DD20LineDataframeParser(df_line=dd20_dataframe_dict[sheetname_linedata])
