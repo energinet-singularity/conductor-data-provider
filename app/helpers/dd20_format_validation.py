@@ -19,3 +19,7 @@ def calculate_dd20_format_hash(data_frame: pd.DataFrame) -> str:
     dd20_header_hash = hashlib.md5(rows_encoded).hexdigest()
 
     return dd20_header_hash
+
+
+class DD20FormatError(Exception): pass
+     

@@ -7,6 +7,7 @@ from typing import Union
 import re
 import pandas as pd
 from singupy.conversion import kv_to_letter as convert_kv_to_letter
+import dd20_format_validation
 
 # Initialize log
 log = logging.getLogger(__name__)
@@ -829,6 +830,8 @@ def parse_dd20_excelsheets_to_dataframe(
     header_index: int = 1,
     sheetname_linedata: str = "Linjedata - Sommer",
     sheetname_stationsdata: str = "Stationsdata",
+    line_data_valid_format_hash_value = "9cf51349b6b13d3c52deb66bf569eb49", # todo refactor and move to env variables
+    station_data_valid_format_hash_value = "f06edffbc927aea71f0a501f520cf583" # todo refactor and move to env variables
 ) -> pd.DataFrame:
     """
     Extract conductor data from DD20 excel-sheets and return it to one combined dataframe.
@@ -861,7 +864,19 @@ def parse_dd20_excelsheets_to_dataframe(
     data_station = DD20StationDataframeParser(
         df_station=dd20_dataframe_dict[sheetname_stationsdata]
     )
+
+    if not dd20_format_validation.validate_dd20_format(data_station, station_data_valid_format_hash_value):
+        error_message = f"invalid dd20 file format detected for {sheetname_stationsdata}"
+        log.critical(error_message) # toto improve error message
+        raise dd20_format_validation.DD20FormatError(error_message) 
+
+
     data_line = DD20LineDataframeParser(df_line=dd20_dataframe_dict[sheetname_linedata])
+
+    if not dd20_format_validation.validate_dd20_format(data_line, line_data_valid_format_hash_value):
+        error_message = f"invalid dd20 file format detected for {sheetname_linedata}"
+        log.critical(error_message) # toto improve error message
+        raise dd20_format_validation.DD20FormatError(error_message) 
 
     # Combining station and line data into a list of objects, where each object represents an AC-line
     acline_objects = DD20_to_acline_properties_mapper(
