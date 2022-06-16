@@ -2,11 +2,15 @@ import pandas as pd
 from numpy import nan
 import os
 
-from app.helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
-from app.helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dataframe
-from app.helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
+from sys import path
+# Ugly hack to allow absolute import from the root folder
+# whatever its name is. Please forgive the heresy.
+path.append(os.path.join(os.path.split(os.path.split(__file__)[0])[0], "app"))
 
-from app.helpers.combine_data import create_aclinesegment_dataframe
+from helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
+from helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dataframe
+from helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
+from helpers.combine_data import create_aclinesegment_dataframe
 
 
 def test_create_aclinesegment_dataframe():

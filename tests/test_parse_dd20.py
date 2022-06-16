@@ -4,8 +4,13 @@ from deepdiff import DeepDiff
 import os
 import pytest
 
+from sys import path
+# Ugly hack to allow absolute import from the root folder
+# whatever its name is. Please forgive the heresy.
+path.append(os.path.join(os.path.split(os.path.split(__file__)[0])[0], "app"))
+
 # App modules
-from app.helpers.parse_dd20 import (
+from helpers.parse_dd20 import (
     DD20StationDataframeParser,
     DD20LineDataframeParser,
     parse_dd20_excelsheets_to_dataframe,
@@ -19,6 +24,7 @@ DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
 DD20_FILE_PATH = (
     f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM"
 )
+
 
 # fixture for DD20
 @pytest.fixture

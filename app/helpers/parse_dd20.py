@@ -7,6 +7,7 @@ from typing import Union
 import re
 import pandas as pd
 from singupy.conversion import kv_to_letter as convert_kv_to_letter
+import helpers.dd20_format_validation as dd20_format_validation
 
 # Initialize log
 log = logging.getLogger(__name__)
@@ -713,8 +714,8 @@ def DD20_to_acline_properties_mapper(
         )
         if names_in_station_but_not_line:
             raise ValueError(
-                f"The following AC-line names are present in station "
-                + "but not line sheet of DD20: {names_in_station_but_not_line}."
+                "The following AC-line names are present in station"
+                + f"but not line sheet of DD20: {names_in_station_but_not_line}."
             )
 
         names_in_line_but_not_station = list(
@@ -722,8 +723,8 @@ def DD20_to_acline_properties_mapper(
         )
         if names_in_line_but_not_station:
             raise ValueError(
-                f"The following AC-line names are present in line "
-                + "but not station sheet of DD20: {names_in_line_but_not_station}."
+                "The following AC-line names are present in line "
+                + f"but not station sheet of DD20: {names_in_line_but_not_station}."
             )
 
         # Initialize AC-Line properties mapping dictionaries via methods on objects
@@ -829,6 +830,8 @@ def parse_dd20_excelsheets_to_dataframe(
     header_index: int = 1,
     sheetname_linedata: str = "Linjedata - Sommer",
     sheetname_stationsdata: str = "Stationsdata",
+    line_data_valid_hash: str = "d1408314abb87bfb0c0b1e7665338575",
+    station_data_valid_hash: str = "3623a788db1ed713d67511241737cf05"
 ) -> pd.DataFrame:
     """
     Extract conductor data from DD20 excel-sheets and return it to one combined dataframe.
@@ -844,7 +847,12 @@ def parse_dd20_excelsheets_to_dataframe(
         (optional) Name of excel sheet in DD20 containing line data.
     sheetname_stationdata : str, Default = "Stationsdata"
         (optional) Name of excel sheet in DD20 containing station data.
-
+    line_data_valid_hash : str, Default = "d1408314abb87bfb0c0b1e7665338575"
+        Hash value of the header rows in the dd20 line sheet,
+        used to detect a change in file format.
+    station_data_valid_hash : str, Default =  "3623a788db1ed713d67511241737cf05"
+        Hash value of the header rows in the dd20 station sheet,
+        used to detect a change in file format.
     Returns
     -------
     pd.Dataframe
@@ -857,10 +865,19 @@ def parse_dd20_excelsheets_to_dataframe(
         header=header_index,
     )
 
+    if not dd20_format_validation.validate_dd20_format(dd20_dataframe_dict[sheetname_stationsdata], station_data_valid_hash):
+        error_message = f"Invalid dd20 file format detected for {sheetname_stationsdata}"
+        raise dd20_format_validation.DD20FormatError(error_message)
+
     # Instantiation of objects for parsing data from station and line sheets of DD20
     data_station = DD20StationDataframeParser(
         df_station=dd20_dataframe_dict[sheetname_stationsdata]
     )
+
+    if not dd20_format_validation.validate_dd20_format(dd20_dataframe_dict[sheetname_linedata], line_data_valid_hash):
+        error_message = f"Invalid dd20 file format detected for {sheetname_linedata}"
+        raise dd20_format_validation.DD20FormatError(error_message)
+
     data_line = DD20LineDataframeParser(df_line=dd20_dataframe_dict[sheetname_linedata])
 
     # Combining station and line data into a list of objects, where each object represents an AC-line
