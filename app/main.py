@@ -192,7 +192,7 @@ if __name__ == "__main__":
             "MRID_MAPPING_FILEPATH", MRID_MAPPING_FILEPATH_DEFAULT
         )
     except Exception:
-        raise ValueError(f"Error while loading one or more file paths.")
+        raise ValueError("Error while loading one or more file paths.")
 
     # Set up mocking of data by using test files for input, if mock flag is set true
     if os.environ.get("USE_MOCK_DATA", "FALSE").upper() == "FALSE":
@@ -213,7 +213,7 @@ if __name__ == "__main__":
         api_port = int(os.environ.get("API_PORT", "5000"))
         api_dbname = os.environ.get("API_DBNAME", "CONDUCTOR_DATA").upper()
     except Exception:
-        raise ValueError(f"Invalid API config (PORT and/or DBNAME)")
+        raise ValueError("Invalid API config (PORT and/or DBNAME)")
 
     log.info("Collecting conductor data and exposing it via API.")
 
