@@ -303,7 +303,7 @@ class DD20StationDataframeParser:
                 & ~self.__df_station_source[self.__acline_name_col_nm].isin(
                     acline_parallel_dd20_names
                 )
-            ]
+            ].copy()
             """
             4. cleaning frame by:
             - Removing (N) from values in AC-line name column
@@ -561,7 +561,7 @@ class DD20LineDataframeParser:
                         ".", na=False
                     )
                 )
-            ]
+            ].copy()
             """
             Cleaning frame by:
             - Removing (N) from values in AC-line name column
