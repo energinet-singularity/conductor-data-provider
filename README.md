@@ -105,6 +105,10 @@ Please submit an issue or ask the authors.
 
 ## Version History
 
+* 1.1.1:
+    * Handle missing or bad files
+* 1.1.0:
+    * Add functionality to verify excel-file format/headers
 * 1.0.0:
     * First production-ready version
 
