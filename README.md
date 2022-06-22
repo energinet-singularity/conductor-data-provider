@@ -36,7 +36,7 @@ The script is intended to be run as a container, so a Dockerfile is provided as 
 ### File handling / Input
 
 Every 60 seconds data from files are parsed, if files has changed since last read.
-The files must fit the agreed structure (examples can be found in the '/tests/valid-testdata/' subfolder), otherwise it will break execution and not be able to recover.
+The files must fit the agreed structure (examples can be found in the '/tests/valid-testdata/' subfolder), otherwise the data cannot be parsed and the API will not return any data.
 
 #### Using MOCK data
 
@@ -105,6 +105,10 @@ Please submit an issue or ask the authors.
 
 ## Version History
 
+* 1.1.1:
+    * Handle missing or bad files
+* 1.1.0:
+    * Add functionality to verify excel-file format/headers
 * 1.0.0:
     * First production-ready version
 
