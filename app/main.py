@@ -88,7 +88,8 @@ class ACLineSegmentProperties:
             mrid_mapping_filepath,
             parse_aclineseg_scada_csvdata_to_dataframe,
         )
-        self.dataframe = None
+        self.dataframe: pd.DataFrame = pd.DataFrame()
+        self.__data_updated: bool = False
 
         if refresh_data:
             self.refresh_data()
@@ -119,50 +120,51 @@ class ACLineSegmentProperties:
         pd.DataFrame
             Will return the combined dataframe
         """
-        log.info("Checking if files has updated and data refreh is needed.")
-        data_change = False
-
-        # Check for updates to the files, and reload data as needed
-        for input in [self.__DD20, self.__DD20_MAP, self.__MRID_MAP]:
-            try:
+        # Deprecation warning: The "refresh_data" method should not
+        # invoke update or return a dataframe. Change this later!
+        try:
+            for input in [self.__DD20, self.__DD20_MAP, self.__MRID_MAP]:
                 file_update_time = os.path.getmtime(input.path)
 
                 if file_update_time != input.mtime:
                     log.info(f"Updating {input.name} file")
                     input.dataframe = input.func(file_path=input.path)
-            except Exception as e:
-                log.error(f"Parsing {input.name} failed.")
-                log.exception(e)
-                input.dataframe = pd.DataFrame()
-            else:
-                if file_update_time != input.mtime:
-                    data_change = True
                     input.mtime = file_update_time
+                    self.__data_updated = True
+        except Exception as e:
+            log.error("Parsing of input file failed.")
+            log.exception(e)
 
-        # Combine data into common dataframe
+        # This try should propably be removed at next major version bump
         try:
-            if data_change:
-                log.info("One or more files changed, refreshing API data.")
-                obj_list = [self.__DD20, self.__DD20_MAP, self.__MRID_MAP]
-                if any(obj.dataframe.empty for obj in obj_list):
-                    log.error(
-                        "Cannot calculate common dataframe, as " +
-                        "one or more underlying dataframes are missing"
-                    )
-                else:
-                    self.dataframe = create_aclinesegment_dataframe(
-                        dd20_data=self.__DD20.dataframe,
-                        dd20_to_scada_name_map=self.__DD20_MAP.dataframe,
-                        scada_aclinesegment_map=self.__MRID_MAP.dataframe,
-                    )
+            if self.__data_updated:
+                self.__data_updated = False
+                self.join_dataframes()
+        except Exception as e:
+            log.error("Parsing of input file failed.")
+            log.exception(e)
+
+        # Return should probably be removed at next major version bump
+        return self.dataframe
+
+    def join_dataframes(self):
+        try:
+            obj_list = [self.__DD20, self.__DD20_MAP, self.__MRID_MAP]
+            if any(obj.dataframe.empty for obj in obj_list):
+                raise ValueError(
+                    "Cannot calculate common dataframe, as " +
+                    "one or more underlying dataframes are missing"
+                )
             else:
-                log.info("Files haven't changed, refresh of API not needed.")
+                self.dataframe = create_aclinesegment_dataframe(
+                    dd20_data=self.__DD20.dataframe,
+                    dd20_to_scada_name_map=self.__DD20_MAP.dataframe,
+                    scada_aclinesegment_map=self.__MRID_MAP.dataframe,
+                )
         except Exception as e:
             log.error("Create dataframe with AC-linesegment properties failed")
             log.exception(e)
             raise e
-
-        return self.dataframe
 
 
 def setup_logging(debug: Union[str, bool] = False):
