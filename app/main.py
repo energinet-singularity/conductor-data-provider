@@ -11,11 +11,11 @@ import pandas as pd
 from pydantic import ValidationError
 
 # App modules
+from configuration import DD20Settings
 from helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
 from helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dataframe
 from helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
 from helpers.combine_data import create_aclinesegment_dataframe
-from helpers.dd20_configuration import DD20Settings
 
 # Initialize log
 log = logging.getLogger(__name__)
@@ -207,7 +207,7 @@ if __name__ == "__main__":
     log.info("Collecting conductor data and preparing dataframe.")
     conductor_data = ACLineSegmentProperties(
         dd20_filepath=settings.dd20_filepath,
-        dd20_mapping_filepath=settings.mapping_filepath,
+        dd20_mapping_filepath=settings.dd20_mapping_filepath,
         mrid_mapping_filepath=settings.mrid_mapping_filepath,
     )
 
