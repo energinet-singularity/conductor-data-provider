@@ -1,5 +1,6 @@
 pandas>=1.4.1
 openpyxl>=3.0.9
 deepdiff>=5.8.0
+python-dotenv>=0.20.0
 pydantic>=1.9.1
 git+https://github.com/energinet-singularity/singupy.git#egg=singupy
