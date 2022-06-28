@@ -25,13 +25,18 @@ The script is intended to be run as a container, so a Dockerfile is provided as 
 
 | Name | Default value | Description |
 |--|--|--|
-|DEBUG|(not set)|Set to 'TRUE' to enable very verbose debugging log|
+|DEBUG|False|Set to 'TRUE' to enable very verbose debugging log|
+|STATION_DATA_VALID_HASH| |hash value for decting dd20 format change in station data sheet |
+|LINE_DATA_VALID_HASH| |hash value for decting dd20 format change in line data sheet |
 |DD20_FILEPATH|/input/DD20.XLSM|Filepath for "DD20" excel-file|
 |DD20_MAPPING_FILEPATH|/input/Limits_other.xlsx|Filepath for "DD20 name to SCADA AC-line name mapping" excel-file.|
 |MRID_MAPPING_FILEPATH|/input/seg_line_mrid_PROD.csv|Filepath for "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.|
+|MOCK_DD20_FILEPATH|tests/valid-testdata/DD20.XLSM|Filepath for "DD20" excel-file|
+|MOCK_DD20_MAPPING_FILEPATH|tests/valid-testdata/Limits_other.xlsx|Filepath for "DD20 name to SCADA AC-line name mapping" excel-file.|
+|MOCK_MRID_MAPPING_FILEPATH|tests/valid-testdata/seg_line_mrid_PROD.csv|Filepath for "AC-line name to AC-linesegment MRID mapping" csv-file from SCADA system.|
 |API_PORT|5000|Port for exposing REST API|
 |API_DBNAME|CONDUCTOR_DATA|Name of database exposed via REST API|
-|USE_MOCK_DATA|(not set)|Set to 'TRUE' to enable creating mock forecast files|
+|USE_MOCK_DATA|False|Set to 'TRUE' to enable creating mock forecast files|
 
 ### File handling / Input
 

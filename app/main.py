@@ -8,8 +8,10 @@ from typing import Union
 # Modules
 from singupy import api as singuapi
 import pandas as pd
+from pydantic import ValidationError
 
 # App modules
+from configuration import DD20Settings
 from helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
 from helpers.parse_namemap import parse_acline_namemap_excelsheet_to_dataframe
 from helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
@@ -152,8 +154,8 @@ class ACLineSegmentProperties:
             obj_list = [self.__DD20, self.__DD20_MAP, self.__MRID_MAP]
             if any(obj.dataframe.empty for obj in obj_list):
                 raise ValueError(
-                    "Cannot calculate common dataframe, as " +
-                    "one or more underlying dataframes are missing"
+                    "Cannot calculate common dataframe, as "
+                    + "one or more underlying dataframes are missing"
                 )
             else:
                 self.dataframe = create_aclinesegment_dataframe(
@@ -171,9 +173,8 @@ def setup_logging(debug: Union[str, bool] = False):
     """Function which sets up properties for logging."""
     if debug == "FALSE" or debug is False:
         # __main__ will output INFO-level, everything else stays at WARNING
-        logging.basicConfig(
-            format="%(levelname)s:%(asctime)s:%(name)s - %(message)s"
-        )
+        LOGFORMAT = "%(levelname)s:%(asctime)s:%(name)s - %(message)s"
+        logging.basicConfig(format=LOGFORMAT)
         logging.getLogger(__name__).setLevel(logging.INFO)
     elif debug == "TRUE" or debug is True:
         # Set EVERYTHING to DEBUG level
@@ -191,73 +192,40 @@ def setup_logging(debug: Union[str, bool] = False):
 if __name__ == "__main__":
 
     time_begin = time()
-    setup_logging(os.environ.get("DEBUG", "FALSE").upper())
+
+    log.info("Loading environment variables in to DD20Settings.")
+    try:
+
+        settings = DD20Settings()
+    except ValidationError as validation_error:
+        log.error(validation_error.errors)
+        raise validation_error
+    except Exception as error:
+        log.error(error.errors)
+        raise ValueError("Error while reading application settings.")
+
+    setup_logging(settings.debug)
+
+    log.info("Collecting conductor data and preparing dataframe.")
+    conductor_data = ACLineSegmentProperties(
+        dd20_filepath=settings.dd20_filepath,
+        dd20_mapping_filepath=settings.dd20_mapping_filepath,
+        mrid_mapping_filepath=settings.mrid_mapping_filepath,
+    )
 
     log.info("Starting conductor data provider API.")
-
-    # Default values for file paths
-    DD20_FILEPATH_DEFAULT = "/input/DD20.XLSM"
-    DD20_MAPPING_FILEPATH_DEFAULT = "/input/Limits_other.xlsx"
-    MRID_MAPPING_FILEPATH_DEFAULT = "/input/seg_line_mrid_PROD.csv"
-
-    # Refresh rate for checking if new data is available from files
-    REFRESH_RATE_API_INPUT = 60
-
-    # Load file paths from env vars - or use defaults
-    log.info("Loading environment variables.")
-    try:
-        dd20_filepath = os.environ.get("DD20_FILEPATH", DD20_FILEPATH_DEFAULT)
-        dd20_mapping_filepath = os.environ.get(
-            "DD20_MAPPING_FILEPATH", DD20_MAPPING_FILEPATH_DEFAULT
-        )
-        mrid_mapping_filepath = os.environ.get(
-            "MRID_MAPPING_FILEPATH", MRID_MAPPING_FILEPATH_DEFAULT
-        )
-    except Exception:
-        raise ValueError("Error while loading one or more file paths.")
-
-    # Setup mock data by using test files for input, if mock flag is set true
-    if os.environ.get("USE_MOCK_DATA", "FALSE").upper() == "FALSE":
-        pass
-    elif os.environ["USE_MOCK_DATA"].upper() == "TRUE":
-        # Mock-data will overrule file paths
-        dd20_filepath = "/test-data/DD20.XLSM"
-        dd20_mapping_filepath = "/test-data/Limits_other.xlsx"
-        mrid_mapping_filepath = "/test-data/seg_line_mrid_PROD.csv"
-    else:
-        raise ValueError(
-            "'USE_MOCK_DATA' env. variable has been set to " +
-            f"'{os.environ['USE_MOCK_DATA']}'" +
-            " but must be either 'TRUE', 'FALSE' or unset."
-        )
-
-    # Load environment variables for API
-    try:
-        api_port = int(os.environ.get("API_PORT", "5000"))
-        api_dbname = os.environ.get("API_DBNAME", "CONDUCTOR_DATA").upper()
-    except Exception:
-        raise ValueError("Invalid API config (PORT and/or DBNAME)")
-
-    log.info("Collecting conductor data and exposing it via API.")
-
-    # Collect data
-    conductor_data = ACLineSegmentProperties(
-        dd20_filepath=dd20_filepath,
-        dd20_mapping_filepath=dd20_mapping_filepath,
-        mrid_mapping_filepath=mrid_mapping_filepath,
-    )
-
-    # Expose data via API
     conductor_api = singuapi.DataFrameAPI(
-        conductor_data.dataframe, dbname=api_dbname, port=api_port
+        conductor_data.dataframe,
+        dbname=settings.api_dbname,
+        port=settings.api_port,
     )
     log.info(
-        f"API initialized on port '{conductor_api.web.port}' " +
-        "with dbname '{api_dbname}'."
+        f"API initialized on port '{conductor_api.web.port}' "
+        + f"with dbname '{settings.api_dbname}'."
     )
-    log.info(f"Started up in {round(time()-time_begin,3)} seconds")
+    log.debug(f"Started up in {round(time()-time_begin,3)} seconds")
 
     # Loop eternally and refresh data if files change
     while True:
-        sleep(REFRESH_RATE_API_INPUT)
-        conductor_api[api_dbname] = conductor_data.refresh_data()
+        sleep(settings.api_refresh_rate)
+        conductor_api[settings.api_dbname] = conductor_data.refresh_data()
