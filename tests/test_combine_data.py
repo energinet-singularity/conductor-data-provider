@@ -13,10 +13,15 @@ from helpers.parse_mrid_map import parse_aclineseg_scada_csvdata_to_dataframe
 from helpers.combine_data import create_aclinesegment_dataframe
 
 
+
+
 def test_create_aclinesegment_dataframe():
     """
     Verifies creation of aclinesegment dataframe
     """
+
+    STATION_DATA_VALID_HASH = "94d5d5019d83350980b49e884159b215"
+    LINE_DATA_VALID_HASH = "86e61101fa327e1b4f769c26300be01f"
 
     # arrange expected dataframe
     expected_aclinesegment_dataframe_dict = {
@@ -82,7 +87,11 @@ def test_create_aclinesegment_dataframe():
     dd20_file_path = (
         f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM"
     )
-    dd20_dataframe = parse_dd20_excelsheets_to_dataframe(file_path=dd20_file_path)
+    dd20_dataframe = parse_dd20_excelsheets_to_dataframe(
+        file_path=dd20_file_path,
+        line_data_valid_hash=LINE_DATA_VALID_HASH,
+        station_data_valid_hash=STATION_DATA_VALID_HASH
+    )
 
     name_mapping_filepath = f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/Limits_other.xlsx"
     acline_namemap_dataframe = parse_acline_namemap_excelsheet_to_dataframe(

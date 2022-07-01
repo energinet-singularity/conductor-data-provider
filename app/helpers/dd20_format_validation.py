@@ -22,8 +22,7 @@ def validate_dd20_format(data_frame: pd.DataFrame, expected_hash: str) -> bool:
 
 def calculate_dd20_format_hash(data_frame: pd.DataFrame) -> str:
     """
-    summarizes the hash value for each cell in row
-    1,2 (zero indexed) (which are considered static header rows).
+    summarizes the hash value for each cell in the (header row/column row).
     We do this to try to detect if the file format has changed.
 
     Parameters
@@ -37,12 +36,10 @@ def calculate_dd20_format_hash(data_frame: pd.DataFrame) -> str:
         the hash value of the headers of the dd20 sheet
 
     """
+    headers = data_frame.columns
 
-    DD20_HEADER_ROWS = [1, 2]
-
-    rows = data_frame.iloc[DD20_HEADER_ROWS, :]
-    rows_encoded = rows.to_string().encode()
-    dd20_header_hash = hashlib.md5(rows_encoded).hexdigest()
+    header_names = str(list(headers)).encode()
+    dd20_header_hash = hashlib.md5(header_names).hexdigest()
 
     return dd20_header_hash
 

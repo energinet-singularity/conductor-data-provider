@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/energinet-singularity/conductor-data-provider/energinet-singularity/conductor-data-provider
   pullPolicy: IfNotPresent
-  tag: "1.2.1"
+  tag: "1.2.2"
 
 # Setup PVC
 conductorInputVolume: 
@@ -75,8 +75,8 @@ EnvVars:
   #MOCK_DD20_FILEPATH: "/other/place/file.xlsm"
   #MOCK_MAPPING_FILEPATH: "/this/place/file.xlsx"
   #MOCK_MRID_MAPPING_FILEPATH: "/new/place/file.csv"
-  #STATION_FORMAT_HASH: ""
-  #AC_LINE_FORMAT_HASH: ""
+  #STATION_DATAT_VALID_HASH: ""
+  #LINE_DATA_VALID_HASH: ""
 
 #Default settings not used in this setup
 imagePullSecrets: []

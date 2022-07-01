@@ -467,7 +467,7 @@ class DD20LineDataframeParser:
         """
 
         # Init of parameters
-        self.__df_line_soruce = df_line
+        self.__df_line_source = df_line
         self.__acline_name_col_nm = acline_name_col_nm
         self.__kv_col_nm = kv_col_nm
         self.__acline_lim_continuous_col_nm = acline_lim_continuous_col_nm
@@ -553,11 +553,11 @@ class DD20LineDataframeParser:
             - Removing rows not containing '-', since AC-line names always contain this character
             - Remove single part of parallel AC-line representation from sheet (AC-lines with . in antal sys)
             """
-            df_line_filtered = self.__df_line_soruce[
-                (self.__df_line_soruce[self.__acline_name_col_nm].notna())
-                & (self.__df_line_soruce[self.__acline_name_col_nm].str.contains("-"))
+            df_line_filtered = self.__df_line_source[
+                (self.__df_line_source[self.__acline_name_col_nm].notna())
+                & (self.__df_line_source[self.__acline_name_col_nm].str.contains("-"))
                 & ~(
-                    self.__df_line_soruce[self.__system_count_col_nm].str.contains(
+                    self.__df_line_source[self.__system_count_col_nm].str.contains(
                         ".", na=False
                     )
                 )
@@ -830,8 +830,8 @@ def parse_dd20_excelsheets_to_dataframe(
     header_index: int = 1,
     sheetname_linedata: str = "Linjedata - Sommer",
     sheetname_stationsdata: str = "Stationsdata",
-    line_data_valid_hash: str = "d1408314abb87bfb0c0b1e7665338575",
-    station_data_valid_hash: str = "3623a788db1ed713d67511241737cf05"
+    line_data_valid_hash: str = "86e61101fa327e1b4f769c26300be01f",
+    station_data_valid_hash: str = "6ac10cff51c6dbc586e729e10b943854"
 ) -> pd.DataFrame:
     """
     Extract conductor data from DD20 excel-sheets and return it to one combined dataframe.
@@ -847,10 +847,10 @@ def parse_dd20_excelsheets_to_dataframe(
         (optional) Name of excel sheet in DD20 containing line data.
     sheetname_stationdata : str, Default = "Stationsdata"
         (optional) Name of excel sheet in DD20 containing station data.
-    line_data_valid_hash : str, Default = "d1408314abb87bfb0c0b1e7665338575"
+    line_data_valid_hash : str, Default = "86e61101fa327e1b4f769c26300be01f"
         Hash value of the header rows in the dd20 line sheet,
         used to detect a change in file format.
-    station_data_valid_hash : str, Default =  "3623a788db1ed713d67511241737cf05"
+    station_data_valid_hash : str, Default =  "6ac10cff51c6dbc586e729e10b943854"
         Hash value of the header rows in the dd20 station sheet,
         used to detect a change in file format.
     Returns

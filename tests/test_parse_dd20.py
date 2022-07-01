@@ -24,6 +24,8 @@ DD20_SHEETNAME_LINJEDATA = "Linjedata - Sommer"
 DD20_FILE_PATH = (
     f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM"
 )
+STATION_DATA_VALID_HASH = "94d5d5019d83350980b49e884159b215"
+LINE_DATA_VALID_HASH = "86e61101fa327e1b4f769c26300be01f"
 
 
 # fixture for DD20
@@ -314,7 +316,9 @@ def test_parse_dd20_excelsheets_to_dataframe(dd20_data):
 
     # parse data
     resulting_dd20_dataframe = parse_dd20_excelsheets_to_dataframe(
-        file_path=DD20_FILE_PATH
+        file_path=DD20_FILE_PATH,
+        line_data_valid_hash=LINE_DATA_VALID_HASH,
+        station_data_valid_hash=STATION_DATA_VALID_HASH
     )
     resulting_dd20_dataframe_columns = resulting_dd20_dataframe.columns.to_list()
     resulting_acline_name_datasource = resulting_dd20_dataframe[

@@ -11,6 +11,7 @@ import pandas as pd
 import pytest
 import helpers.dd20_format_validation as validators
 from helpers.parse_dd20 import parse_dd20_excelsheets_to_dataframe
+from app.configuration import DD20Settings
 
 STATION_DATA_SHEET_NAME = "Stationsdata"
 LINE_DATA_SHEET_NAME = "Linjedata - Sommer"
@@ -18,8 +19,11 @@ LINE_DATA_SHEET_NAME = "Linjedata - Sommer"
 
 @pytest.fixture
 def dd20_data_frames() -> pd.DataFrame:
+
+    settings = DD20Settings()
+
     dd20_file_path = (
-        f"{os.path.dirname(os.path.realpath(__file__))}/valid-testdata/DD20.XLSM"
+        f"{os.path.dirname(os.path.realpath(__file__))}/{settings.mock_dd20_filepath}"
     )
     sheets = [STATION_DATA_SHEET_NAME, LINE_DATA_SHEET_NAME]
     header_index = 1
@@ -34,7 +38,7 @@ def dd20_data_frames() -> pd.DataFrame:
 
 
 def test_can_validate_dd20_line_data_summer_format(dd20_data_frames):
-    expected_hash = "d1408314abb87bfb0c0b1e7665338575"
+    expected_hash = "86e61101fa327e1b4f769c26300be01f"
     dd20_line_data_summer_data_frame = dd20_data_frames[LINE_DATA_SHEET_NAME]
     _hash = validators.calculate_dd20_format_hash(dd20_line_data_summer_data_frame)
 
@@ -44,8 +48,8 @@ def test_can_validate_dd20_line_data_summer_format(dd20_data_frames):
     )
 
 
-def test_can_validate_dd20_line_data_station_format(dd20_data_frames):
-    expected_hash = "3623a788db1ed713d67511241737cf05"
+def test_can_validate_dd20_station_data_format(dd20_data_frames):
+    expected_hash = "94d5d5019d83350980b49e884159b215"
 
     dd20_line_data_station_data_frame = dd20_data_frames[STATION_DATA_SHEET_NAME]
     _hash = validators.calculate_dd20_format_hash(dd20_line_data_station_data_frame)
