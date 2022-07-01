@@ -6,14 +6,14 @@ class DD20Settings(BaseSettings):
 
     debug: bool = False
     use_mock_data: bool = False
-    mock_dd20_filepath: str = "tests/valid-testdata/DD20.XLSM"
-    mock_dd20_mapping_filepath: str = "tests/valid-testdata/Limits_other.xlsx"
-    mock_mrid_mapping_filepath: str = "tests/valid-testdata/seg_line_mrid_PROD.csv"
+    mock_dd20_filepath: str = "valid-testdata/DD20.XLSM"
+    mock_dd20_mapping_filepath: str = "valid-testdata/Limits_other.xlsx"
+    mock_mrid_mapping_filepath: str = "valid-testdata/seg_line_mrid_PROD.csv"
     dd20_filepath: str = "/input/DD20.XLSM"
     dd20_mapping_filepath: str = "/input/Limits_other.xlsx"
     mrid_mapping_filepath: str = "/input/seg_line_mrid_PROD.csv"
-    station_data_valid_hash: str = "3623a788db1ed713d67511241737cf05"
-    line_data_valid_hash: str = "d1408314abb87bfb0c0b1e7665338575"
+    station_data_valid_hash: str = "6ac10cff51c6dbc586e729e10b943854"
+    line_data_valid_hash: str = "86e61101fa327e1b4f769c26300be01f"
     api_port: int = 5000
     api_dbname: str = "CONDUCTOR_DATA"
     api_refresh_rate: float = 60
