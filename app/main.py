@@ -142,6 +142,7 @@ class ACLineSegmentProperties:
             if self.__data_updated:
                 self.__data_updated = False
                 self.join_dataframes()
+                log.info("Conductor data was refreshed.")
         except Exception as e:
             log.error("Parsing of input file failed.")
             log.exception(e)
