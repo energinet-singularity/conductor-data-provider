@@ -64,9 +64,8 @@ def create_aclinesegment_dataframe(
             for x in dd20_data[translated_acline_name_col_nm]
         ]
 
-        # Create new column in DD20 data with mapped names and drop column with translated names
+        # Update column in DD20 data with mapped names
         dd20_data[scada_acline_name_col_nm] = mapped_name_list
-        dd20_data.drop(columns=[translated_acline_name_col_nm], inplace=True)
 
         # Extract lists of unique line names from conductor and SCADA dataframe
         aclines_in_dd20_data = set(dd20_data[scada_acline_name_col_nm].to_list())
@@ -97,6 +96,9 @@ def create_aclinesegment_dataframe(
             on=scada_acline_name_col_nm,
             how="inner",
         )
+
+        # drop column with translated names
+        dlr_dataframe.drop(columns=[translated_acline_name_col_nm], inplace=True)
 
         # Force uppercase on all column names
         dlr_dataframe.columns = dlr_dataframe.columns.str.upper()
