@@ -79,9 +79,9 @@ def create_aclinesegment_dataframe(
             scada_aclinesegment_map[dlr_enabled_col_nm], scada_acline_name_col_nm
         ].to_list()
 
-        # Log line names which are in DD20, but not SCADA as warning
+        # Log line names which are in DD20, but not SCADA as info
         for acline in [acline_name for acline_name in aclines_in_dd20_data if acline_name not in aclines_in_scada_data]:
-            log.warning(f"Line with name '{acline}' was found in conductor data but not in SCADA data.")
+            log.info(f"Line with name '{acline}' was found in conductor data but not in SCADA data.")
 
         # Log line names which are in SCADA, but not DD20 as info
         for acline in [acline_name for acline_name in aclines_in_scada_data if acline_name not in aclines_in_dd20_data]:
