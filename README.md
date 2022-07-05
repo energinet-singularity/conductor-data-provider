@@ -110,6 +110,8 @@ Please submit an issue or ask the authors.
 
 ## Version History
 
+* 1.2.3:
+    * Handle update for single files.
 * 1.1.1:
     * Handle missing or bad files
 * 1.1.0:

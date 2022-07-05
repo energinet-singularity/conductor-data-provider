@@ -64,9 +64,8 @@ def create_aclinesegment_dataframe(
             for x in dd20_data[translated_acline_name_col_nm]
         ]
 
-        # Create new column in DD20 data with mapped names and drop column with translated names
+        # Update column in DD20 data with mapped names
         dd20_data[scada_acline_name_col_nm] = mapped_name_list
-        dd20_data.drop(columns=[translated_acline_name_col_nm], inplace=True)
 
         # Extract lists of unique line names from conductor and SCADA dataframe
         aclines_in_dd20_data = set(dd20_data[scada_acline_name_col_nm].to_list())
@@ -79,9 +78,9 @@ def create_aclinesegment_dataframe(
             scada_aclinesegment_map[dlr_enabled_col_nm], scada_acline_name_col_nm
         ].to_list()
 
-        # Log line names which are in DD20, but not SCADA as warning
+        # Log line names which are in DD20, but not SCADA as info
         for acline in [acline_name for acline_name in aclines_in_dd20_data if acline_name not in aclines_in_scada_data]:
-            log.warning(f"Line with name '{acline}' was found in conductor data but not in SCADA data.")
+            log.info(f"Line with name '{acline}' was found in conductor data but not in SCADA data.")
 
         # Log line names which are in SCADA, but not DD20 as info
         for acline in [acline_name for acline_name in aclines_in_scada_data if acline_name not in aclines_in_dd20_data]:
@@ -97,6 +96,9 @@ def create_aclinesegment_dataframe(
             on=scada_acline_name_col_nm,
             how="inner",
         )
+
+        # drop column with translated names
+        dlr_dataframe.drop(columns=[translated_acline_name_col_nm], inplace=True)
 
         # Force uppercase on all column names
         dlr_dataframe.columns = dlr_dataframe.columns.str.upper()
