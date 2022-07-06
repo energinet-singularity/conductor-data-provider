@@ -6,9 +6,9 @@ class DD20Settings(BaseSettings):
 
     debug: bool = False
     use_mock_data: bool = False
-    mock_dd20_filepath: str = "valid-testdata/DD20.XLSM"
-    mock_dd20_mapping_filepath: str = "valid-testdata/Limits_other.xlsx"
-    mock_mrid_mapping_filepath: str = "valid-testdata/seg_line_mrid_PROD.csv"
+    mock_dd20_filepath: str = "tests/valid-testdata/DD20.XLSM"
+    mock_dd20_mapping_filepath: str = "tests/valid-testdata/Limits_other.xlsx"
+    mock_mrid_mapping_filepath: str = "tests/valid-testdata/seg_line_mrid_PROD.csv"
     dd20_filepath: str = "/input/DD20.XLSM"
     dd20_mapping_filepath: str = "/input/Limits_other.xlsx"
     mrid_mapping_filepath: str = "/input/seg_line_mrid_PROD.csv"
