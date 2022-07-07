@@ -14,7 +14,7 @@ RUN pip3 install --upgrade pip && \
 
 # Copy required files into container
 COPY app/ /app/
-COPY tests/valid-testdata/* /tests/valid-testdata/
+COPY tests/valid-testdata/* /valid-testdata/
 
 EXPOSE 5000
 

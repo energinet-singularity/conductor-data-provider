@@ -196,7 +196,6 @@ if __name__ == "__main__":
 
     log.info("Loading environment variables in to DD20Settings.")
     try:
-
         settings = DD20Settings()
     except ValidationError as validation_error:
         log.error(validation_error.errors)
