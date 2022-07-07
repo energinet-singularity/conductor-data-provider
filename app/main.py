@@ -53,6 +53,8 @@ class ACLineSegmentProperties:
         name: str
         path: str
         func: callable
+        line_data_valid_hash: str
+        station_data_valid_hash: str
         dataframe: pd.DataFrame = None
         mtime: float = None
 
@@ -61,6 +63,8 @@ class ACLineSegmentProperties:
         dd20_filepath: str,
         dd20_mapping_filepath: str,
         mrid_mapping_filepath: str,
+        dd20_line_data_valid_hash: str,
+        dd20_station_data_valid_hash: str,
         refresh_data: bool = True,
     ):
         """
@@ -74,21 +78,27 @@ class ACLineSegmentProperties:
             Path of the mapping excel-file between DD20 and SCADA names
         mrid_mapping_filepath : str
             Path of the mapping csv-file between Line name and MRID
+        line_data_valid_hash : str
+            Hash value of the header rows in the dd20 line sheet,
+            used to detect a change in file format.
+        station_data_valid_hash : str
+            Hash value of the header rows in the dd20 station sheet,
+            used to detect a change in file format.
         refresh_data : bool, default: True
             If True data will automatically be loaded at instantiation
         """
         self.__DD20 = self.__Metadata(
-            "DD20", dd20_filepath, parse_dd20_excelsheets_to_dataframe
+            name = "DD20", path = dd20_filepath, func = parse_dd20_excelsheets_to_dataframe, line_data_valid_hash = dd20_line_data_valid_hash, station_data_valid_hash = dd20_station_data_valid_hash
         )
         self.__DD20_MAP = self.__Metadata(
             "DD20 name mapping",
             dd20_mapping_filepath,
-            parse_acline_namemap_excelsheet_to_dataframe,
+            parse_acline_namemap_excelsheet_to_dataframe, line_data_valid_hash = "", station_data_valid_hash = ""
         )
         self.__MRID_MAP = self.__Metadata(
             "MRID mapping",
             mrid_mapping_filepath,
-            parse_aclineseg_scada_csvdata_to_dataframe,
+            parse_aclineseg_scada_csvdata_to_dataframe, line_data_valid_hash = "", station_data_valid_hash = ""
         )
         self.dataframe: pd.DataFrame = pd.DataFrame()
         self.__data_updated: bool = False
@@ -130,7 +140,10 @@ class ACLineSegmentProperties:
 
                 if file_update_time != input.mtime:
                     log.info(f"Updating {input.name} file")
-                    input.dataframe = input.func(file_path=input.path)
+                    if input.name == "DD20":
+                        input.dataframe = input.func(file_path=input.path, line_data_valid_hash=input.line_data_valid_hash, station_data_valid_hash=input.station_data_valid_hash)
+                    else:
+                        input.dataframe = input.func(file_path=input.path)
                     input.mtime = file_update_time
                     self.__data_updated = True
         except Exception as e:
@@ -211,6 +224,8 @@ if __name__ == "__main__":
         dd20_filepath=settings.dd20_filepath,
         dd20_mapping_filepath=settings.dd20_mapping_filepath,
         mrid_mapping_filepath=settings.mrid_mapping_filepath,
+        dd20_line_data_valid_hash=settings.line_data_valid_hash,
+        dd20_station_data_valid_hash=settings.station_data_valid_hash
     )
 
     log.info("Starting conductor data provider API.")

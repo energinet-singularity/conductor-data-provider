@@ -827,11 +827,12 @@ def DD20_to_acline_properties_mapper(
 
 def parse_dd20_excelsheets_to_dataframe(
     file_path: str,
+    station_data_valid_hash: str,
+    line_data_valid_hash: str,
     header_index: int = 1,
     sheetname_linedata: str = "Linjedata - Sommer",
-    sheetname_stationsdata: str = "Stationsdata",
-    line_data_valid_hash: str = "86e61101fa327e1b4f769c26300be01f",
-    station_data_valid_hash: str = "6ac10cff51c6dbc586e729e10b943854"
+    sheetname_stationsdata: str = "Stationsdata"
+    
 ) -> pd.DataFrame:
     """
     Extract conductor data from DD20 excel-sheets and return it to one combined dataframe.
@@ -847,10 +848,10 @@ def parse_dd20_excelsheets_to_dataframe(
         (optional) Name of excel sheet in DD20 containing line data.
     sheetname_stationdata : str, Default = "Stationsdata"
         (optional) Name of excel sheet in DD20 containing station data.
-    line_data_valid_hash : str, Default = "86e61101fa327e1b4f769c26300be01f"
+    line_data_valid_hash : str
         Hash value of the header rows in the dd20 line sheet,
         used to detect a change in file format.
-    station_data_valid_hash : str, Default =  "6ac10cff51c6dbc586e729e10b943854"
+    station_data_valid_hash : str
         Hash value of the header rows in the dd20 station sheet,
         used to detect a change in file format.
     Returns
