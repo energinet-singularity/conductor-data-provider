@@ -110,6 +110,8 @@ Please submit an issue or ask the authors.
 
 ## Version History
 
+* 1.2.5:
+    * HASH values for DD20 can now be configured via environment variables.
 * 1.2.3:
     * Handle update for single files.
 * 1.1.1:
