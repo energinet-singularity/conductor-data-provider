@@ -6,9 +6,11 @@ class DD20Settings(BaseSettings):
 
     debug: bool = False
     use_mock_data: bool = False
-    mock_dd20_filepath: str = "valid-testdata/DD20.XLSM"
-    mock_dd20_mapping_filepath: str = "valid-testdata/Limits_other.xlsx"
-    mock_mrid_mapping_filepath: str = "valid-testdata/seg_line_mrid_PROD.csv"
+    mock_dd20_filepath: str = "/valid-testdata/DD20.XLSM"
+    mock_dd20_mapping_filepath: str = "/valid-testdata/Limits_other.xlsx"
+    mock_mrid_mapping_filepath: str = "/valid-testdata/seg_line_mrid_PROD.csv"
+    mock_station_data_valid_hash: str = "94d5d5019d83350980b49e884159b215"
+    mock_line_data_valid_hash: str = "86e61101fa327e1b4f769c26300be01f"
     dd20_filepath: str = "/input/DD20.XLSM"
     dd20_mapping_filepath: str = "/input/Limits_other.xlsx"
     mrid_mapping_filepath: str = "/input/seg_line_mrid_PROD.csv"
@@ -28,6 +30,8 @@ class DD20Settings(BaseSettings):
             values["dd20_filepath"] = values["mock_dd20_filepath"]
             values["dd20_mapping_filepath"] = values["mock_dd20_mapping_filepath"]
             values["mrid_mapping_filepath"] = values["mock_mrid_mapping_filepath"]
+            values["station_data_valid_hash"] = values["mock_station_data_valid_hash"]
+            values["line_data_valid_has"] = values["mock_line_data_valid_hash"]
 
         return values
 
