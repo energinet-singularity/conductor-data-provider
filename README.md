@@ -49,6 +49,32 @@ The files must fit the agreed structure (examples can be found in the '/tests/va
 
 The container has an option to generate mock-data. This is done by taking the test-data files and dumping them into the input directory. This can be used if input files are not available. Be aware that it is dummy data and only intended for illustration of functionality.
 
+### API
+
+The DataFrame is made available through a REST API which accepts SQL-queries. More information on the API itself can be found [here](https://github.com/energinet-singularity/singupy/tree/main/singupy#class-apidataframeapi).
+
+The DataFrame contains the following columns/indexes:
+| Name | type | description |
+|--|--|--|
+|ACLINESEGMENT_MRID|str|MRID of the line|
+|LINE_EMSNAME|str|EMSName of the line|
+|DLR_ENABLED|bool|DLR Enabled True=Yes, False=No|
+|ACLINE_NAME_DATASOURCE|str|Sourcefile name of the line|
+|DATASOURCE|str|Source of the data|
+|CONDUCTOR_TYPE|str|Type of conductor|
+|CONDUCTOR_COUNT|int|Number of conductors|
+|SYSTEM_COUNT|int|Number of systems|
+|MAX_TEMPERATURE|int|Mac temperature of the line|
+|RESTRICT_CONDUCTOR_LIM_CONTINUOUS|int|Conductor continous limit|
+|RESTRICT_COMPONENT_LIM_CONTINUOUS|int|Component continous limit|
+|RESTRICT_COMPONENT_LIM_15M|int|Component 15 min limit|
+|RESTRICT_COMPONENT_LIM_1H|int|Component 1 hour limit|
+|RESTRICT_COMPONENT_LIM_40H|int|Component 40 hour limit|
+|RESTRICT_CABLE_LIM_CONTINUOUS|float|Cable continous limit|
+|RESTRICT_CABLE_LIM_15M|float|Cable 15 min limit|
+|RESTRICT_CABLE_LIM_1H|float|Cable 1 hour limit|
+|RESTRICT_CABLE_LIM_40H|float|Cable 40 hour limit|
+
 ## Getting Started
 
 The quickest way to have something running is through docker (see the section [Running container](#running-container)).
